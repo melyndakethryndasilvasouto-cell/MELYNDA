@@ -86,6 +86,8 @@ test('devocional orienta a IA com NTLH, linguagem infantil e cuidado cristocênt
 
   assert.match(messages[0].content, /perspectiva cristocêntrica/)
   assert.match(messages[0].content, /Nova Tradução na Linguagem de Hoje \(NTLH\)/)
+  assert.match(messages[0].content, /Não use aspas nem apresente nenhuma frase como citação literal/)
+  assert.match(messages[0].content, /apenas como leitura recomendada/)
   assert.match(messages[0].content, /linguagem clara para crianças/)
   assert.match(messages[0].content, /adulto confiável/)
   assert.match(messages[0].content, /Nunca prometa segredo/)
