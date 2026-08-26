@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Volume2, VolumeX, Star } from 'lucide-react'
+import { ArrowLeft, BookHeart, Gamepad2, Volume2, VolumeX, Star } from 'lucide-react'
 import { useSound } from '../../contexts/SoundContext'
 import { usePlayer } from '../../contexts/PlayerContext'
 
@@ -9,42 +9,64 @@ export default function Header() {
   const { isMuted, toggleMute } = useSound()
   const { playerName, playerAvatar } = usePlayer()
   const isHome = location.pathname === '/'
+  const isDevotional = location.pathname === '/devocional'
+  const isMainPage = isHome || isDevotional
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50"
       style={{ background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 2px 12px rgba(107,184,255,0.1)' }}>
-      <div className="max-w-xl mx-auto px-4 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {!isHome ? (
+      <div className="max-w-2xl mx-auto px-3 sm:px-4 h-16 flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          {!isMainPage ? (
             <button
+              type="button"
               onClick={() => navigate('/')}
-              className="flex items-center gap-2 px-3 py-2 rounded-2xl font-bold text-sm active:scale-90 transition-transform"
+              className="flex min-h-11 items-center gap-2 rounded-2xl px-3 py-2 text-sm font-bold transition-transform active:scale-90"
               style={{ background: 'rgba(107,184,255,0.15)', color: '#4A90D9' }}
             >
-              <ArrowLeft size={18} />
+              <ArrowLeft size={18} aria-hidden="true" />
               Menu
             </button>
           ) : (
-            <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="flex min-h-11 min-w-0 items-center gap-1.5 rounded-2xl px-1 text-left transition-transform active:scale-95"
+              aria-label="Ir para os jogos da Bíblia da Mel"
+            >
               <span className="text-2xl animate-float" aria-hidden="true">📖</span>
-              <span className="font-title text-lg" style={{ color: '#7B5EA7' }}>Bíblia da Mel</span>
-            </div>
+              <span className="whitespace-nowrap font-title text-sm sm:text-lg" style={{ color: '#7B5EA7' }}>Bíblia da Mel</span>
+            </button>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          {isHome && playerName && (
-            <div className="flex items-center gap-1 px-3 py-1.5 rounded-2xl text-sm font-bold"
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <button
+            type="button"
+            onClick={() => navigate(isDevotional ? '/' : '/devocional')}
+            aria-current={isDevotional ? 'page' : undefined}
+            className="flex min-h-11 items-center gap-1.5 rounded-2xl px-2.5 text-xs font-black transition-transform active:scale-90 sm:px-3 sm:text-sm"
+            style={{
+              background: isDevotional ? 'linear-gradient(135deg,#6BB8FF,#A78BFA)' : 'rgba(107,184,255,0.15)',
+              color: isDevotional ? '#FFFFFF' : '#5B3A8A',
+            }}
+          >
+            {isDevotional ? <Gamepad2 size={17} aria-hidden="true" /> : <BookHeart size={17} aria-hidden="true" />}
+            {isDevotional ? 'Jogos' : 'Devocional'}
+          </button>
+          {isMainPage && playerName && (
+            <div className="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-2xl text-sm font-bold"
               style={{ background: 'rgba(167,139,250,0.12)', color: '#7B5EA7' }}>
-              <Star size={13} fill="#F59E0B" stroke="#F59E0B" />
+              <Star size={13} fill="#F59E0B" stroke="#F59E0B" aria-hidden="true" />
               <span aria-hidden="true">{playerAvatar}</span>
               {playerName}
             </div>
           )}
           <button
+            type="button"
             onClick={toggleMute}
             aria-label={isMuted ? 'Ativar sons' : 'Silenciar sons'}
-            className="p-2 rounded-2xl active:scale-90 transition-transform"
+            className="flex h-11 w-11 items-center justify-center rounded-2xl transition-transform active:scale-90"
             style={{ background: 'rgba(167,139,250,0.12)', color: '#7B5EA7' }}
           >
             {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}

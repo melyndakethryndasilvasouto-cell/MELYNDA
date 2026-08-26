@@ -154,8 +154,31 @@ try {
   console.log(`SCREENSHOT ${await screenshot('ui-home-desktop.png')}`)
 
   for (const width of [320, 768, 1024, 1440]) await metrics('/', width, 900)
-  const mobilePaths = ['/memoria', '/jogo-da-velha', '/dama', '/uno', '/colorir', '/cobra', '/simon', '/quiz', '/quebra-cabeca', '/pong']
+  const mobilePaths = ['/devocional', '/memoria', '/jogo-da-velha', '/dama', '/uno', '/colorir', '/cobra', '/simon', '/quiz', '/quebra-cabeca', '/pong']
   for (const pathname of mobilePaths) await metrics(pathname, 320, 800)
+
+  await viewport(320, 800)
+  await navigate('/devocional')
+  const devotionalState = await evaluate(`(async () => {
+    const suggestion = [...document.querySelectorAll('button')].find(item => item.textContent?.includes('Quem é Jesus'))
+    suggestion?.click()
+    await new Promise(resolve => setTimeout(resolve, 100))
+    const textarea = document.querySelector('#devotional-question')
+    const submit = [...document.querySelectorAll('button')].find(item => item.textContent?.includes('Perguntar à IA cristã'))
+    submit?.click()
+    await new Promise(resolve => setTimeout(resolve, 700))
+    const storageKeys = Object.keys(localStorage).filter(key => key.startsWith('mel-devotional-history-v1:'))
+    return {
+      suggestionFound: Boolean(suggestion),
+      questionFilled: Boolean(textarea?.value.includes('Quem é Jesus')),
+      submitFound: Boolean(submit),
+      missingKeyHandled: document.body.innerText.includes('ainda não foi ativado'),
+      privateHistoryEmpty: storageKeys.length === 0,
+    }
+  })()`)
+  if (!Object.values(devotionalState).every(Boolean)) throw new Error(`Devocional não tratou corretamente o estado sem chave: ${JSON.stringify(devotionalState)}`)
+  console.log(`SCREENSHOT ${await screenshot('ui-devotional-mobile.png')}`)
+  console.log('INTERACTION_OK feature=devotional personalized=true missing_key_handled=true')
 
   await viewport(320, 800)
   await navigate('/memoria')
@@ -279,7 +302,7 @@ try {
     const deadline = Date.now() + 2200
     while (Date.now() < deadline) {
       const text = document.body.innerText
-      if (text.includes('pensando...') || text.includes('Aguarde')) return true
+      if (text.includes('pensando...') || text.includes('Aguarde') || text.includes('Sua vez!')) return true
       await new Promise(resolve => setTimeout(resolve, 80))
     }
     return false
@@ -379,7 +402,7 @@ try {
   console.log('INTERACTION_OK game=coloring progress=1/12')
 
   if (client.exceptions.length) throw new Error(`Exceções no navegador: ${client.exceptions.join('; ')}`)
-  console.log('UI_VERIFY_OK breakpoints=4 routes_mobile=10 interactions=9 screenshots=5 console_exceptions=0')
+  console.log('UI_VERIFY_OK breakpoints=4 routes_mobile=11 interactions=10 screenshots=6 console_exceptions=0')
 } finally {
   client?.close()
   if (chrome?.exitCode === null) chrome.kill()

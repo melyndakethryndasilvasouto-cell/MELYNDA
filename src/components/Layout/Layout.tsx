@@ -8,7 +8,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     <div className="min-h-screen relative">
       <ParticleBackground />
       <Header />
-      <main className="relative pt-16 pb-10 px-4 max-w-xl mx-auto" style={{ zIndex: 1 }}>
+      <main className="relative pt-20 pb-10 px-4 max-w-xl mx-auto" style={{ zIndex: 1 }}>
         <FaithMissionBanner />
         {children}
       </main>

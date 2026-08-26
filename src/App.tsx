@@ -19,6 +19,7 @@ const SimonSays    = lazy(() => import('./games/SimonSays'))
 const Quiz         = lazy(() => import('./games/Quiz'))
 const SlidingPuzzle = lazy(() => import('./games/SlidingPuzzle'))
 const Pong         = lazy(() => import('./games/Pong'))
+const Devotional   = lazy(() => import('./components/Devotional/DevotionalPage'))
 
 function LoadingGame() {
   return (
@@ -43,6 +44,7 @@ function AppRoutes() {
         <Suspense fallback={<LoadingGame />}>
           <Routes location={location}>
             <Route path="/" element={<HomePage />} />
+            <Route path="/devocional" element={<Devotional />} />
             <Route path="/memoria" element={<Memory />} />
             <Route path="/jogo-da-velha" element={<TicTacToe />} />
             <Route path="/dama" element={<Checkers />} />

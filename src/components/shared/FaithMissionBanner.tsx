@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation } from 'react-router-dom'
 import missions from '../../data/gameMissions.json'
+import { askBibleGuide } from '../../services/bibleGuide'
 
 interface Mission {
   path: string
@@ -70,20 +71,14 @@ export default function FaithMissionBanner() {
     setAnswer('')
     setError('')
     try {
-      const response = await fetch('/api/bible-guide', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question: cleanQuestion,
-          theme: mission.theme,
-          verseRef: mission.verseRef,
-          message: mission.message,
-        }),
-        signal: controller.signal,
-      })
-      const payload = await response.json().catch(() => ({}))
-      if (!response.ok) throw new Error(payload.error || 'O Guia Bíblico não conseguiu responder agora.')
-      setAnswer(payload.answer)
+      const guideAnswer = await askBibleGuide({
+        question: cleanQuestion,
+        guideMode: 'mission',
+        theme: mission.theme,
+        verseRef: mission.verseRef,
+        message: mission.message,
+      }, controller.signal)
+      setAnswer(guideAnswer)
     } catch (requestError) {
       if (requestError instanceof DOMException && requestError.name === 'AbortError') return
       setError(requestError instanceof Error ? requestError.message : 'O Guia Bíblico está indisponível.')
@@ -158,7 +153,7 @@ export default function FaithMissionBanner() {
               <div className="rounded-xl bg-white/80 px-3 py-3 text-sm" style={{ color: '#374151' }}>
                 <strong className="block mb-1" style={{ color: '#5B3A8A' }}>Resposta do Guia Bíblico</strong>
                 <p className="whitespace-pre-line leading-relaxed">{answer}</p>
-                <p className="mt-2 text-xs" style={{ color: '#6B7280' }}>Resposta criada por IA: confira a passagem na Bíblia com um adulto responsável.</p>
+                <p className="mt-2 text-xs" style={{ color: '#6B7280' }}>Resposta criada por IA: confira a passagem na Bíblia NTLH com um adulto responsável.</p>
               </div>
             )}
           </div>

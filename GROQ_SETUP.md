@@ -1,6 +1,6 @@
 # Ativar o Guia Bíblico com Groq
 
-O jogo e todos os modos contra o computador funcionam sem internet. A Groq é usada somente no recurso opcional **Guia Bíblico**.
+O jogo e todos os modos contra o computador funcionam sem internet. A Groq é usada somente nas respostas do **Guia Bíblico** e do **Devocional**.
 
 Abra um PowerShell na conta do Windows que executa o jogo e cole este bloco. A chave será solicitada de forma oculta e será salva no ambiente do usuário, fora dos arquivos do projeto:
 
@@ -38,3 +38,5 @@ Opcionalmente, o modelo pode ser alterado com `GROQ_MODEL`. O padrão validado �
 ## Cloudflare Pages
 
 Em produção, não use uma variável `VITE_*`: ela seria incorporada ao JavaScript público. Cadastre `GROQ_API_KEY` como **Secret** em **Workers & Pages → projeto → Settings → Variables and Secrets** e faça uma nova implantação. A Pages Function acessa a chave apenas no servidor por `context.env.GROQ_API_KEY`.
+
+O mesmo endpoint atende o Guia dos jogos e a aba Devocional. O navegador envia somente a pergunta e o contexto bíblico necessário; o nome do jogador não é enviado à IA. A resposta segue linguagem infantil, orientação cristocêntrica e usa a NTLH como referência preferencial, com aviso para conferência junto de um adulto responsável.

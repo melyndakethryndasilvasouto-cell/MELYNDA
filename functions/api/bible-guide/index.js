@@ -1,5 +1,6 @@
 import {
   buildMessages,
+  childSafetyResponse,
   cleanAnswer,
   cleanText,
   groqGuideConfig,
@@ -83,12 +84,6 @@ export function createPagesBibleGuideHandler(options = {}) {
 
       const apiKey = env.GROQ_API_KEY || ''
       const model = env.GROQ_MODEL || groqGuideConfig.defaultModel
-      if (!apiKey) throw new GuideError(503, 'O Guia Bíblico ainda não foi ativado neste site.')
-
-      const address = request.headers.get('CF-Connecting-IP') || 'unknown'
-      if (!consumeRateLimit(address, now, rateLimit)) {
-        throw new GuideError(429, 'Muitas perguntas seguidas. Aguarde um minuto e tente novamente.')
-      }
 
       const contentType = (request.headers.get('Content-Type') || '').toLowerCase()
       if (!contentType.startsWith('application/json')) {
@@ -100,9 +95,18 @@ export function createPagesBibleGuideHandler(options = {}) {
       const theme = cleanText(body.theme, 100)
       const verseRef = cleanText(body.verseRef, 80)
       const message = cleanText(body.message, 300)
+      const guideMode = body.guideMode === 'devotional' ? 'devotional' : 'mission'
       if (question.length < 3) throw new GuideError(400, 'Escreva uma pergunta um pouco mais completa.')
       if (question.length > groqGuideConfig.maxQuestionChars) {
         throw new GuideError(400, 'A pergunta deve ter no máximo 400 caracteres.')
+      }
+      const safetyAnswer = childSafetyResponse(question)
+      if (safetyAnswer) return json(200, { answer: safetyAnswer, model: null })
+      if (!apiKey) throw new GuideError(503, 'O Guia Bíblico ainda não foi ativado neste site.')
+
+      const address = request.headers.get('CF-Connecting-IP') || 'unknown'
+      if (!consumeRateLimit(address, now, rateLimit)) {
+        throw new GuideError(429, 'Muitas perguntas seguidas. Aguarde um minuto e tente novamente.')
       }
 
       const controller = new AbortController()
@@ -117,7 +121,7 @@ export function createPagesBibleGuideHandler(options = {}) {
           },
           body: JSON.stringify({
             model,
-            messages: buildMessages({ question, theme, verseRef, message }),
+            messages: buildMessages({ question, theme, verseRef, message, guideMode }),
             temperature: 0.25,
             max_completion_tokens: 220,
             stream: false,

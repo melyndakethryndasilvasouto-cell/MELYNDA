@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createServer } from 'node:http'
-import { createGroqBibleGuideMiddleware, groqGuideConfig } from '../server/groq-bible-guide.mjs'
+import { buildMessages, createGroqBibleGuideMiddleware, groqGuideConfig } from '../server/groq-bible-guide.mjs'
 
 async function startGuide(options) {
   const middleware = createGroqBibleGuideMiddleware(options)
@@ -73,6 +73,42 @@ test('proxy Groq mantém a chave no servidor e envia prompt bíblico limitado', 
   assert.equal(response.headers.get('cache-control'), 'no-store')
 })
 
+test('devocional orienta a IA com NTLH, linguagem infantil e cuidado cristocêntrico', () => {
+  const messages = buildMessages({
+    question: 'Como posso confiar em Deus quando estou com medo?',
+    guideMode: 'devotional',
+  })
+
+  assert.match(messages[0].content, /perspectiva cristocêntrica/)
+  assert.match(messages[0].content, /Nova Tradução na Linguagem de Hoje \(NTLH\)/)
+  assert.match(messages[0].content, /linguagem clara para crianças/)
+  assert.match(messages[0].content, /adulto confiável/)
+  assert.match(messages[0].content, /Nunca prometa segredo/)
+  assert.match(messages[1].content, /Modo: devocional pessoal infantil/)
+  assert.match(messages[1].content, /ação simples para praticar/)
+  assert.doesNotMatch(messages[1].content, /Tema do jogo/)
+})
+
+test('pedido infantil de ajuda urgente recebe orientação local sem chamar a IA', async t => {
+  let called = false
+  const { server, baseUrl } = await startGuide({
+    apiKey: 'test-only',
+    fetchImpl: async () => { called = true },
+  })
+  t.after(() => stop(server))
+
+  const response = await postQuestion(baseUrl, {
+    question: 'Tenho medo de alguém que me bate e pediu segredo.',
+    guideMode: 'devotional',
+  })
+  const payload = await response.json()
+  assert.equal(response.status, 200)
+  assert.match(payload.answer, /adulto de confiança/)
+  assert.match(payload.answer, /Não guarde isso em segredo/)
+  assert.equal(payload.model, null)
+  assert.equal(called, false)
+})
+
 test('proxy informa configuração ausente sem tentar chamar a Groq', async t => {
   let called = false
   const { server, baseUrl } = await startGuide({ apiKey: '', fetchImpl: async () => { called = true } })
@@ -103,6 +139,9 @@ test('proxy bloqueia origem externa, entrada excessiva e rajadas', async t => {
 
   const long = await postQuestion(baseUrl, { question: 'a'.repeat(groqGuideConfig.maxQuestionChars + 1) })
   assert.equal(long.status, 400)
+
+  const allowed = await postQuestion(baseUrl, { question: 'Primeira pergunta válida' })
+  assert.equal(allowed.status, 200)
 
   const limited = await postQuestion(baseUrl, { question: 'Outra pergunta válida' })
   assert.equal(limited.status, 429)
