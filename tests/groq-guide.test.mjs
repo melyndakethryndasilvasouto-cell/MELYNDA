@@ -1,7 +1,12 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createServer } from 'node:http'
-import { buildMessages, createGroqBibleGuideMiddleware, groqGuideConfig } from '../server/groq-bible-guide.mjs'
+import {
+  buildMessages,
+  createGroqBibleGuideMiddleware,
+  groqGuideConfig,
+  normalizeBiblicalAttribution,
+} from '../server/groq-bible-guide.mjs'
 
 async function startGuide(options) {
   const middleware = createGroqBibleGuideMiddleware(options)
@@ -99,6 +104,17 @@ test('devocional orienta a IA com NTLH, linguagem infantil e cuidado cristocênt
   assert.match(messages.at(-1).content, /Modo: devocional pessoal infantil/)
   assert.match(messages.at(-1).content, /ação simples para praticar/)
   assert.doesNotMatch(messages.at(-1).content, /Tema do jogo/)
+})
+
+test('resposta não apresenta fala inventada como citação literal de Jesus', () => {
+  const answer = normalizeBiblicalAttribution(
+    'Jesus veio nos mostrar o amor de Deus. Quando Jesus diz “Eu te amo”, Ele quer que você fique seguro. Oração: “Jesus, obrigado por cuidar de mim.”',
+    '',
+  )
+
+  assert.doesNotMatch(answer, /Quando Jesus diz|[“”"]/)
+  assert.match(answer, /O amor de Jesus mostra/)
+  assert.match(answer, /Oração: Jesus, obrigado/)
 })
 
 test('proxy rejeita resposta interrompida por limite de saída', async t => {

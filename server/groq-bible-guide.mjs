@@ -78,8 +78,14 @@ export function cleanAnswer(value, maxLength) {
 }
 
 export function normalizeBiblicalAttribution(answer, verseRef) {
-  if (/^(?:Mateus|Marcos|Lucas|João)\b/i.test(verseRef)) return answer
-  const neutral = answer.replace(/\bJesus\s+(?:diz|disse|ensina)\s+que\b/gi, 'a passagem ensina que')
+  const withoutDirectSpeech = answer
+    .replace(
+      /(^|[.!?]\s+)[^.!?]*\b(?:quando\s+)?Jesus\s+(?:diz|disse|fala|falou|ensina)\s*[,:]?\s*[“"«][^”"»]{1,240}[”"»][^.!?]*[.!?]?/giu,
+      '$1O amor de Jesus mostra que você pode confiar que Ele está perto e cuida de você.',
+    )
+    .replace(/[“”„‟«»"]/gu, '')
+  if (/^(?:Mateus|Marcos|Lucas|João)\b/i.test(verseRef)) return withoutDirectSpeech
+  const neutral = withoutDirectSpeech.replace(/\bJesus\s+(?:diz|disse|fala|falou|ensina)\s+que\b/gi, 'a passagem ensina que')
   return neutral ? neutral[0].toUpperCase() + neutral.slice(1) : neutral
 }
 
@@ -127,7 +133,7 @@ export function buildMessages({ question, theme, verseRef, message, guideMode = 
         'Use de cinco a nove frases curtas, somente em texto simples. Não use Markdown, listas, asteriscos, sinais de maior, títulos ou crases.',
         'Use de dois a quatro emojis amigáveis e relacionados ao assunto, com naturalidade, para tornar a explicação acolhedora e fácil para a criança.',
         'Priorize a referência em destaque quando ela existir e explique a mensagem sempre como uma paráfrase. Não use aspas nem apresente nenhuma frase como citação literal da NTLH. Quando sugerir uma referência que não foi fornecida no contexto, apresente-a apenas como leitura recomendada e só se tiver certeza de que ela apoia a explicação; nunca invente falas, versículos ou referências.',
-        'Use a expressão neutra "a passagem ensina". Só atribua uma fala diretamente a Jesus quando a referência estiver nos Evangelhos e for realmente uma fala dele.',
+        'Use a expressão neutra "a passagem ensina". Nunca apresente uma fala direta de Jesus; explique o ensino como paráfrase, mesmo quando a referência estiver nos Evangelhos.',
         'Não invente versículos, não alegue revelação divina pessoal e não substitua pais, responsáveis, líderes cristãos ou profissionais.',
         'Se não tiver segurança sobre a formulação exata, recomende conferir a passagem na Bíblia NTLH com um adulto responsável. Não peça nem repita dados pessoais.',
         'Em assuntos sobre os quais cristãos divergem, explique com respeito que existem entendimentos diferentes e mantenha o foco no que o texto bíblico afirma com clareza.',
