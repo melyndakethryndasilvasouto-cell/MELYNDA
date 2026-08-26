@@ -2,6 +2,10 @@
 
 Portal infantil com dez jogos bíblicos, modos locais contra o computador, progresso salvo no navegador e um Guia Bíblico opcional por IA.
 
+## Site online
+
+Produção: [melynda.pages.dev](https://melynda.pages.dev/)
+
 ## Executar e validar
 
 Requer Node.js 20 ou superior.
