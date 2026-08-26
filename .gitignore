@@ -1,0 +1,21 @@
+node_modules/
+dist/
+artifacts/
+.wrangler/
+.local/
+
+# Segredos e configuração local
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+
+# O tutorial pertence a outro sistema e contém evidências locais.
+TUTORIAL_IA_OPTOCLINIC/
+
+# Perfis, logs e arquivos do sistema
+*Chrome-Controlado*/
+*.log
+.DS_Store
+Thumbs.db

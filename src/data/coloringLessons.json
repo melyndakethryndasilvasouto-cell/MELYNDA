@@ -1,0 +1,10 @@
+[
+  { "id": "ark", "name": "Arca de Noé", "emoji": "🚢", "verseRef": "Gênesis 6:22", "verseText": "Noé confiou em Deus e obedeceu à sua orientação." },
+  { "id": "new-life", "name": "Nova Vida", "emoji": "🦋", "verseRef": "2 Coríntios 5:17", "verseText": "Em Cristo podemos começar uma vida nova." },
+  { "id": "creation", "name": "Criação", "emoji": "🌸", "verseRef": "Gênesis 1:31", "verseText": "Deus viu tudo o que havia feito e era muito bom." },
+  { "id": "bethlehem", "name": "Estrela de Belém", "emoji": "⭐", "verseRef": "Mateus 2:10-11", "verseText": "A estrela conduziu os visitantes até Jesus." },
+  { "id": "lamb", "name": "Bom Pastor", "emoji": "🐑", "verseRef": "João 10:11", "verseText": "Jesus é o Bom Pastor e cuida de suas ovelhas." },
+  { "id": "promise", "name": "Promessa de Deus", "emoji": "🌈", "verseRef": "Gênesis 9:13", "verseText": "O arco no céu lembra a fidelidade de Deus." },
+  { "id": "love", "name": "Amor de Deus", "emoji": "❤️", "verseRef": "1 João 4:19", "verseText": "Nós amamos porque Deus nos amou primeiro." },
+  { "id": "fortress", "name": "Deus é Fortaleza", "emoji": "🏰", "verseRef": "Salmo 18:2", "verseText": "O Senhor é rocha, fortaleza e lugar seguro." }
+]

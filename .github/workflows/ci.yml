@@ -1,0 +1,30 @@
+name: Validar jogo
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v7
+      - name: Configurar Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.12.0
+          cache: npm
+      - name: Instalar dependências
+        run: npm ci
+      - name: Verificar TypeScript
+        run: npm run check
+      - name: Executar testes
+        run: npm test
+      - name: Compilar produção
+        run: npm run build

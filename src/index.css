@@ -1,0 +1,191 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: linear-gradient(135deg, #EEF6FF 0%, #F3EEFF 50%, #EEF6FF 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  button, input, textarea, select {
+    font: inherit;
+  }
+
+  :focus-visible {
+    outline: 3px solid #2563EB;
+    outline-offset: 3px;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  input, textarea {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+}
+
+.verse-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 2px 8px;
+  background: #FFF7D6;
+  color: #8A5A00;
+  border: 1px solid #F4D06F;
+  font-size: 0.68rem;
+  line-height: 1.25rem;
+  font-weight: 900;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@layer components {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(255, 255, 255, 0.6);
+    border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(107, 184, 255, 0.12), 0 2px 8px rgba(167, 139, 250, 0.08);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #6BB8FF, #A78BFA);
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    border-radius: 18px;
+    padding: 12px 24px;
+    font-size: 1.05rem;
+    box-shadow: 0 4px 15px rgba(107, 184, 255, 0.4);
+    transition: all 0.15s ease;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-primary:active {
+    transform: scale(0.94);
+    box-shadow: 0 2px 8px rgba(107, 184, 255, 0.3);
+  }
+
+  .btn-secondary {
+    background: white;
+    color: #7B5EA7;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    border-radius: 18px;
+    padding: 12px 24px;
+    font-size: 1.05rem;
+    border: 2px solid #C4B5FD;
+    box-shadow: 0 2px 8px rgba(167, 139, 250, 0.15);
+    transition: all 0.15s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-secondary:active {
+    transform: scale(0.94);
+  }
+
+  .btn-danger {
+    background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    border-radius: 18px;
+    padding: 12px 24px;
+    font-size: 1.05rem;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    transition: all 0.15s ease;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-danger:active {
+    transform: scale(0.94);
+  }
+}
+
+/* Particle background */
+@keyframes float-particle {
+  0% { transform: translateY(100vh) scale(0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.7; }
+  90% { opacity: 0.7; }
+  100% { transform: translateY(-10vh) scale(1) rotate(360deg); opacity: 0; }
+}
+
+.particle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-particle linear infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #A78BFA; border-radius: 99px; }
+
+/* Card flip animation */
+.flip-card {
+  perspective: 800px;
+}
+
+.flip-card-inner {
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.flip-card-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+}
+
+/* No text selection in games */
+.game-area {
+  user-select: none;
+  -webkit-user-select: none;
+}

@@ -1,0 +1,112 @@
+[
+  {
+    "path": "/memoria",
+    "gameId": "memoria",
+    "homeName": "Memória da Bíblia",
+    "homeDescription": "Encontre símbolos e descubra histórias!",
+    "icon": "🕊️",
+    "theme": "Guarde a Palavra",
+    "verseRef": "Salmo 119:11",
+    "message": "Guardar a Palavra no coração nos ajuda a escolher o que é bom.",
+    "challenge": "Ao formar um par, conte para alguém o que aquele símbolo ensina."
+  },
+  {
+    "path": "/jogo-da-velha",
+    "gameId": "velha",
+    "homeName": "Jogo da Velha",
+    "homeDescription": "Pense antes de cada escolha.",
+    "icon": "🛤️",
+    "theme": "Confie em Deus",
+    "verseRef": "Provérbios 3:5-6",
+    "message": "Podemos confiar em Deus e pedir que Ele mostre o melhor caminho.",
+    "challenge": "Jogue com honestidade, paciência e respeito pelo outro jogador."
+  },
+  {
+    "path": "/dama",
+    "gameId": "dama",
+    "homeName": "Dama",
+    "homeDescription": "Estratégia com coragem e verdade.",
+    "icon": "🛡️",
+    "theme": "Armadura de Deus",
+    "verseRef": "Efésios 6:11",
+    "message": "A verdade, a justiça e a fé nos fortalecem para fazer o bem.",
+    "challenge": "Planeje suas jogadas sem esquecer a bondade e o respeito."
+  },
+  {
+    "path": "/uno",
+    "gameId": "uno",
+    "homeName": "UNO",
+    "homeDescription": "Cores, amizade e união.",
+    "icon": "🤝",
+    "theme": "O amor une",
+    "verseRef": "Colossenses 3:14",
+    "message": "O amor ajuda pessoas diferentes a viverem em união.",
+    "challenge": "Celebre as boas jogadas e trate todos com amizade."
+  },
+  {
+    "path": "/colorir",
+    "gameId": "colorir",
+    "homeName": "Colorindo a Bíblia",
+    "homeDescription": "Pinte histórias e promessas de Deus.",
+    "icon": "🎨",
+    "theme": "A criação de Deus",
+    "verseRef": "Salmo 104:24",
+    "message": "A criação mostra a sabedoria e o cuidado de Deus.",
+    "challenge": "Pinte com alegria e converse sobre a mensagem de cada desenho."
+  },
+  {
+    "path": "/cobra",
+    "gameId": "cobra",
+    "homeName": "Cobrinha",
+    "homeDescription": "Siga a luz pelo caminho certo.",
+    "icon": "🪔",
+    "theme": "Luz para o caminho",
+    "verseRef": "Salmo 119:105",
+    "message": "A Palavra de Deus ilumina nossas decisões e nossos passos.",
+    "challenge": "Mantenha o foco e lembre: cada boa escolha aponta uma direção."
+  },
+  {
+    "path": "/simon",
+    "gameId": "simon",
+    "homeName": "Sequência de Cores",
+    "homeDescription": "Atenção para reconhecer a sequência.",
+    "icon": "👂",
+    "theme": "Ouvir a voz de Jesus",
+    "verseRef": "João 10:27",
+    "message": "Jesus conhece suas ovelhas, e elas aprendem a ouvir e seguir sua voz.",
+    "challenge": "Escute com atenção e repita a sequência com calma."
+  },
+  {
+    "path": "/quiz",
+    "gameId": "quiz",
+    "homeName": "Quiz da Bíblia",
+    "homeDescription": "Teste o que sabe e aprenda mais!",
+    "icon": "📖",
+    "theme": "Sabedoria que vem de Deus",
+    "verseRef": "Provérbios 2:6",
+    "message": "Deus é a fonte da verdadeira sabedoria, do conhecimento e da compreensão.",
+    "challenge": "Leia a explicação depois de cada resposta e guarde uma verdade nova."
+  },
+  {
+    "path": "/quebra-cabeca",
+    "gameId": "puzzle",
+    "homeName": "Quebra-Cabeça",
+    "homeDescription": "Cada peça ajuda a completar a missão.",
+    "icon": "🧩",
+    "theme": "Deus cuida de cada parte",
+    "verseRef": "Romanos 8:28",
+    "message": "Deus pode fazer todas as partes cooperarem para o bem daqueles que o amam.",
+    "challenge": "Tenha paciência: uma peça de cada vez também constrói algo bonito."
+  },
+  {
+    "path": "/pong",
+    "gameId": "pong",
+    "homeName": "Ping Pong",
+    "homeDescription": "Persevere e não desista.",
+    "icon": "🎯",
+    "theme": "Continue em direção ao alvo",
+    "verseRef": "Filipenses 3:14",
+    "message": "Podemos continuar firmes em direção ao propósito que Deus nos dá.",
+    "challenge": "Errou uma bola? Respire, tente de novo e encoraje quem joga com você."
+  }
+]

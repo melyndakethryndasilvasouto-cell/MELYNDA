@@ -1,0 +1,12 @@
+[
+  { "id": "bible", "emoji": "📖", "title": "Bíblia", "verseRef": "Salmo 119:105", "message": "A Palavra de Deus ilumina o nosso caminho." },
+  { "id": "ark", "emoji": "🚢", "title": "Arca de Noé", "verseRef": "Gênesis 6:22", "message": "Noé confiou em Deus e fez tudo como Ele orientou." },
+  { "id": "rainbow", "emoji": "🌈", "title": "Arco da Promessa", "verseRef": "Gênesis 9:13", "message": "O arco no céu lembra a aliança e a fidelidade de Deus." },
+  { "id": "lamb", "emoji": "🐑", "title": "Bom Pastor", "verseRef": "João 10:11", "message": "Jesus é o Bom Pastor e cuida de suas ovelhas." },
+  { "id": "lion", "emoji": "🦁", "title": "Daniel e os Leões", "verseRef": "Daniel 6:22", "message": "Deus cuidou de Daniel quando ele permaneceu fiel." },
+  { "id": "star", "emoji": "⭐", "title": "Estrela de Belém", "verseRef": "Mateus 2:10-11", "message": "A estrela guiou os visitantes até o menino Jesus." },
+  { "id": "fish", "emoji": "🐟", "title": "Peixes", "verseRef": "João 6:9-13", "message": "Jesus multiplicou uma pequena oferta para alimentar muita gente." },
+  { "id": "bread", "emoji": "🍞", "title": "Pão da Vida", "verseRef": "João 6:35", "message": "Jesus oferece vida verdadeira a quem confia nele." },
+  { "id": "dove", "emoji": "🕊️", "title": "Paz", "verseRef": "Gálatas 5:22", "message": "O Espírito de Deus produz amor, alegria e paz em nós." },
+  { "id": "cross", "emoji": "✝️", "title": "Jesus Vive", "verseRef": "Mateus 28:5-6", "message": "Jesus venceu a morte e está vivo." }
+]
