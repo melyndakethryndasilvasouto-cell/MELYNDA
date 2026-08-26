@@ -59,6 +59,22 @@ export default function HomePage() {
         </div>
       </section>
 
+      <motion.button
+        type="button"
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        onClick={() => navigate('/online')}
+        className="mb-4 flex min-h-24 w-full items-center gap-4 rounded-3xl p-4 text-left text-white shadow-lg transition-transform active:scale-[0.98]"
+        style={{ background: 'linear-gradient(135deg,#34D399,#4A90D9,#7B5EA7)' }}
+      >
+        <span className="text-4xl" aria-hidden="true">🌐</span>
+        <span className="min-w-0 flex-1">
+          <strong className="block font-title text-xl">Jogar Online</strong>
+          <span className="mt-1 block text-xs font-bold sm:text-sm">Convide um amigo, conversem e joguem de lugares diferentes.</span>
+        </span>
+        <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-black">NOVO</span>
+      </motion.button>
+
       <div className="grid grid-cols-2 gap-3">
         {games.map((game, i) => (
           <motion.div

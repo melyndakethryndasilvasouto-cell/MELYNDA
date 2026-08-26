@@ -15,10 +15,12 @@
     "preview": "vite preview",
     "verify:startup": "node scripts/verify-startup.mjs",
     "verify:ui": "node scripts/verify-ui.mjs",
+    "verify:online": "node scripts/verify-online.mjs",
     "diagnose": "node scripts/diagnose.mjs",
     "benchmark": "node scripts/benchmark.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "2.112.4",
     "canvas-confetti": "^1.9.2",
     "framer-motion": "^11.0.3",
     "lucide-react": "^0.363.0",

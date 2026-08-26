@@ -6,6 +6,7 @@ export interface BibleGuideRequest {
   theme?: string
   verseRef?: string
   message?: string
+  conversation?: Array<{ role: 'user' | 'assistant'; content: string }>
 }
 
 interface BibleGuideResponse {

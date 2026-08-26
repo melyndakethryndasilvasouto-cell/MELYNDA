@@ -154,8 +154,18 @@ try {
   console.log(`SCREENSHOT ${await screenshot('ui-home-desktop.png')}`)
 
   for (const width of [320, 768, 1024, 1440]) await metrics('/', width, 900)
-  const mobilePaths = ['/devocional', '/memoria', '/jogo-da-velha', '/dama', '/uno', '/colorir', '/cobra', '/simon', '/quiz', '/quebra-cabeca', '/pong']
+  const mobilePaths = ['/devocional', '/online', '/memoria', '/jogo-da-velha', '/dama', '/uno', '/colorir', '/cobra', '/simon', '/quiz', '/quebra-cabeca', '/pong']
   for (const pathname of mobilePaths) await metrics(pathname, 320, 800)
+
+  await viewport(320, 800)
+  await navigate('/online')
+  const onlineEntry = await evaluate(`({
+    fallback: document.body.innerText.includes('modo online está sendo preparado'),
+    safety: document.body.innerText.includes('Jogar com segurança')
+  })`)
+  if (!onlineEntry.fallback && !onlineEntry.safety) throw new Error(`Modo Online não apresentou uma entrada segura: ${JSON.stringify(onlineEntry)}`)
+  console.log(`SCREENSHOT ${await screenshot('ui-online-mobile.png')}`)
+  console.log(`INTERACTION_OK feature=online safe_entry=true configured=${onlineEntry.safety}`)
 
   await viewport(320, 800)
   await navigate('/devocional')
@@ -164,16 +174,19 @@ try {
     suggestion?.click()
     await new Promise(resolve => setTimeout(resolve, 100))
     const textarea = document.querySelector('#devotional-question')
-    const submit = [...document.querySelectorAll('button')].find(item => item.textContent?.includes('Perguntar à IA cristã'))
+    const questionFilled = Boolean(textarea?.value.includes('Quem é Jesus'))
+    const submit = document.querySelector('button[aria-label="Enviar pergunta"]')
     submit?.click()
     await new Promise(resolve => setTimeout(resolve, 700))
-    const storageKeys = Object.keys(localStorage).filter(key => key.startsWith('mel-devotional-history-v1:'))
+    const legacyStorageKeys = Object.keys(localStorage).filter(key => key.startsWith('mel-devotional-history-v1:'))
+    const storageKeys = Object.keys(localStorage).filter(key => key.startsWith('mel-devotional-v2:'))
     return {
       suggestionFound: Boolean(suggestion),
-      questionFilled: Boolean(textarea?.value.includes('Quem é Jesus')),
+      questionFilled,
       submitFound: Boolean(submit),
       missingKeyHandled: document.body.innerText.includes('ainda não foi ativado'),
-      privateHistoryEmpty: storageKeys.length === 0,
+      privateHistorySaved: storageKeys.length === 1,
+      legacyHistoryEmpty: legacyStorageKeys.length === 0,
     }
   })()`)
   if (!Object.values(devotionalState).every(Boolean)) throw new Error(`Devocional não tratou corretamente o estado sem chave: ${JSON.stringify(devotionalState)}`)
@@ -402,7 +415,7 @@ try {
   console.log('INTERACTION_OK game=coloring progress=1/12')
 
   if (client.exceptions.length) throw new Error(`Exceções no navegador: ${client.exceptions.join('; ')}`)
-  console.log('UI_VERIFY_OK breakpoints=4 routes_mobile=11 interactions=10 screenshots=6 console_exceptions=0')
+  console.log('UI_VERIFY_OK breakpoints=4 routes_mobile=12 interactions=11 screenshots=7 console_exceptions=0')
 } finally {
   client?.close()
   if (chrome?.exitCode === null) chrome.kill()

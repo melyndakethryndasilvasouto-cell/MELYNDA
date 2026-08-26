@@ -13,6 +13,8 @@ interface Mission {
   challenge: string
 }
 
+const MAX_QUESTION_CHARS = 1_000
+
 export default function FaithMissionBanner() {
   const { pathname } = useLocation()
   const mission = (missions as Mission[]).find(item => item.path === pathname)
@@ -133,7 +135,7 @@ export default function FaithMissionBanner() {
             id="bible-guide-question"
             className="w-full rounded-xl border border-purple-200 bg-white px-3 py-2 text-sm"
             style={{ minHeight: 86, color: '#374151' }}
-            maxLength={400}
+            maxLength={MAX_QUESTION_CHARS}
             value={question}
             onChange={event => setQuestion(event.target.value)}
             placeholder="Ex.: Esta mensagem está na Bíblia?"
@@ -146,14 +148,16 @@ export default function FaithMissionBanner() {
               Fechar
             </button>
           </div>
-          <p className="text-xs" style={{ color: '#6B7280' }}>Não escreva nome, endereço ou outros dados pessoais.</p>
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs" style={{ color: '#6B7280' }}>
+            <span>{question.length}/{MAX_QUESTION_CHARS}</span>
+            <span>Não escreva nome, endereço ou outros dados pessoais.</span>
+          </div>
           <div aria-live="polite">
             {error && <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm" style={{ color: '#92400E' }}>{error}</p>}
             {answer && (
               <div className="rounded-xl bg-white/80 px-3 py-3 text-sm" style={{ color: '#374151' }}>
                 <strong className="block mb-1" style={{ color: '#5B3A8A' }}>Resposta do Guia Bíblico</strong>
                 <p className="whitespace-pre-line leading-relaxed">{answer}</p>
-                <p className="mt-2 text-xs" style={{ color: '#6B7280' }}>Resposta criada por IA: confira a passagem na Bíblia NTLH com um adulto responsável.</p>
               </div>
             )}
           </div>

@@ -64,7 +64,8 @@ test('proxy Groq mantém a chave no servidor e envia prompt bíblico limitado', 
   assert.equal(upstreamRequest.url, 'https://api.groq.com/openai/v1/chat/completions')
   assert.equal(upstreamRequest.options.headers.Authorization, `Bearer ${secret}`)
   assert.equal(upstreamRequest.body.model, 'openai/gpt-oss-20b')
-  assert.ok(upstreamRequest.body.max_completion_tokens <= 220)
+  assert.equal(upstreamRequest.body.reasoning_effort, 'low')
+  assert.equal(upstreamRequest.body.max_completion_tokens, 1200)
   assert.match(upstreamRequest.body.messages[0].content, /Não invente versículos/)
   assert.match(upstreamRequest.body.messages[0].content, /Não use Markdown/)
   assert.match(upstreamRequest.body.messages[0].content, /a passagem ensina/)
@@ -77,6 +78,10 @@ test('devocional orienta a IA com NTLH, linguagem infantil e cuidado cristocênt
   const messages = buildMessages({
     question: 'Como posso confiar em Deus quando estou com medo?',
     guideMode: 'devotional',
+    conversation: [
+      { role: 'user', content: 'Ontem falamos sobre oração.' },
+      { role: 'assistant', content: 'Sim, Deus escuta você.' },
+    ],
   })
 
   assert.match(messages[0].content, /perspectiva cristocêntrica/)
@@ -84,9 +89,28 @@ test('devocional orienta a IA com NTLH, linguagem infantil e cuidado cristocênt
   assert.match(messages[0].content, /linguagem clara para crianças/)
   assert.match(messages[0].content, /adulto confiável/)
   assert.match(messages[0].content, /Nunca prometa segredo/)
-  assert.match(messages[1].content, /Modo: devocional pessoal infantil/)
-  assert.match(messages[1].content, /ação simples para praticar/)
-  assert.doesNotMatch(messages[1].content, /Tema do jogo/)
+  assert.match(messages[0].content, /dois a quatro emojis/)
+  assert.equal(messages[1].role, 'user')
+  assert.match(messages[1].content, /Ontem falamos sobre oração/)
+  assert.match(messages[1].content, /Resposta anterior: Sim, Deus escuta você/)
+  assert.doesNotMatch(messages.slice(1, -1).map(item => item.role).join(','), /assistant/)
+  assert.match(messages.at(-1).content, /Modo: devocional pessoal infantil/)
+  assert.match(messages.at(-1).content, /ação simples para praticar/)
+  assert.doesNotMatch(messages.at(-1).content, /Tema do jogo/)
+})
+
+test('proxy rejeita resposta interrompida por limite de saída', async t => {
+  const { server, baseUrl } = await startGuide({
+    apiKey: 'test-only',
+    fetchImpl: async () => new Response(JSON.stringify({
+      choices: [{ finish_reason: 'length', message: { content: 'Resposta incompleta' } }],
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } }),
+  })
+  t.after(() => stop(server))
+
+  const response = await postQuestion(baseUrl, { question: 'Conte uma história sobre Jesus.' })
+  assert.equal(response.status, 502)
+  assert.match((await response.json()).error, /incompleta/)
 })
 
 test('pedido infantil de ajuda urgente recebe orientação local sem chamar a IA', async t => {

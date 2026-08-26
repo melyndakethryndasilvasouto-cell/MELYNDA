@@ -2,15 +2,16 @@ import {
   buildMessages,
   childSafetyResponse,
   cleanAnswer,
+  cleanConversation,
   cleanText,
   groqGuideConfig,
   normalizeBiblicalAttribution,
 } from '../../../server/groq-bible-guide.mjs'
 
 const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions'
-const MAX_BODY_BYTES = 4_096
+const MAX_BODY_BYTES = 16_384
 const RATE_WINDOW_MS = 60_000
-const UPSTREAM_TIMEOUT_MS = 12_000
+const UPSTREAM_TIMEOUT_MS = 20_000
 const buckets = new Map()
 
 class GuideError extends Error {
@@ -95,12 +96,17 @@ export function createPagesBibleGuideHandler(options = {}) {
       const theme = cleanText(body.theme, 100)
       const verseRef = cleanText(body.verseRef, 80)
       const message = cleanText(body.message, 300)
+      const conversation = cleanConversation(body.conversation)
       const guideMode = body.guideMode === 'devotional' ? 'devotional' : 'mission'
       if (question.length < 3) throw new GuideError(400, 'Escreva uma pergunta um pouco mais completa.')
       if (question.length > groqGuideConfig.maxQuestionChars) {
-        throw new GuideError(400, 'A pergunta deve ter no máximo 400 caracteres.')
+        throw new GuideError(400, `A pergunta deve ter no máximo ${groqGuideConfig.maxQuestionChars} caracteres.`)
       }
-      const safetyAnswer = childSafetyResponse(question)
+      const safetyText = [
+        ...conversation.filter(item => item.role === 'user').map(item => item.content),
+        question,
+      ].join(' ')
+      const safetyAnswer = childSafetyResponse(safetyText)
       if (safetyAnswer) return json(200, { answer: safetyAnswer, model: null })
       if (!apiKey) throw new GuideError(503, 'O Guia Bíblico ainda não foi ativado neste site.')
 
@@ -121,9 +127,10 @@ export function createPagesBibleGuideHandler(options = {}) {
           },
           body: JSON.stringify({
             model,
-            messages: buildMessages({ question, theme, verseRef, message, guideMode }),
+            messages: buildMessages({ question, theme, verseRef, message, guideMode, conversation }),
             temperature: 0.25,
-            max_completion_tokens: 220,
+            reasoning_effort: 'low',
+            max_completion_tokens: groqGuideConfig.maxCompletionTokens,
             stream: false,
           }),
           signal: controller.signal,
@@ -140,8 +147,11 @@ export function createPagesBibleGuideHandler(options = {}) {
       }
 
       const data = await upstream.json()
+      if (data?.choices?.[0]?.finish_reason === 'length') {
+        throw new GuideError(502, 'A resposta ficou incompleta. Tente novamente para receber a explicação inteira.')
+      }
       const answer = normalizeBiblicalAttribution(
-        cleanAnswer(data?.choices?.[0]?.message?.content, 2_000),
+        cleanAnswer(data?.choices?.[0]?.message?.content, groqGuideConfig.maxAnswerChars),
         verseRef,
       )
       if (!answer) throw new GuideError(502, 'A IA retornou uma resposta vazia. Tente reformular a pergunta.')

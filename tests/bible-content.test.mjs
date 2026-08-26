@@ -96,17 +96,24 @@ test('catálogos bíblicos estão conectados às telas que os utilizam', async (
 })
 
 test('devocional possui rota, navegação, privacidade e histórico local personalizado', async () => {
-  const [app, header, devotional, client] = await Promise.all([
+  const [app, header, devotional, guide, client] = await Promise.all([
     readFile(new URL('src/App.tsx', root), 'utf8'),
     readFile(new URL('src/components/Layout/Header.tsx', root), 'utf8'),
     readFile(new URL('src/components/Devotional/DevotionalPage.tsx', root), 'utf8'),
+    readFile(new URL('src/components/shared/FaithMissionBanner.tsx', root), 'utf8'),
     readFile(new URL('src/services/bibleGuide.ts', root), 'utf8'),
   ])
 
   assert.match(app, /path="\/devocional"/)
   assert.match(header, /Devocional/)
   assert.match(devotional, /Devocional de \{playerName\}/)
-  assert.match(devotional, /mel-devotional-history-v1/)
+  assert.match(devotional, /getDevotionalStorageKey/)
+  assert.match(devotional, /Bloco de notas/)
+  assert.match(devotional, /Nova conversa/)
+  assert.match(devotional, /MAX_QUESTION_CHARS = 1_000/)
+  assert.match(devotional, /saveDevotionalStore\(storageKey, storeRef\.current\)/)
+  assert.match(guide, /MAX_QUESTION_CHARS = 1_000/)
+  assert.doesNotMatch(guide, /Resposta criada por IA:/)
   assert.match(devotional, /guideMode: 'devotional'/)
   assert.match(devotional, /Não escreva nome completo/)
   assert.doesNotMatch(devotional, /question:[^\n]*playerName/)

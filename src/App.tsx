@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { PlayerProvider } from './contexts/PlayerContext'
 import { SoundProvider } from './contexts/SoundContext'
+import { OnlineProvider } from './contexts/OnlineContext'
 import Layout from './components/Layout/Layout'
 import HomePage from './components/Home/HomePage'
 import PlayerSetup from './components/PlayerSetup'
@@ -20,6 +21,8 @@ const Quiz         = lazy(() => import('./games/Quiz'))
 const SlidingPuzzle = lazy(() => import('./games/SlidingPuzzle'))
 const Pong         = lazy(() => import('./games/Pong'))
 const Devotional   = lazy(() => import('./components/Devotional/DevotionalPage'))
+const OnlineLobby  = lazy(() => import('./components/Online/OnlineLobbyPage'))
+const OnlineRoom   = lazy(() => import('./components/Online/OnlineRoomPage'))
 
 function LoadingGame() {
   return (
@@ -45,6 +48,8 @@ function AppRoutes() {
           <Routes location={location}>
             <Route path="/" element={<HomePage />} />
             <Route path="/devocional" element={<Devotional />} />
+            <Route path="/online" element={<OnlineLobby />} />
+            <Route path="/online/sala/:roomId" element={<OnlineRoom />} />
             <Route path="/memoria" element={<Memory />} />
             <Route path="/jogo-da-velha" element={<TicTacToe />} />
             <Route path="/dama" element={<Checkers />} />
@@ -90,9 +95,11 @@ export default function App() {
   return (
     <SoundProvider>
       <PlayerProvider playerName={playerName} playerAvatar={playerAvatar}>
-        <Layout>
-          <AppRoutes />
-        </Layout>
+        <OnlineProvider>
+          <Layout>
+            <AppRoutes />
+          </Layout>
+        </OnlineProvider>
       </PlayerProvider>
     </SoundProvider>
   )
