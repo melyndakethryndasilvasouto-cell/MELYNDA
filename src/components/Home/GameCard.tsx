@@ -7,7 +7,7 @@ export default function GameCard({ game, onClick }: Props) {
   return (
     <button
       onClick={onClick}
-      className="glass-card p-4 flex flex-col items-center gap-2 active:scale-95 transition-all duration-150 w-full text-left group relative overflow-hidden"
+      className="glass-card p-4 flex flex-col items-center gap-2 hover:-translate-y-1 hover:shadow-xl active:scale-95 transition-all duration-150 w-full text-left group relative overflow-hidden"
       style={{ minHeight: 170 }}
     >
       {game.badge && (
@@ -17,7 +17,7 @@ export default function GameCard({ game, onClick }: Props) {
         </span>
       )}
       <div
-        className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-lg transition-transform group-active:scale-90"
+        className="w-16 h-16 rounded-2xl flex items-center justify-center text-4xl shadow-lg transition-transform group-active:scale-90"
         style={{ background: game.grad, boxShadow: '0 4px 15px rgba(107,184,255,0.3)' }}
       >
         {game.icon}

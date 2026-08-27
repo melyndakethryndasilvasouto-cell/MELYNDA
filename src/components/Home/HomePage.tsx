@@ -34,19 +34,19 @@ export default function HomePage() {
   return (
     <div className="pt-4">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-6">
-        <motion.div animate={{ scale: [1, 1.08, 1] }} transition={{ repeat: Infinity, duration: 2.5 }} className="text-5xl mb-2">
+        <motion.div animate={{ scale: [1, 1.08, 1] }} transition={{ repeat: Infinity, duration: 2.5 }} className="text-6xl mb-3">
           {playerAvatar}
         </motion.div>
         <p className="uppercase tracking-widest text-xs font-black" style={{ color: '#B7791F' }}>Mel — Aventuras da Bíblia</p>
         <h1 className="font-title text-3xl mt-1" style={{ color: '#7B5EA7' }}>Olá, {playerName}! 👋</h1>
-        <p className="font-bold mt-1 text-sm" style={{ color: '#4A90D9' }}>Vamos brincar, aprender e espalhar o amor de Jesus?</p>
+        <p className="font-bold mt-1 text-sm" style={{ color: '#4A90D9' }}>Vamos jogar e aprender?</p>
       </motion.div>
 
       <section className="glass-card p-4 mb-4" aria-label="Progresso na jornada bíblica">
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="font-black text-sm" style={{ color: '#5B3A8A' }}>🌱 Jornada da Fé</h2>
-            <p className="text-xs mt-1" style={{ color: '#6B7280' }}>Cada jogo traz uma verdade da Bíblia para viver hoje.</p>
+            <p className="text-xs mt-1" style={{ color: '#6B7280' }}>Aprenda sobre a Bíblia brincando.</p>
           </div>
           <div className="text-right flex-shrink-0">
             <strong className="block text-lg" style={{ color: '#4A90D9' }}>{Object.keys(scores).length}</strong>
