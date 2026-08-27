@@ -15,6 +15,7 @@ const visualById: Record<string, { grad: string; badge?: string }> = {
   quiz: { grad: 'linear-gradient(135deg,#8B5CF6,#7B5EA7)', badge: '1-2 jogadores' },
   puzzle: { grad: 'linear-gradient(135deg,#22D3EE,#4A90D9)' },
   pong: { grad: 'linear-gradient(135deg,#4A90D9,#818CF8)', badge: '1-2 jogadores' },
+  forca: { grad: 'linear-gradient(135deg,#F472B6,#F59E0B)' },
 }
 
 const games = missions.map(mission => ({

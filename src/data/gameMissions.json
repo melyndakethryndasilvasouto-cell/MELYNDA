@@ -108,5 +108,16 @@
     "verseRef": "Filipenses 3:14",
     "message": "Podemos continuar firmes em direção ao propósito que Deus nos dá.",
     "challenge": "Errou uma bola? Respire, tente de novo e encoraje quem joga com você."
+  },
+  {
+    "path": "/forca",
+    "gameId": "forca",
+    "homeName": "Forca Bíblica",
+    "homeDescription": "Descubra a palavra e salve os balões!",
+    "icon": "🎈",
+    "theme": "Palavras da Bíblia",
+    "verseRef": "Salmo 119:130",
+    "message": "A explicação da tua palavra traz luz e dá sabedoria aos simples.",
+    "challenge": "Tente adivinhar a palavra bíblica com paciência e aprendizado."
   }
 ]
