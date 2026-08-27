@@ -79,19 +79,21 @@ function rp(
 // ─── SVG Drawings ─────────────────────────────────────────────────────────────
 
 const ArkSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> = ({ fills, onClickRegion }) => (
-  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="coloring-svg" width="100%" height="100%">
-    <rect x="5" y="8" width="190" height="118" rx="16" {...rp('ark-sky', fills, onClickRegion)} />
-    <path d="M5 145 Q35 130 65 145 T125 145 T195 145 L195 195 L5 195 Z" {...rp('ark-water', fills, onClickRegion)} />
-    <path d="M22 116 L178 116 L158 162 L42 162 Z" {...rp('ark-hull', fills, onClickRegion)} />
-    <rect x="58" y="75" width="84" height="44" rx="5" {...rp('ark-cabin', fills, onClickRegion)} />
-    <polygon points="50,78 100,48 150,78" {...rp('ark-roof', fills, onClickRegion)} />
-    <rect x="91" y="91" width="18" height="28" rx="3" {...rp('ark-door', fills, onClickRegion)} />
-    <circle cx="76" cy="94" r="8" {...rp('ark-window-l', fills, onClickRegion)} />
-    <circle cx="124" cy="94" r="8" {...rp('ark-window-r', fills, onClickRegion)} />
-    <circle cx="72" cy="57" r="10" {...rp('ark-animal-l', fills, onClickRegion)} />
-    <circle cx="128" cy="57" r="10" {...rp('ark-animal-r', fills, onClickRegion)} />
-    <path d="M40 48 A60 45 0 0 1 160 48 L150 55 A50 35 0 0 0 50 55 Z" {...rp('ark-rainbow-1', fills, onClickRegion)} />
-    <path d="M52 55 A48 34 0 0 1 148 55 L138 61 A38 25 0 0 0 62 61 Z" {...rp('ark-rainbow-2', fills, onClickRegion)} />
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" id="coloring-svg" width="100%" height="100%">
+    <rect x="5" y="5" width="190" height="190" rx="16" {...rp('ark-sky', fills, onClickRegion)} />
+    <circle cx="160" cy="40" r="15" stroke="#1a1a1a" strokeWidth="1.5" {...rp('ark-sun', fills, onClickRegion)} />
+    <path d="M 30 50 C 30 40, 45 35, 55 45 C 65 35, 80 40, 80 50 C 85 50, 90 60, 85 65 C 80 70, 30 70, 25 65 C 20 60, 25 50, 30 50 Z" stroke="#1a1a1a" strokeWidth="1.5" {...rp('ark-c1', fills, onClickRegion)} />
+    <path d="M 120 70 C 120 65, 130 60, 135 65 C 140 60, 150 65, 150 70 C 155 70, 155 75, 150 80 C 145 80, 120 80, 115 75 C 110 75, 115 70, 120 70 Z" stroke="#1a1a1a" strokeWidth="1.5" {...rp('ark-c2', fills, onClickRegion)} />
+    <path d="M 20 140 C 40 160, 160 160, 180 140 L 175 110 L 25 110 Z" stroke="#1a1a1a" strokeWidth="2" {...rp('ark-hull', fills, onClickRegion)} />
+    <path d="M 23 120 C 50 125, 150 125, 177 120" fill="none" stroke="#1a1a1a" strokeWidth="1" />
+    <path d="M 22 130 C 50 140, 150 140, 178 130" fill="none" stroke="#1a1a1a" strokeWidth="1" />
+    <path d="M 40 110 L 160 110 L 155 85 L 45 85 Z" stroke="#1a1a1a" strokeWidth="1.5" {...rp('ark-cb-base', fills, onClickRegion)} />
+    <path d="M 50 85 L 150 85 L 140 60 L 60 60 Z" stroke="#1a1a1a" strokeWidth="1.5" {...rp('ark-cb-up', fills, onClickRegion)} />
+    <path d="M 45 60 L 155 60 L 100 35 Z" stroke="#1a1a1a" strokeWidth="1.5" {...rp('ark-roof', fills, onClickRegion)} />
+    <path d="M 85 110 L 85 85 C 85 75, 115 75, 115 85 L 115 110 Z" stroke="#1a1a1a" strokeWidth="1.5" {...rp('ark-door', fills, onClickRegion)} />
+    <rect x="55" y="90" width="12" height="12" rx="2" stroke="#1a1a1a" strokeWidth="1.5" {...rp('ark-w1', fills, onClickRegion)} />
+    <rect x="133" y="90" width="12" height="12" rx="2" stroke="#1a1a1a" strokeWidth="1.5" {...rp('ark-w2', fills, onClickRegion)} />
+    <path d="M 5 160 C 20 150, 30 170, 50 160 C 70 150, 80 170, 100 160 C 120 150, 130 170, 150 160 C 170 150, 180 170, 195 160 L 195 195 L 5 195 Z" stroke="#1a1a1a" strokeWidth="1.5" {...rp('ark-wa1', fills, onClickRegion)} />
   </svg>
 )
 
@@ -127,17 +129,30 @@ const UnicornSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void
 )
 
 const ButterflySVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> = ({ fills, onClickRegion }) => (
-  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="coloring-svg" width="100%" height="100%">
-    <ellipse cx="68" cy="80" rx="48" ry="38" transform="rotate(-25 68 80)" {...rp('bf-wing-ul', fills, onClickRegion)} />
-    <ellipse cx="132" cy="80" rx="48" ry="38" transform="rotate(25 132 80)" {...rp('bf-wing-ur', fills, onClickRegion)} />
-    <ellipse cx="72" cy="138" rx="34" ry="26" transform="rotate(15 72 138)" {...rp('bf-wing-ll', fills, onClickRegion)} />
-    <ellipse cx="128" cy="138" rx="34" ry="26" transform="rotate(-15 128 138)" {...rp('bf-wing-lr', fills, onClickRegion)} />
-    <ellipse cx="100" cy="108" rx="7" ry="30" {...rp('bf-body', fills, onClickRegion)} />
-    <circle cx="100" cy="70" r="9" {...rp('bf-head', fills, onClickRegion)} />
-    <line x1="95" y1="62" x2="82" y2="48" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round" />
-    <line x1="105" y1="62" x2="118" y2="48" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round" />
-    <circle cx="81" cy="47" r="3" fill="#9CA3AF" />
-    <circle cx="119" cy="47" r="3" fill="#9CA3AF" />
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" id="coloring-svg" width="100%" height="100%">
+    <path d="M 97 32 C 90 20, 80 10, 65 15" strokeWidth="2.5" fill="none" stroke="#1a1a1a" />
+    <circle cx="65" cy="15" r="2.5" stroke="#1a1a1a" {...rp('bf-ant-l-t', fills, onClickRegion)} />
+    <path d="M 103 32 C 110 20, 120 10, 135 15" strokeWidth="2.5" fill="none" stroke="#1a1a1a" />
+    <circle cx="135" cy="15" r="2.5" stroke="#1a1a1a" {...rp('bf-ant-r-t', fills, onClickRegion)} />
+    <path strokeWidth="2.5" stroke="#1a1a1a" d="M 95 45 C 70 30, 35 25, 15 35 C 10 50, 15 80, 25 105 C 40 115, 75 105, 95 65 Z" {...rp('bf-w-tl', fills, onClickRegion)} />
+    <path strokeWidth="2.5" stroke="#1a1a1a" d="M 105 45 C 130 30, 165 25, 185 35 C 190 50, 185 80, 175 105 C 160 115, 125 105, 105 65 Z" {...rp('bf-w-tr', fills, onClickRegion)} />
+    <path strokeWidth="2.5" stroke="#1a1a1a" d="M 95 75 C 70 85, 45 95, 30 115 C 20 135, 35 160, 45 175 C 45 175, 40 195, 40 195 C 48 190, 52 178, 55 178 C 65 185, 85 180, 95 140 Z" {...rp('bf-w-bl', fills, onClickRegion)} />
+    <path strokeWidth="2.5" stroke="#1a1a1a" d="M 105 75 C 130 85, 155 95, 170 115 C 180 135, 165 160, 155 175 C 155 175, 160 195, 160 195 C 152 190, 148 178, 145 178 C 135 185, 115 180, 105 140 Z" {...rp('bf-w-br', fills, onClickRegion)} />
+    <path strokeWidth="1.5" stroke="#1a1a1a" d="M 90 48 C 65 38, 35 35, 22 40 C 35 48, 65 52, 90 55 Z" {...rp('bf-wtl-p1', fills, onClickRegion)} />
+    <path strokeWidth="1.5" stroke="#1a1a1a" d="M 88 58 C 60 55, 30 55, 20 60 C 25 70, 40 85, 60 82 C 75 80, 85 70, 90 62 Z" {...rp('bf-wtl-p2', fills, onClickRegion)} />
+    <path strokeWidth="1.5" stroke="#1a1a1a" d="M 85 68 C 65 75, 45 90, 32 95 C 45 102, 65 100, 80 85 Z" {...rp('bf-wtl-p3', fills, onClickRegion)} />
+    <path strokeWidth="1.5" stroke="#1a1a1a" d="M 110 48 C 135 38, 165 35, 178 40 C 165 48, 135 52, 110 55 Z" {...rp('bf-wtr-p1', fills, onClickRegion)} />
+    <path strokeWidth="1.5" stroke="#1a1a1a" d="M 112 58 C 140 55, 170 55, 180 60 C 175 70, 160 85, 140 82 C 125 80, 115 70, 110 62 Z" {...rp('bf-wtr-p2', fills, onClickRegion)} />
+    <path strokeWidth="1.5" stroke="#1a1a1a" d="M 115 68 C 135 75, 155 90, 168 95 C 155 102, 135 100, 120 85 Z" {...rp('bf-wtr-p3', fills, onClickRegion)} />
+    <path strokeWidth="1.5" stroke="#1a1a1a" d="M 90 85 C 75 92, 55 102, 40 115 C 55 125, 75 115, 88 100 Z" {...rp('bf-wbl-p1', fills, onClickRegion)} />
+    <path strokeWidth="1.5" stroke="#1a1a1a" d="M 85 105 C 70 120, 50 135, 35 145 C 50 155, 65 145, 80 125 Z" {...rp('bf-wbl-p2', fills, onClickRegion)} />
+    <path strokeWidth="1.5" stroke="#1a1a1a" d="M 80 130 C 70 145, 60 160, 52 170 C 65 170, 75 160, 85 142 Z" {...rp('bf-wbl-p3', fills, onClickRegion)} />
+    <path strokeWidth="1.5" stroke="#1a1a1a" d="M 110 85 C 125 92, 145 102, 160 115 C 145 125, 125 115, 112 100 Z" {...rp('bf-wbr-p1', fills, onClickRegion)} />
+    <path strokeWidth="1.5" stroke="#1a1a1a" d="M 115 105 C 130 120, 150 135, 165 145 C 150 155, 135 145, 120 125 Z" {...rp('bf-wbr-p2', fills, onClickRegion)} />
+    <path strokeWidth="1.5" stroke="#1a1a1a" d="M 120 130 C 130 145, 140 160, 148 170 C 135 170, 125 160, 115 142 Z" {...rp('bf-wbr-p3', fills, onClickRegion)} />
+    <ellipse cx="100" cy="90" rx="6" ry="25" strokeWidth="2.5" stroke="#1a1a1a" {...rp('bf-ab', fills, onClickRegion)} />
+    <ellipse cx="100" cy="55" rx="7" ry="12" strokeWidth="2.5" stroke="#1a1a1a" {...rp('bf-th', fills, onClickRegion)} />
+    <circle cx="100" cy="36" r="5" strokeWidth="2.5" stroke="#1a1a1a" {...rp('bf-hd', fills, onClickRegion)} />
   </svg>
 )
 
@@ -347,8 +362,8 @@ const TabletsSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void
 )
 
 const DRAWINGS: DrawingDef[] = [
-  { ...lesson('ark'), regions: ['ark-sky','ark-water','ark-hull','ark-cabin','ark-roof','ark-door','ark-window-l','ark-window-r','ark-animal-l','ark-animal-r','ark-rainbow-1','ark-rainbow-2'], Component: ArkSVG },
-  { ...lesson('new-life'), regions: ['bf-wing-ul','bf-wing-ur','bf-wing-ll','bf-wing-lr','bf-body','bf-head'], Component: ButterflySVG },
+  { ...lesson('ark'), regions: ['ark-sky', 'ark-sun', 'ark-c1', 'ark-c2', 'ark-hull', 'ark-cb-base', 'ark-cb-up', 'ark-roof', 'ark-door', 'ark-w1', 'ark-w2', 'ark-wa1'], Component: ArkSVG },
+  { ...lesson('new-life'), regions: ['bf-ant-l-t', 'bf-ant-r-t', 'bf-w-tl', 'bf-w-tr', 'bf-w-bl', 'bf-w-br', 'bf-wtl-p1', 'bf-wtl-p2', 'bf-wtl-p3', 'bf-wtr-p1', 'bf-wtr-p2', 'bf-wtr-p3', 'bf-wbl-p1', 'bf-wbl-p2', 'bf-wbl-p3', 'bf-wbr-p1', 'bf-wbr-p2', 'bf-wbr-p3', 'bf-ab', 'bf-th', 'bf-hd'], Component: ButterflySVG },
   { ...lesson('creation'), regions: ['fl-stem','fl-leaf-l','fl-leaf-r','fl-petal-t','fl-petal-b','fl-petal-l','fl-petal-r','fl-petal-tl','fl-petal-tr','fl-center'], Component: FlowerSVG },
   { ...lesson('bethlehem'), regions: ['st-body','st-inner','st-spark1','st-spark2','st-spark3','st-spark4','st-spark5'], Component: StarSVG },
   { ...lesson('lamb'), regions: ['lamb-field','lamb-body','lamb-head','lamb-ear-l','lamb-ear-r','lamb-leg-l','lamb-leg-r','lamb-wool-l','lamb-wool-m','lamb-wool-r'], Component: LambSVG },
