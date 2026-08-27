@@ -482,7 +482,7 @@ export default function Quiz() {
               </h3>
               <ul className="text-sm space-y-2" style={{ color: '#334155', fontFamily: "'Nunito'" }}>
                  <li>🎯 Responda <strong>10 perguntas bíblicas</strong> de diversas categorias.</li>
-                 <li>⏱ Você tem <strong>15 segundos</strong> para cada resposta.</li>
+                 <li>⏱ Você tem <strong>20 segundos</strong> para cada resposta.</li>
                  <li>✅ Resposta certa vale <strong>10 pontos</strong>.</li>
                  <li>❌ Resposta errada ou tempo esgotado = <strong>0 pontos</strong>.</li>
                  <li>📖 Depois de responder, leia a explicação e confira a referência bíblica.</li>
