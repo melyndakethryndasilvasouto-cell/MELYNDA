@@ -36,6 +36,10 @@ function LoadingGame() {
 
 function AppRoutes() {
   const location = useLocation()
+  useEffect(() => {
+    const focusFrame = window.requestAnimationFrame(() => document.getElementById('main-content')?.focus())
+    return () => window.cancelAnimationFrame(focusFrame)
+  }, [location.pathname])
   return (
     <AnimatePresence mode="wait">
       <motion.div

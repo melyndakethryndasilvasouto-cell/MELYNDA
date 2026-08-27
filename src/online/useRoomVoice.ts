@@ -33,6 +33,13 @@ export function useRoomVoice(channel: RealtimeChannel | null, userId: string, ho
     otherReadyRef.current = false
   }, [])
 
+  const stopMedia = useCallback(() => {
+    for (const track of streamRef.current?.getTracks() || []) track.stop()
+    streamRef.current = null
+    if (remoteAudioRef.current) remoteAudioRef.current.srcObject = null
+    setMuted(false)
+  }, [])
+
   const createPeer = useCallback(() => {
     if (peerRef.current) return peerRef.current
     const peer = new RTCPeerConnection({
@@ -52,13 +59,15 @@ export function useRoomVoice(channel: RealtimeChannel | null, userId: string, ho
     peer.onconnectionstatechange = () => {
       if (peer.connectionState === 'connected') setStatus('connected')
       if (['failed', 'disconnected'].includes(peer.connectionState)) {
+        closePeer()
+        stopMedia()
         setStatus('error')
         setError('A voz não conseguiu manter a conexão nesta rede.')
       }
     }
     peerRef.current = peer
     return peer
-  }, [broadcast])
+  }, [broadcast, closePeer, stopMedia])
 
   const createOffer = useCallback(async () => {
     if (userId !== hostId || !streamRef.current || !otherReadyRef.current) return
@@ -143,12 +152,9 @@ export function useRoomVoice(channel: RealtimeChannel | null, userId: string, ho
   const stop = useCallback(() => {
     void broadcast({ kind: 'hangup' })
     closePeer()
-    for (const track of streamRef.current?.getTracks() || []) track.stop()
-    streamRef.current = null
-    if (remoteAudioRef.current) remoteAudioRef.current.srcObject = null
-    setMuted(false)
+    stopMedia()
     setStatus('off')
-  }, [broadcast, closePeer])
+  }, [broadcast, closePeer, stopMedia])
 
   useEffect(() => stop, [stop])
 

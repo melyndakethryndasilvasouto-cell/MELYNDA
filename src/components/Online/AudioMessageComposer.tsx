@@ -14,7 +14,7 @@ export default function AudioMessageComposer({ disabled = false, onSend }: Props
   const audio = useEphemeralAudioMessage(onSend)
 
   return (
-    <div className="mt-2 rounded-2xl border border-blue-100 bg-blue-50/70 p-3" aria-label="Enviar mensagem de áudio">
+    <div className="mt-2 rounded-2xl border border-blue-100 bg-blue-50/70 p-3" aria-label="Enviar mensagem de áudio" aria-busy={audio.status === 'requesting' || audio.status === 'sending'}>
       {audio.status === 'idle' || audio.status === 'error' ? (
         <button type="button" className="btn-secondary min-h-11 w-full text-sm" disabled={disabled} onClick={() => void audio.startRecording()}>
           <Mic size={17} aria-hidden="true" /> Gravar áudio curto
@@ -36,6 +36,7 @@ export default function AudioMessageComposer({ disabled = false, onSend }: Props
         </div>
       ) : null}
       {audio.error && <p role="alert" className="mt-2 text-xs font-bold" style={{ color: '#9A3412' }}>{audio.error}</p>}
+      <p className="sr-only" role="status" aria-live="polite">{audio.status === 'requesting' ? 'Aguardando permissão do microfone.' : audio.status === 'recording' ? `Gravando áudio, ${seconds(audio.elapsedMs)}.` : audio.status === 'preview' ? 'Áudio pronto para ouvir antes de enviar.' : audio.status === 'sending' ? 'Enviando áudio.' : ''}</p>
       <p className="mt-2 text-xs" style={{ color: '#4B5563' }}>Máximo de 10 segundos. O áudio não toca sozinho e deixa de ficar disponível após 24 horas.</p>
     </div>
   )

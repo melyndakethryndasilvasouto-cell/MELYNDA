@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from 'react'
+import { FormEvent, useCallback, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   AlertTriangle,
@@ -9,7 +9,6 @@ import {
   Plus,
   Radio,
   Send,
-  ShieldCheck,
   Users,
   X,
 } from 'lucide-react'
@@ -17,27 +16,31 @@ import { useNavigate } from 'react-router-dom'
 import { useOnline } from '../../contexts/OnlineContext'
 import { activityLabel } from '../../online/gameRegistry'
 import { LOBBY_QUICK_MESSAGES, OnlinePlayer } from '../../online/types'
+import OnlineSafetyGate from './OnlineSafetyGate'
+import { useAccessibleDialog } from '../../online/useAccessibleDialog'
 
 export default function OnlineLobbyPage() {
   const navigate = useNavigate()
   const {
-    configured, status, userId, players, invites, groupInvites, groups, lobbyMessages, error,
+    configured, safetyAccepted, status, userId, players, invites, groupInvites, groups, lobbyMessages, error,
+    acceptSafety, goOffline,
     connect, sendLobbyMessage, invitePlayer, respondInvite, createGroup, inviteToGroup,
     respondGroupInvite, blockPlayer, reportPlayer,
   } = useOnline()
   const [busy, setBusy] = useState('')
   const [chatOpen, setChatOpen] = useState(false)
-  const [safetyAccepted, setSafetyAccepted] = useState(status !== 'idle' || localStorage.getItem('mel-online-consent') === 'yes')
   const [selectedPlayer, setSelectedPlayer] = useState<OnlinePlayer | null>(null)
   const [groupName, setGroupName] = useState('Turma da Bíblia')
   const [creatingGroup, setCreatingGroup] = useState(false)
   const [notice, setNotice] = useState('')
+  const playerDialogFirstRef = useRef<HTMLButtonElement>(null)
+  const closePlayerDialog = useCallback(() => setSelectedPlayer(null), [])
+  useAccessibleDialog(Boolean(selectedPlayer), closePlayerDialog, playerDialogFirstRef)
 
   const ownedGroups = useMemo(() => groups.filter(group => group.owner_id === userId), [groups, userId])
 
   const enterLobby = () => {
-    setSafetyAccepted(true)
-    localStorage.setItem('mel-online-consent', 'yes')
+    acceptSafety()
     void connect()
   }
 
@@ -109,6 +112,8 @@ export default function OnlineLobbyPage() {
   }
 
   const protectFromPlayer = async (player: OnlinePlayer, report = false) => {
+    const action = report ? 'denunciar e bloquear' : 'bloquear'
+    if (!window.confirm(`Deseja mesmo ${action} ${player.name}? Você poderá cancelar agora.`)) return
     setBusy(`safe-${player.userId}`)
     try {
       if (report) await reportPlayer(player.userId, 'other', 'lobby')
@@ -127,15 +132,7 @@ export default function OnlineLobbyPage() {
   }
 
   if (!safetyAccepted) {
-    return (
-      <section className="glass-card mx-auto mt-8 max-w-md p-6 text-center">
-        <ShieldCheck className="mx-auto" size={48} aria-hidden="true" style={{ color: '#047857' }} />
-        <h1 className="mt-3 font-title text-3xl" style={{ color: '#5B3A8A' }}>Jogar com segurança</h1>
-        <p className="mt-3 text-sm font-bold leading-relaxed" style={{ color: '#4B5563' }}>Use um apelido e aceite convites somente de amigos conhecidos. Se você é criança, peça para um adulto acompanhar o chat, os grupos e o áudio.</p>
-        <p className="mt-3 rounded-2xl bg-blue-50 p-3 text-sm" style={{ color: '#1D4E89' }}>Nunca compartilhe nome completo, escola, endereço, telefone, senha ou fotos.</p>
-        <button type="button" className="btn-primary mt-5 w-full" onClick={enterLobby}>Entendi, entrar no Online</button>
-      </section>
-    )
+    return <OnlineSafetyGate onAccept={enterLobby} notice={error} />
   }
 
   const otherPlayers = players.filter(player => player.userId !== userId)
@@ -144,13 +141,14 @@ export default function OnlineLobbyPage() {
     <section className="pb-28 pt-4">
       <motion.header initial={{ opacity: 0, y: -14 }} animate={{ opacity: 1, y: 0 }} className="text-center">
         <div className="text-5xl" aria-hidden="true">🌐</div>
-        <h1 className="mt-2 font-title text-3xl" style={{ color: '#5B3A8A' }}>Amigos Online</h1>
-        <p className="mx-auto mt-2 max-w-md text-sm font-bold" style={{ color: '#2563A6' }}>Veja o apelido e o jogo de cada pessoa, convide para jogar ou conversem em um grupo privado.</p>
+        <h1 className="mt-2 font-title text-3xl" style={{ color: '#5B3A8A' }}>Jogadores Online</h1>
+        <p className="mx-auto mt-2 max-w-md text-sm font-bold" style={{ color: '#2563A6' }}>Veja o apelido e o jogo de cada pessoa. Convide somente alguém que você conhece.</p>
       </motion.header>
 
-      <div className="mt-5 flex items-center justify-center gap-2 rounded-2xl px-3 py-2 text-sm font-black" style={{ color: status === 'connected' ? '#166534' : '#6B7280', background: status === 'connected' ? '#DCFCE7' : '#F3F4F6' }}>
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-2 rounded-2xl px-3 py-2 text-sm font-black" style={{ color: status === 'connected' ? '#166534' : '#6B7280', background: status === 'connected' ? '#DCFCE7' : '#F3F4F6' }}>
         {status === 'connecting' ? <LoaderCircle className="animate-spin" size={18} /> : <Radio size={18} />}
-        {status === 'connected' ? `${otherPlayers.length} amigo${otherPlayers.length === 1 ? '' : 's'} disponíve${otherPlayers.length === 1 ? 'l' : 'is'}` : 'Conectando com segurança…'}
+        <span>{status === 'connected' ? `${otherPlayers.length} jogador${otherPlayers.length === 1 ? '' : 'es'} online` : 'Conectando com segurança…'}</span>
+        {status === 'connected' && <button type="button" className="min-h-10 rounded-xl bg-white px-3 text-xs font-black shadow-sm" onClick={() => void goOffline()}>Ficar offline</button>}
       </div>
 
       {(error || notice) && <p role="status" className="mt-3 rounded-2xl bg-amber-50 p-3 text-sm font-bold" style={{ color: '#92400E' }}>{notice || error}</p>}
@@ -182,8 +180,8 @@ export default function OnlineLobbyPage() {
 
       <section className="mt-5" aria-labelledby="players-title">
         <div className="mb-3 flex items-center gap-2"><Gamepad2 size={20} style={{ color: '#5B3A8A' }} /><h2 id="players-title" className="font-black" style={{ color: '#5B3A8A' }}>Quem está Online</h2></div>
-        {status !== 'connected' ? <div className="glass-card p-6 text-center text-sm font-bold">Preparando a lista…</div> : otherPlayers.length === 0 ? <div className="glass-card p-6 text-center"><p className="text-4xl">🕊️</p><p className="mt-2 font-black" style={{ color: '#5B3A8A' }}>Nenhum outro amigo apareceu agora.</p></div> : <div className="space-y-3">{otherPlayers.map(player => (
-          <button key={player.userId} type="button" className="glass-card flex min-h-20 w-full items-center gap-3 p-3 text-left" onClick={() => setSelectedPlayer(player)}>
+        {status !== 'connected' ? <div className="glass-card p-6 text-center text-sm font-bold">Preparando a lista…</div> : otherPlayers.length === 0 ? <div className="glass-card p-6 text-center"><p className="text-4xl">🕊️</p><p className="mt-2 font-black" style={{ color: '#5B3A8A' }}>Nenhum outro jogador apareceu agora.</p></div> : <div className="space-y-3">{otherPlayers.map(player => (
+          <button key={player.userId} type="button" className="glass-card flex min-h-20 w-full items-center gap-3 p-3 text-left" onClick={() => { setNotice(''); setSelectedPlayer(player) }}>
             <span className="text-3xl" aria-hidden="true">{player.avatar}</span><span className="min-w-0 flex-1"><strong className="block truncate">{player.name}</strong><span className="mt-1 block text-xs font-bold" style={{ color: player.activity === 'playing' ? '#1D4ED8' : '#15803D' }}>● {activityLabel(player)}</span></span><span className="rounded-xl bg-purple-50 px-3 py-2 text-xs font-black" style={{ color: '#5B3A8A' }}>Opções</span>
           </button>
         ))}</div>}
@@ -197,11 +195,14 @@ export default function OnlineLobbyPage() {
         <div className="mt-3 grid gap-2">{LOBBY_QUICK_MESSAGES.map((message, index) => <button key={message} type="button" className="flex min-h-11 items-center justify-between rounded-2xl bg-blue-50 px-3 text-left text-xs font-bold" style={{ color: '#1D4ED8' }} disabled={status !== 'connected'} onClick={() => void sendLobbyMessage(index).catch(sendError => setNotice(sendError instanceof Error ? sendError.message : 'Não foi possível enviar.'))}>{message}<Send size={14} /></button>)}</div>
       </aside>}
 
-      {selectedPlayer && <div className="fixed inset-0 z-[90] flex items-end bg-slate-950/55 p-3 sm:items-center sm:justify-center" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setSelectedPlayer(null) }}><section role="dialog" aria-modal="true" aria-labelledby="player-actions-title" className="w-full max-w-md rounded-3xl bg-white p-5 shadow-2xl">
-        <div className="flex items-start justify-between gap-3"><div><h2 id="player-actions-title" className="font-title text-2xl" style={{ color: '#5B3A8A' }}>{selectedPlayer.avatar} {selectedPlayer.name}</h2><p className="mt-1 text-sm font-bold" style={{ color: '#2563A6' }}>{activityLabel(selectedPlayer)}</p></div><button type="button" className="flex h-11 w-11 items-center justify-center rounded-2xl bg-purple-50" aria-label="Fechar opções" onClick={() => setSelectedPlayer(null)}><X /></button></div>
-        <button type="button" className="btn-primary mt-4 w-full" disabled={Boolean(busy)} onClick={() => void invite(selectedPlayer)}><Gamepad2 size={18} /> Convidar para Jogo da Velha</button>
+      {selectedPlayer && <div className="fixed inset-0 z-[90] flex items-end bg-slate-950/55 p-3 sm:items-center sm:justify-center" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) closePlayerDialog() }}><section role="dialog" aria-modal="true" aria-labelledby="player-actions-title" aria-busy={Boolean(busy)} className="w-full max-w-md rounded-3xl bg-white p-5 shadow-2xl">
+        <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 id="player-actions-title" className="break-words font-title text-2xl" style={{ color: '#5B3A8A' }}>{selectedPlayer.avatar} {selectedPlayer.name}</h2><p className="mt-1 text-sm font-bold" style={{ color: '#1D4E89' }}>{activityLabel(selectedPlayer)}</p></div><button ref={playerDialogFirstRef} type="button" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-purple-50" aria-label="Fechar opções" onClick={closePlayerDialog}><X /></button></div>
+        <p className="mt-3 rounded-2xl bg-blue-50 p-3 text-xs font-bold" style={{ color: '#1D4E89' }}>Hoje, somente o Jogo da Velha tem partida online. Para escolher outro jogo juntos, crie um grupo privado abaixo.</p>
+        {notice && <p role="status" className="mt-3 rounded-2xl bg-amber-50 p-3 text-sm font-bold" style={{ color: '#92400E' }}>{notice}</p>}
+        {busy && <p role="status" className="mt-2 text-center text-sm font-bold" style={{ color: '#5B3A8A' }}>Aguarde um pouquinho…</p>}
+        <button type="button" className="btn-primary mt-4 w-full" disabled={Boolean(busy)} onClick={() => void invite(selectedPlayer)}><Gamepad2 size={18} /> Convidar para Jogo da Velha online</button>
         {ownedGroups.length > 0 && <div className="mt-3"><p className="text-sm font-black" style={{ color: '#5B3A8A' }}>Convidar para um grupo seu</p><div className="mt-2 grid gap-2">{ownedGroups.map(group => <button key={group.id} type="button" className="btn-secondary min-h-11 w-full text-sm" disabled={Boolean(busy)} onClick={() => void inviteGroup(group.id, selectedPlayer)}>{group.name}</button>)}</div></div>}
-        <form onSubmit={event => void makeGroup(event, selectedPlayer)} className="mt-3 rounded-2xl bg-purple-50 p-3"><label className="text-sm font-bold">Ou crie um grupo privado<input value={groupName} onChange={event => setGroupName(event.target.value.slice(0, 32))} maxLength={32} className="mt-1 min-h-11 w-full rounded-xl border border-purple-200 px-3" /></label><button type="submit" className="btn-secondary mt-2 w-full text-sm" disabled={Boolean(busy)}><Users size={17} /> Criar e convidar</button></form>
+        <form onSubmit={event => void makeGroup(event, selectedPlayer)} className="mt-3 rounded-2xl bg-purple-50 p-3"><label className="text-sm font-bold">Ou crie um grupo privado<input value={groupName} onChange={event => setGroupName(event.target.value.slice(0, 32))} maxLength={32} className="mt-1 min-h-11 w-full rounded-xl border border-purple-200 px-3" /></label><button type="submit" className="btn-secondary mt-2 w-full text-sm" disabled={Boolean(busy)}><Users size={17} /> Conversar e escolher um jogo</button></form>
         <div className="mt-4 grid grid-cols-2 gap-2"><button type="button" className="min-h-11 rounded-2xl bg-slate-100 px-3 text-sm font-black" onClick={() => void protectFromPlayer(selectedPlayer)}><Ban className="inline" size={16} /> Bloquear</button><button type="button" className="min-h-11 rounded-2xl bg-orange-50 px-3 text-sm font-black" style={{ color: '#9A3412' }} onClick={() => void protectFromPlayer(selectedPlayer, true)}><AlertTriangle className="inline" size={16} /> Denunciar</button></div>
       </section></div>}
     </section>

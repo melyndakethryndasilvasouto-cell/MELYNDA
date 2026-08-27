@@ -16,6 +16,7 @@ import { usePlayer } from './PlayerContext'
 
 interface OnlineContextValue {
   configured: boolean
+  safetyAccepted: boolean
   status: OnlineStatus
   userId: string
   players: OnlinePlayer[]
@@ -24,6 +25,8 @@ interface OnlineContextValue {
   groups: OnlineGroup[]
   lobbyMessages: OnlineLobbyMessage[]
   error: string
+  acceptSafety: () => void
+  goOffline: () => Promise<void>
   connect: () => Promise<void>
   refreshOnline: () => Promise<void>
   sendLobbyMessage: (messageIndex: number) => Promise<void>
@@ -69,11 +72,20 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
   const [groups, setGroups] = useState<OnlineGroup[]>([])
   const [lobbyMessages, setLobbyMessages] = useState<OnlineLobbyMessage[]>([])
   const [error, setError] = useState('')
+  const [safetyAccepted, setSafetyAccepted] = useState(() => sessionStorage.getItem('mel-online-consent') === 'yes')
+  const safetyAcceptedRef = useRef(safetyAccepted)
   const channelRef = useRef<RealtimeChannel | null>(null)
   const heartbeatRef = useRef<number | null>(null)
   const connectionRef = useRef<Promise<void> | null>(null)
   const connectedUserRef = useRef('')
   const activityRef = useRef(activityForPath(pathname))
+
+  const acceptSafety = useCallback(() => {
+    sessionStorage.setItem('mel-online-consent', 'yes')
+    localStorage.removeItem('mel-online-consent')
+    safetyAcceptedRef.current = true
+    setSafetyAccepted(true)
+  }, [])
 
   const clearHeartbeat = useCallback(() => {
     if (heartbeatRef.current !== null) window.clearInterval(heartbeatRef.current)
@@ -160,6 +172,11 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
   }, [loadGroups, loadInvites, loadMessages, loadPlayers])
 
   const connect = useCallback(async () => {
+    if (!safetyAcceptedRef.current) {
+      setStatus('idle')
+      setError('Confirme as orientações de segurança antes de entrar no Online.')
+      return
+    }
     if (connectedUserRef.current) return
     if (connectionRef.current) return connectionRef.current
     const task = (async () => {
@@ -198,7 +215,6 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
         await supabase.realtime.setAuth(session.access_token)
         connectedUserRef.current = currentUserId
         setUserId(currentUserId)
-        localStorage.setItem('mel-online-consent', 'yes')
         await heartbeat()
 
         const channel = supabase.channel(`online-events:${currentUserId}`)
@@ -237,8 +253,35 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
   }, [heartbeat, loadPlayers, pathname])
 
   useEffect(() => {
-    if (localStorage.getItem('mel-online-consent') === 'yes') void connect()
-  }, [connect])
+    localStorage.removeItem('mel-online-consent')
+    if (safetyAccepted) void connect()
+  }, [connect, safetyAccepted])
+
+  const goOffline = useCallback(async () => {
+    clearHeartbeat()
+    let presenceCleared = true
+    if (supabase && connectedUserRef.current) {
+      let result = await supabase.rpc('go_offline')
+      if (result.error) {
+        await new Promise(resolve => window.setTimeout(resolve, 500))
+        result = await supabase.rpc('go_offline')
+      }
+      presenceCleared = !result.error
+    }
+    disconnect()
+    sessionStorage.removeItem('mel-online-consent')
+    localStorage.removeItem('mel-online-consent')
+    safetyAcceptedRef.current = false
+    setSafetyAccepted(false)
+    setStatus('idle')
+    setUserId('')
+    setPlayers([])
+    setInvites([])
+    setGroupInvites([])
+    setGroups([])
+    setLobbyMessages([])
+    setError(presenceCleared ? '' : 'Você parou de enviar atividade, mas não foi possível confirmar a remoção imediata. Seu apelido pode levar até 90 segundos para sumir da lista.')
+  }, [clearHeartbeat, disconnect])
 
   const sendLobbyMessage = useCallback(async (messageIndex: number) => {
     if (!supabase || !LOBBY_QUICK_MESSAGES[messageIndex]) return
@@ -317,6 +360,7 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
   return (
     <OnlineContext.Provider value={{
       configured: onlineConfigured,
+      safetyAccepted,
       status,
       userId,
       players,
@@ -325,6 +369,8 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
       groups,
       lobbyMessages,
       error,
+      acceptSafety,
+      goOffline,
       connect,
       refreshOnline,
       sendLobbyMessage,

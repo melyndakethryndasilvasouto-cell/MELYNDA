@@ -59,6 +59,37 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── Versículo do Dia ── */}
+      {(() => {
+        const DAILY_VERSES = [
+          { ref: 'João 3:16', text: 'Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo o que nele crê não pereça, mas tenha a vida eterna.' },
+          { ref: 'Salmo 119:105', text: 'A tua palavra é lâmpada que ilumina os meus passos e luz que clareia o meu caminho.' },
+          { ref: 'Filipenses 4:13', text: 'Tudo posso naquele que me fortalece.' },
+          { ref: 'Josué 1:9', text: 'Seja forte e corajoso! Não se apavore nem desanime, pois o Senhor, seu Deus, estará com você por onde você andar.' },
+          { ref: 'Mateus 22:39', text: 'Ame o seu próximo como a si mesmo.' },
+          { ref: 'Provérbios 3:5', text: 'Confie no Senhor de todo o seu coração e não se apoie no próprio entendimento. Reconheça-o em todos os seus caminhos, e ele endireitará as suas veredas.' },
+          { ref: 'Gálatas 5:22', text: 'O fruto do Espírito é: amor, alegria, paz, paciência, amabilidade, bondade, fidelidade, mansidão e domínio próprio.' },
+        ]
+        const verse = DAILY_VERSES[new Date().getDay()]
+        return (
+          <motion.section
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+            className="glass-card px-4 py-3 mb-4"
+            aria-label="Versículo do dia"
+            style={{ borderLeft: '4px solid #A78BFA' }}
+          >
+            <div className="flex items-start gap-2">
+              <span className="text-xl mt-0.5" aria-hidden="true">📖</span>
+              <div className="min-w-0">
+                <p className="text-xs font-black uppercase tracking-wider mb-1" style={{ color: '#7B5EA7' }}>Versículo do Dia</p>
+                <p className="text-sm leading-snug italic" style={{ color: '#374151' }}>"{verse.text}"</p>
+                <span className="verse-chip mt-2 inline-block">{verse.ref}</span>
+              </div>
+            </div>
+          </motion.section>
+        )
+      })()}
+
       <motion.button
         type="button"
         initial={{ opacity: 0, scale: 0.96 }}

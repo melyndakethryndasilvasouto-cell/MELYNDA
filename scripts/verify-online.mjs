@@ -46,6 +46,8 @@ const participants = [first, second, third]
 const channels = []
 let roomId = ''
 let competingRoomId = ''
+let raceRoomId = ''
+let pendingBlockRoomId = ''
 let groupId = ''
 
 try {
@@ -145,8 +147,36 @@ try {
   while (!signalReceived && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 80))
   if (!signalReceived) throw new Error('A sinalização privada do microfone não chegou.')
 
+  await new Promise(resolve => setTimeout(resolve, 8_200))
+  raceRoomId = String(await requireOk(third.rpc('create_online_invite', { guest: secondId }), 'convite para teste concorrente'))
+  const raceInvite = await requireOk(second.from('online_invites').select('id').eq('room_id', raceRoomId).single(), 'convite concorrente para bloqueio')
+  const [raceBlock, raceAccept] = await Promise.all([
+    third.rpc('block_online_player', { target: secondId }),
+    second.rpc('respond_online_invite', { invite: raceInvite.id, accept_invite: true }),
+  ])
+  if (raceBlock.error) throw new Error(`bloqueio concorrente: ${raceBlock.error.message}`)
+  if ([raceBlock.error, raceAccept.error].some(error => error?.code === '40P01' || /deadlock/i.test(error?.message || ''))) {
+    throw new Error('Aceite e bloqueio simultaneos causaram deadlock.')
+  }
+  const [raceRoom, raceStoredBlock] = await Promise.all([
+    requireOk(third.from('online_rooms').select('status').eq('id', raceRoomId).single(), 'sala apos corrida de bloqueio'),
+    requireOk(third.from('online_blocks').select('blocked_id').eq('blocked_id', secondId), 'bloqueio apos corrida'),
+  ])
+  if (raceRoom.status !== 'cancelled' || !raceStoredBlock.length) {
+    throw new Error('Bloqueio simultaneo ao aceite nao encerrou a sala com seguranca.')
+  }
+
+  pendingBlockRoomId = String(await requireOk(first.rpc('create_online_invite', { guest: secondId }), 'convite pendente antes do bloqueio'))
   await requireOk(first.rpc('report_online_player', { target: secondId, report_reason: 'other', report_context: 'room', report_evidence: 'teste automatizado' }), 'denúncia')
   await requireOk(first.rpc('block_online_player', { target: secondId }), 'bloqueio')
+  const [pendingAfterBlock, pendingRoomAfterBlock, storedBlock] = await Promise.all([
+    requireOk(first.from('online_invites').select('status').eq('room_id', pendingBlockRoomId).single(), 'convite após bloqueio'),
+    requireOk(first.from('online_rooms').select('status').eq('id', pendingBlockRoomId).single(), 'sala pendente após bloqueio'),
+    requireOk(first.from('online_blocks').select('blocked_id').eq('blocked_id', secondId), 'registro do bloqueio'),
+  ])
+  if (pendingAfterBlock.status !== 'expired' || pendingRoomAfterBlock.status !== 'cancelled' || !storedBlock.length) {
+    throw new Error('Bloqueio com convite pendente não foi concluído atomicamente.')
+  }
   const blockedPresence = await requireOk(first.from('online_presence').select('user_id').eq('user_id', secondId), 'presença após bloqueio')
   if (blockedPresence.length !== 0) throw new Error('Jogador bloqueado continuou visível.')
   const membersAfterBlock = await requireOk(first.from('online_group_members').select('user_id').eq('group_id', groupId), 'grupo após bloqueio')
@@ -154,10 +184,16 @@ try {
   const formerMemberMessages = await requireOk(second.from('online_group_messages').select('id').eq('group_id', groupId), 'privacidade após bloqueio')
   if (formerMemberMessages.length !== 0) throw new Error('Ex-participante continuou lendo o grupo após o bloqueio.')
 
-  console.log('ONLINE_VERIFY_OK anonymous_users=3 server_presence=ok lobby_presets=ok groups_owner_only=ok group_rls=ok text_filter=ok short_audio=ok competing_invite=closed room_rls=ok server_moves=5 invalid_move=blocked voice_signal=private block_report=ok shared_group_removed=ok')
+  await requireOk(third.rpc('go_offline'), 'saida online atomica')
+  const presenceAfterOffline = await requireOk(first.from('online_presence').select('user_id').eq('user_id', thirdId), 'presenca apos ficar offline')
+  if (presenceAfterOffline.length !== 0) throw new Error('Jogador continuou visivel depois de ficar offline.')
+
+  console.log('ONLINE_VERIFY_OK anonymous_users=3 server_presence=ok lobby_presets=ok groups_owner_only=ok group_rls=ok text_filter=ok short_audio=ok competing_invite=closed invite_race=serialized room_rls=ok server_moves=5 invalid_move=blocked voice_signal=private pending_block=ok block_report=ok shared_group_removed=ok go_offline=ok')
 } finally {
   if (roomId) await Promise.resolve(first.rpc('leave_online_room', { room: roomId })).catch(() => {})
   if (competingRoomId) await Promise.resolve(third.rpc('leave_online_room', { room: competingRoomId })).catch(() => {})
+  if (raceRoomId) await Promise.resolve(third.rpc('leave_online_room', { room: raceRoomId })).catch(() => {})
+  if (pendingBlockRoomId) await Promise.resolve(first.rpc('leave_online_room', { room: pendingBlockRoomId })).catch(() => {})
   if (groupId) await Promise.resolve(first.rpc('close_online_group', { target_group: groupId })).catch(() => {})
   for (const [owner, channel] of channels) await Promise.resolve(owner.removeChannel(channel)).catch(() => {})
   await Promise.allSettled(participants.map(owner => owner.auth.signOut()))

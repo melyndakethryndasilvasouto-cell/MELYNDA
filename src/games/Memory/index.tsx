@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import { useSound } from '../../contexts/SoundContext'
@@ -105,6 +105,7 @@ export default function MemoryGame() {
   const elapsedRef      = useRef(0)
   const modeRef         = useRef<GameMode>('solo')
   const diffRef         = useRef<Difficulty>('easy')
+  const lessonTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => { cardsRef.current = cards },       [cards])
   useEffect(() => { currentPRef.current = currentPlayer }, [currentPlayer])
@@ -113,6 +114,14 @@ export default function MemoryGame() {
   useEffect(() => { elapsedRef.current = elapsed },   [elapsed])
   useEffect(() => { modeRef.current    = mode },      [mode])
   useEffect(() => { diffRef.current    = difficulty },[difficulty])
+
+  // auto-dismiss Bible lesson popup after 5 seconds
+  useEffect(() => {
+    if (lessonTimerRef.current) clearTimeout(lessonTimerRef.current)
+    if (!lastLesson) return
+    lessonTimerRef.current = setTimeout(() => setLastLesson(null), 5000)
+    return () => { if (lessonTimerRef.current) clearTimeout(lessonTimerRef.current) }
+  }, [lastLesson])
 
   // load best time
   useEffect(() => {
@@ -589,28 +598,65 @@ export default function MemoryGame() {
         ))}
       </div>
 
-      <AnimatePresence mode="wait">
+
+      <AnimatePresence>
         {lastLesson && (
-          <motion.aside
+          <motion.div
             key={lastLesson.title}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="glass-card w-full max-w-2xl px-4 py-3"
+            initial={{ opacity: 0, y: 80, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 60, scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+            className="fixed bottom-4 left-3 right-3 z-50 glass-card px-4 py-4 mx-auto"
+            style={{ maxWidth: 460, boxShadow: '0 8px 32px rgba(107,184,255,0.25), 0 2px 8px rgba(167,139,250,0.2)' }}
             role="status"
             aria-live="polite"
           >
-            <div className="flex items-start gap-3">
-              <span className="text-3xl" aria-hidden="true">{lastLesson.emoji}</span>
-              <div>
-                <strong className="block text-sm" style={{ color: '#5B3A8A' }}>Descoberta: {lastLesson.title}</strong>
-                <p className="text-sm mt-1" style={{ color: '#374151' }}>{lastLesson.message}</p>
-                <span className="verse-chip mt-2">Leia em {lastLesson.verseRef}</span>
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={() => setLastLesson(null)}
+              className="absolute top-2 right-2 flex items-center justify-center rounded-full text-sm font-black"
+              style={{ width: 28, height: 28, background: 'rgba(167,139,250,0.15)', color: '#7B5EA7' }}
+              aria-label="Fechar mensagem bíblica"
+            >✕</button>
+
+            <div className="flex items-start gap-3 pr-6">
+              <motion.span
+                animate={{ scale: [1, 1.18, 1] }}
+                transition={{ repeat: 2, duration: 0.4 }}
+                className="text-4xl flex-shrink-0"
+                aria-hidden="true"
+              >{lastLesson.emoji}</motion.span>
+              <div className="min-w-0">
+                <p className="text-xs font-black uppercase tracking-wider mb-0.5" style={{ color: '#A78BFA' }}>
+                  ✨ Par encontrado!
+                </p>
+                <strong className="block text-sm font-black" style={{ color: '#5B3A8A' }}>
+                  {lastLesson.title}
+                </strong>
+                <p className="text-sm mt-1 leading-snug" style={{ color: '#374151' }}>
+                  {lastLesson.message}
+                </p>
+                <span className="verse-chip mt-2 inline-block">📖 {lastLesson.verseRef}</span>
               </div>
             </div>
-          </motion.aside>
+
+            {/* Auto-dismiss progress bar */}
+            <motion.div
+              initial={{ scaleX: 1 }}
+              animate={{ scaleX: 0 }}
+              transition={{ duration: 5, ease: 'linear' }}
+              style={{
+                height: 3, borderRadius: 99, marginTop: 10,
+                background: 'linear-gradient(90deg,#6BB8FF,#A78BFA)',
+                transformOrigin: 'left',
+              }}
+            />
+          </motion.div>
         )}
       </AnimatePresence>
+
 
       {mode === 'solo' && bestTime !== null && (
         <p className="text-xs pb-2" style={{ color: '#9CA3AF' }}>

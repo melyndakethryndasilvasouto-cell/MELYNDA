@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import confetti from 'canvas-confetti'
 import { useSound } from '../../contexts/SoundContext'
 import { usePlayer } from '../../contexts/PlayerContext'
 import coloringLessons from '../../data/coloringLessons.json'
@@ -20,30 +21,30 @@ interface DrawingDef {
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
 const PALETTE: { label: string; color: string }[] = [
-  { label: 'Branco',    color: '#FFFFFF' },
-  { label: 'Preto',     color: '#111111' },
-  { label: 'Vermelho',  color: '#EF4444' },
-  { label: 'Laranja',   color: '#F97316' },
-  { label: 'Amarelo',   color: '#FACC15' },
-  { label: 'Lima',      color: '#84CC16' },
-  { label: 'Verde',     color: '#22C55E' },
-  { label: 'Teal',      color: '#14B8A6' },
-  { label: 'Ciano',     color: '#06B6D4' },
-  { label: 'Azul Ceu',  color: '#38BDF8' },
-  { label: 'Azul',      color: '#3B82F6' },
-  { label: 'Indigo',    color: '#6366F1' },
-  { label: 'Violeta',   color: '#8B5CF6' },
-  { label: 'Roxo',      color: '#A855F8' },
-  { label: 'Rosa',      color: '#EC4899' },
-  { label: 'Rose',      color: '#FB7185' },
-  { label: 'Marrom',    color: '#92400E' },
-  { label: 'Cinza',     color: '#9CA3AF' },
-  { label: 'Azul Mel',  color: '#6BB8FF' },
-  { label: 'Lilas Mel', color: '#A78BFA' },
-  { label: 'Dourado',   color: '#F59E0B' },
-  { label: 'Prata',     color: '#CBD5E1' },
-  { label: 'Pessego',   color: '#FDBA74' },
-  { label: 'Hortela',   color: '#6EE7B7' },
+  { label: 'Branco',         color: '#FFFFFF' },
+  { label: 'Preto',          color: '#111111' },
+  { label: 'Vermelho',       color: '#EF4444' },
+  { label: 'Laranja',        color: '#F97316' },
+  { label: 'Amarelo',        color: '#FACC15' },
+  { label: 'Lima',           color: '#84CC16' },
+  { label: 'Verde',          color: '#22C55E' },
+  { label: 'Verde-Azulado',  color: '#14B8A6' },
+  { label: 'Ciano',          color: '#06B6D4' },
+  { label: 'Azul Céu',       color: '#38BDF8' },
+  { label: 'Azul',           color: '#3B82F6' },
+  { label: 'Índigo',         color: '#6366F1' },
+  { label: 'Violeta',        color: '#8B5CF6' },
+  { label: 'Roxo',           color: '#A855F8' },
+  { label: 'Rosa',           color: '#EC4899' },
+  { label: 'Rosa-Claro',     color: '#FB7185' },
+  { label: 'Marrom',         color: '#92400E' },
+  { label: 'Cinza',          color: '#9CA3AF' },
+  { label: 'Azul Mel',       color: '#6BB8FF' },
+  { label: 'Lilás Mel',      color: '#A78BFA' },
+  { label: 'Dourado',        color: '#F59E0B' },
+  { label: 'Prata',          color: '#CBD5E1' },
+  { label: 'Pêssego',        color: '#FDBA74' },
+  { label: 'Hortelã',        color: '#6EE7B7' },
 ]
 
 const UNCOLORED = '#E5E7EB'
@@ -339,7 +340,9 @@ export default function ColorBook() {
   const [showHelp, setShowHelp] = useState(false)
   const [switchModal, setSwitchModal] = useState<{ targetIdx: number } | null>(null)
   const [saveToast, setSaveToast] = useState(false)
+  const [showCelebration, setShowCelebration] = useState(false)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const celebrationTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const completedRef = useRef<Set<string>>(new Set())
 
   useEffect(() => () => {
@@ -359,7 +362,14 @@ export default function ColorBook() {
     completedRef.current.add(drawing.id)
     addAchievement(`colorbook-${drawing.id}`)
     if (completedRef.current.size === DRAWINGS.length) addAchievement('colorbook-master')
-  }, [addAchievement, drawing.id, isComplete])
+    // 🎉 Celebration!
+    playSound('win')
+    confetti({ particleCount: 120, spread: 90, origin: { y: 0.6 }, colors: ['#6BB8FF','#A78BFA','#FCD34D','#34D399','#ffffff'] })
+    setTimeout(() => confetti({ particleCount: 80, spread: 120, origin: { y: 0.4, x: 0.3 }, colors: ['#FCA5A5','#A78BFA','#FCD34D'] }), 350)
+    setShowCelebration(true)
+    if (celebrationTimer.current) clearTimeout(celebrationTimer.current)
+    celebrationTimer.current = setTimeout(() => setShowCelebration(false), 3500)
+  }, [addAchievement, drawing.id, isComplete, playSound])
 
   const handleClickRegion = useCallback((regionId: string) => {
     playSound('click')
@@ -501,16 +511,16 @@ export default function ColorBook() {
           <div className="rounded-full border-4 border-white shadow-lg flex-shrink-0"
             style={{ width: 44, height: 44, background: selectedColor, boxShadow: '0 0 0 2px #A78BFA' }} />
           <div className="flex gap-2 flex-wrap justify-end">
-            <button className="btn-secondary text-sm px-3" style={{ minHeight: 40 }}
+            <button className="btn-secondary text-sm px-3" style={{ minHeight: 44 }}
               onClick={handleUndo} disabled={currentUndo.length === 0}>
               Desfazer
             </button>
             <button className="btn-secondary text-sm px-3"
-              style={{ minHeight: 40, color: '#EF4444', borderColor: '#FCA5A5' }}
+              style={{ minHeight: 44, color: '#EF4444', borderColor: '#FCA5A5' }}
               onClick={handleClear}>
               Limpar
             </button>
-            <button className="btn-primary text-sm px-3" style={{ minHeight: 40 }} onClick={handleSave}>
+            <button className="btn-primary text-sm px-3" style={{ minHeight: 44 }} onClick={handleSave}>
               Salvar
             </button>
           </div>
@@ -525,10 +535,14 @@ export default function ColorBook() {
               onClick={() => { playSound('click'); setSelectedColor(color) }}
               className="flex-shrink-0 rounded-full transition-transform active:scale-90"
               style={{
-                width: 36, height: 36, minWidth: 36,
+                width: 44, height: 44, minWidth: 44,
                 background: color,
-                border: selectedColor === color ? '3px solid #7B5EA7' : '2px solid #D1D5DB',
-                transform: selectedColor === color ? 'scale(1.2)' : 'scale(1)',
+                border: selectedColor === color
+                  ? '3px solid #7B5EA7'
+                  : color === '#FFFFFF'
+                    ? '2px dashed #D1D5DB'
+                    : '2px solid #D1D5DB',
+                transform: selectedColor === color ? 'scale(1.15)' : 'scale(1)',
                 boxShadow: selectedColor === color ? '0 0 0 2px #EDE9FE' : 'none',
               }}
               aria-label={label}
@@ -602,6 +616,54 @@ export default function ColorBook() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* 🎉 Drawing Completion Celebration Overlay */}
+      <AnimatePresence>
+        {showCelebration && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            style={{ background: 'rgba(107,184,255,0.15)', backdropFilter: 'blur(4px)' }}
+            onClick={() => setShowCelebration(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.7, y: 30 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+              className="glass-card px-8 py-7 text-center max-w-sm w-full"
+              onClick={e => e.stopPropagation()}
+              style={{ boxShadow: '0 12px 40px rgba(167,139,250,0.35)' }}
+            >
+              <motion.div
+                animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
+                transition={{ repeat: 2, duration: 0.5 }}
+                className="text-6xl mb-3"
+              >{drawing.emoji}</motion.div>
+              <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: '#A78BFA' }}>
+                🎉 Desenho Completo!
+              </p>
+              <h2 className="text-xl font-black mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#5B3A8A' }}>
+                {drawing.name}
+              </h2>
+              <div className="rounded-2xl px-4 py-3 mb-4" style={{ background: '#FFF9E8', border: '1px solid #F4D06F' }}>
+                <span className="verse-chip mb-1 inline-block">{drawing.verseRef}</span>
+                <p className="text-sm leading-snug font-bold mt-1" style={{ color: '#5B3A8A' }}>{drawing.verseText}</p>
+              </div>
+              <button
+                type="button"
+                className="btn-primary w-full"
+                onClick={() => { playSound('click'); setShowCelebration(false) }}
+              >
+                Continuar Colorindo! 🎨
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   )
 }

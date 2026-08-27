@@ -89,6 +89,8 @@ test('catálogos bíblicos estão conectados às telas que os utilizam', async (
   for (const { path } of missions) assert.ok(app.includes(`path="${path}"`), `rota ausente: ${path}`)
   assert.match(home, /gameMissions\.json/)
   assert.match(layout, /FaithMissionBanner/)
+  assert.match(layout, /Pular para o conteúdo/)
+  assert.match(layout, /id="main-content"/)
   assert.match(quiz, /quizQuestions\.json/)
   assert.match(memory, /memoryPairs\.json/)
   assert.match(coloring, /coloringLessons\.json/)

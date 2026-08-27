@@ -190,6 +190,57 @@ try {
     console.log(`UI_OK feature=devotional-responsive viewport=${width} history_drawer=${mobileDevotional} scrollY=${devotionalLayout.scrollY}`)
   }
 
+  await viewport(320, 900)
+  await navigate('/devocional')
+  const devotionalZoom = await evaluate(`(() => {
+    document.documentElement.style.fontSize = '200%'
+    const workspace = document.querySelector('.devotional-workspace')
+    return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve({
+      viewport: window.innerWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+      workspaceHeight: Math.round(workspace?.getBoundingClientRect().height || 0),
+      workspaceScrollHeight: workspace?.scrollHeight || 0,
+      title: document.querySelector('#active-conversation-title')?.textContent?.trim() || '',
+    }))))
+  })()`)
+  if (devotionalZoom.scrollWidth > devotionalZoom.viewport + 1
+    || devotionalZoom.workspaceHeight + 1 < devotionalZoom.workspaceScrollHeight
+    || !devotionalZoom.title) {
+    throw new Error(`Devocional cortou conteúdo com texto a 200%: ${JSON.stringify(devotionalZoom)}`)
+  }
+  console.log(`UI_OK feature=devotional-text-zoom zoom=200% scrollWidth=${devotionalZoom.scrollWidth} workspace=${devotionalZoom.workspaceHeight}/${devotionalZoom.workspaceScrollHeight}`)
+
+  await viewport(320, 900)
+  await navigate('/devocional')
+  const devotionalTextZoom = await evaluate(`(() => {
+    document.documentElement.style.fontSize = '200%'
+    const visible = element => Boolean(element && element.getBoundingClientRect().width && element.getBoundingClientRect().height)
+    const title = document.querySelector('.devotional-page-title')
+    const conversationTitle = document.querySelector('.devotional-conversation-title')
+    const workspace = document.querySelector('.devotional-workspace')
+    const tabs = [...document.querySelectorAll('.devotional-tabs [role="tab"]')]
+    const mobileLabels = [...document.querySelectorAll('header [class~="sm:hidden"]')].filter(visible).map(item => item.textContent?.trim())
+    return {
+      pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      titleClipped: title ? title.scrollWidth > title.clientWidth || title.scrollHeight > title.clientHeight : true,
+      conversationTitleClipped: conversationTitle ? conversationTitle.scrollWidth > conversationTitle.clientWidth || conversationTitle.scrollHeight > conversationTitle.clientHeight : true,
+      workspaceClipped: workspace ? workspace.scrollHeight > workspace.clientHeight + 1 : true,
+      tabsClipped: tabs.some(tab => tab.scrollWidth > tab.clientWidth || tab.scrollHeight > tab.clientHeight),
+      mobileLabels,
+    }
+  })()`)
+  if (devotionalTextZoom.pageOverflow > 1
+    || devotionalTextZoom.titleClipped
+    || devotionalTextZoom.conversationTitleClipped
+    || devotionalTextZoom.workspaceClipped
+    || devotionalTextZoom.tabsClipped
+    || !devotionalTextZoom.mobileLabels.includes('Jogos')
+    || !devotionalTextZoom.mobileLabels.includes('Online')) {
+    throw new Error(`Reflow do Devocional com texto a 200% falhou: ${JSON.stringify(devotionalTextZoom)}`)
+  }
+  console.log('UI_OK feature=devotional-text-zoom value=200% overflow=0 labels=visible')
+  await evaluate(`document.documentElement.style.fontSize = ''`)
+
   await viewport(320, 800)
   await navigate('/devocional')
   const drawerOpened = await evaluate(`(() => {
@@ -240,6 +291,19 @@ try {
   if (!onlineEntry.fallback && !onlineEntry.safety) throw new Error(`Modo Online não apresentou uma entrada segura: ${JSON.stringify(onlineEntry)}`)
   console.log(`SCREENSHOT ${await screenshot('ui-online-mobile.png')}`)
   console.log(`INTERACTION_OK feature=online safe_entry=true configured=${onlineEntry.safety}`)
+
+  for (const pathname of ['/online/sala/00000000-0000-0000-0000-000000000000', '/online/grupo/00000000-0000-0000-0000-000000000000']) {
+    await navigate(pathname)
+    const directSafety = await evaluate(`({
+      safetyGate: document.body.innerText.includes('Jogar com segurança'),
+      consentStored: sessionStorage.getItem('mel-online-consent') === 'yes',
+      onlineSessionCreated: Object.keys(localStorage).some(key => key.startsWith('mel-online-session-v1'))
+    })`)
+    if (!directSafety.safetyGate || directSafety.consentStored || directSafety.onlineSessionCreated) {
+      throw new Error(`Link direto contornou a proteção Online em ${pathname}: ${JSON.stringify(directSafety)}`)
+    }
+    console.log(`INTERACTION_OK feature=online-deep-link-consent path=${pathname}`)
+  }
 
   await viewport(320, 800)
   await navigate('/devocional')
@@ -490,7 +554,7 @@ try {
   console.log('INTERACTION_OK game=coloring progress=1/12')
 
   if (client.exceptions.length) throw new Error(`Exceções no navegador: ${client.exceptions.join('; ')}`)
-  console.log('UI_VERIFY_OK breakpoints=4 routes_mobile=12 interactions=11 screenshots=7 console_exceptions=0')
+  console.log('UI_VERIFY_OK breakpoints=4 routes_mobile=12 interactions=13 screenshots=7 text_zoom=200% console_exceptions=0')
 } finally {
   client?.close()
   if (chrome?.exitCode === null) chrome.kill()

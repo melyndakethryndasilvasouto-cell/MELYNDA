@@ -272,7 +272,7 @@ export default function DevotionalPage() {
       <motion.header initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-5 text-center">
         <div className="text-5xl" aria-hidden="true">{playerAvatar}</div>
         <p className="mt-2 text-xs font-black uppercase tracking-widest" style={{ color: '#8A5A00' }}>Um momento com Jesus</p>
-        <h1 className="font-title mt-1 text-3xl" style={{ color: '#5B3A8A' }}>Devocional de {playerName}</h1>
+        <h1 className="devotional-page-title font-title mt-1 text-3xl" style={{ color: '#5B3A8A' }}>Devocional de {playerName}</h1>
         <p className="mx-auto mt-2 max-w-md text-sm font-bold leading-relaxed" style={{ color: '#2563A6' }}>
           Converse, estude e guarde suas descobertas bíblicas em um lugar especial. ✨
         </p>
@@ -331,19 +331,19 @@ export default function DevotionalPage() {
 
         {activeConversation && (
           <section className="devotional-workspace glass-card min-w-0 overflow-clip" aria-labelledby="active-conversation-title">
-            <header className="flex flex-wrap items-center justify-between gap-2 border-b border-purple-100 p-3 sm:p-4">
-              <div className="min-w-0 flex-1">
+            <header className="devotional-workspace-header flex flex-wrap items-center justify-between gap-2 border-b border-purple-100 p-3 sm:p-4">
+              <div className="devotional-title-block min-w-0 flex-1">
                 <p className="text-xs font-bold" style={{ color: '#2563A6' }}>{conversationDateLabel(activeConversation.updatedAt)}</p>
-                <h2 ref={activeTitleRef} id="active-conversation-title" tabIndex={-1} className="truncate font-black" style={{ color: '#5B3A8A' }}>{activeConversation.title}</h2>
+                <h2 ref={activeTitleRef} id="active-conversation-title" tabIndex={-1} className="devotional-conversation-title font-black" style={{ color: '#5B3A8A' }}>{activeConversation.title}</h2>
               </div>
-              <div className="flex gap-1">
+              <div className="devotional-title-actions flex gap-1">
                 <button ref={historyTriggerRef} type="button" className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-purple-50 px-3 text-sm font-black md:hidden" style={{ color: '#5B3A8A' }} aria-haspopup="dialog" aria-expanded={mobileView === 'history'} onClick={() => setMobileView('history')}><MessagesSquare size={17} aria-hidden="true" /> Conversas</button>
                 <button type="button" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-white" aria-label="Renomear conversa" onClick={renameConversation}><Pencil size={17} /></button>
                 <button type="button" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-orange-50" style={{ color: '#92400E' }} aria-label="Excluir conversa" onClick={deleteConversation}><Trash2 size={17} /></button>
               </div>
             </header>
 
-            <div className="flex border-b border-purple-100 p-2" role="tablist" aria-label="Conteúdo do devocional">
+            <div className="devotional-tabs flex border-b border-purple-100 p-2" role="tablist" aria-label="Conteúdo do devocional">
               <button ref={chatTabRef} id="devotional-tab-chat" type="button" role="tab" aria-selected={panel === 'chat'} aria-controls="devotional-panel-chat" tabIndex={panel === 'chat' ? 0 : -1} onKeyDown={event => handleTabKeyDown(event, 'chat')} onClick={() => selectPanel('chat')} className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-black" style={{ color: '#5B3A8A', background: panel === 'chat' ? '#F3E8FF' : 'transparent' }}><MessageCircleQuestion size={18} aria-hidden="true" /> Conversa</button>
               <button ref={notesTabRef} id="devotional-tab-notes" type="button" role="tab" aria-selected={panel === 'notes'} aria-controls="devotional-panel-notes" tabIndex={panel === 'notes' ? 0 : -1} onKeyDown={event => handleTabKeyDown(event, 'notes')} onClick={() => selectPanel('notes')} className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-black" style={{ color: '#5B3A8A', background: panel === 'notes' ? '#FFF7D6' : 'transparent' }}><FileText size={18} aria-hidden="true" /> Bloco de notas</button>
             </div>
@@ -359,7 +359,7 @@ export default function DevotionalPage() {
                 </div>
                 <label htmlFor="devotional-notes" className="text-sm font-bold">Anotações desta conversa</label>
                 <textarea id="devotional-notes" value={activeConversation.notes} onChange={event => saveNotes(event.target.value)} maxLength={6000} className="mt-2 min-h-64 w-full rounded-2xl border border-yellow-200 bg-yellow-50/70 p-4 text-sm leading-relaxed" placeholder="Hoje eu aprendi que…" />
-                <div className="mt-2 flex items-center justify-between gap-3 text-xs">
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-3 text-xs">
                   <span style={{ color: '#6B7280' }}>{activeConversation.notes.length}/6000</span>
                   <span className="flex items-center gap-1 font-bold" style={{ color: saveStatus === 'error' ? '#B91C1C' : '#047857' }}>
                     {saveStatus === 'saving' ? 'Salvando…' : saveStatus === 'error' ? 'Não foi possível salvar' : <><Check size={15} /> Salvo neste aparelho</>}
@@ -389,7 +389,7 @@ export default function DevotionalPage() {
                 </div>
 
                 <form className="devotional-composer border-t border-purple-100 bg-white/95 p-3 sm:p-4" onSubmit={askQuestion}>
-                  <div className="mb-2 flex items-center justify-between gap-2">
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                     <p className="text-sm font-black" style={{ color: '#5B3A8A' }}>Você também pode perguntar…</p>
                     <span id="devotional-suggestions-help" className="text-xs font-bold sm:sr-only" style={{ color: '#2563A6' }}>Deslize para ver mais →</span>
                   </div>

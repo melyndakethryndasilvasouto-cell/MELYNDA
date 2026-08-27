@@ -32,11 +32,17 @@ Conecte este repositório à Cloudflare Pages com:
 
 O diretório `functions/` publica o endpoint `/api/bible-guide`. A Cloudflare fornece o fallback das rotas da SPA quando não existe um `404.html` na raiz do build.
 
-O modo online usa Supabase com autenticação anônima, presença por atividade, convites privados, grupos de até oito pessoas e regras RLS. Somente um apelido validado e o avatar escolhido são enviados ao Supabase depois da confirmação para entrar no Online. Os outros jogadores veem esse apelido e se a pessoa está no saguão, em um grupo ou em um jogo.
+O modo online usa Supabase com autenticação anônima, presença por atividade, convites privados, grupos de até oito pessoas e regras RLS. Somente um apelido validado e o avatar escolhido são enviados ao Supabase depois da confirmação para entrar no Online. A confirmação vale apenas para a aba atual, links diretos de sala/grupo também passam pela orientação de segurança e o botão **Ficar offline** remove a presença imediatamente. Os outros jogadores veem esse apelido e se a pessoa está no saguão, em um grupo ou em um jogo.
 
 O chat geral aceita apenas frases prontas aprovadas. Texto livre e áudio de até dez segundos existem somente em uma partida entre dois jogadores ou em um grupo fechado por convite. Essas mensagens deixam de ficar disponíveis após 24 horas e são limpas do banco durante a atividade online seguinte. Áudio não toca automaticamente. Bloqueio e denúncia estão disponíveis nas salas e nos grupos; convites de grupo só podem ser enviados pelo dono. Pontuações, preferências e o histórico do Devocional permanecem no `localStorage` do próprio navegador.
 
 Configure no build de produção as variáveis públicas `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY`. O microfone começa desligado e exige confirmação explícita. A chamada ao vivo usa WebRTC direto; redes que bloqueiam conexões diretas podem exigir um serviço TURN para cobertura completa. A mensagem curta de áudio é a opção mais previsível e privada do produto atual.
+
+### Limites importantes para responsáveis
+
+O Online atual é uma experiência infantil que precisa de acompanhamento adulto. Contas anônimas podem ser recriadas ao limpar o navegador, portanto bloqueios e limites não equivalem a uma identidade permanente. A lista Online é global e não comprova amizade fora do site. O filtro server-side reduz dados pessoais e algumas frases inseguras, mas não substitui moderação humana; áudio e voz ao vivo não têm análise de conteúdo. Denunciar registra o caso e bloqueia o contato para a criança, mas ainda não existe um painel operacional de triagem neste repositório.
+
+Antes de liberar o Online para uso público sem supervisão, a evolução recomendada é usar contatos por código privado ou contas gerenciadas por responsáveis, TURN com relay para a voz, moderação especializada, rate limiting de borda e uma rotina administrativa de denúncias e retenção.
 
 ## Guia Bíblico e Devocional por IA
 

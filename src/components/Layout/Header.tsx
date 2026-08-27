@@ -23,7 +23,7 @@ export default function Header() {
               type="button"
               onClick={() => navigate('/')}
               className="flex min-h-11 items-center gap-2 rounded-2xl px-3 py-2 text-sm font-bold transition-transform active:scale-90"
-              style={{ background: 'rgba(107,184,255,0.15)', color: '#4A90D9' }}
+              style={{ background: '#DDEBFF', color: '#1D4E89', border: '1px solid #93C5FD' }}
             >
               <ArrowLeft size={18} aria-hidden="true" />
               Menu
@@ -36,7 +36,8 @@ export default function Header() {
               aria-label="Ir para os jogos da Bíblia da Mel"
             >
               <span className="text-2xl animate-float" aria-hidden="true">📖</span>
-              <span className="whitespace-nowrap font-title text-sm sm:text-lg" style={{ color: '#7B5EA7' }}>Bíblia da Mel</span>
+              <span className="whitespace-nowrap font-title text-sm sm:hidden" style={{ color: '#5B3A8A' }}>Mel</span>
+              <span className="hidden whitespace-nowrap font-title text-lg sm:inline" style={{ color: '#5B3A8A' }}>Bíblia da Mel</span>
             </button>
           )}
         </div>
@@ -54,6 +55,7 @@ export default function Header() {
             }}
           >
             {isDevotional ? <Gamepad2 size={17} aria-hidden="true" /> : <BookHeart size={17} aria-hidden="true" />}
+            <span className="sm:hidden">{isDevotional ? 'Jogos' : 'Dev.'}</span>
             <span className="hidden sm:inline">{isDevotional ? 'Jogos' : 'Devocional'}</span>
           </button>
           <button
@@ -68,6 +70,7 @@ export default function Header() {
             }}
           >
             {isOnline ? <Gamepad2 size={17} aria-hidden="true" /> : <Wifi size={17} aria-hidden="true" />}
+            <span className="sm:hidden">{isOnline ? 'Jogos' : 'Online'}</span>
             <span className="hidden sm:inline">{isOnline ? 'Jogos' : 'Online'}</span>
           </button>
           {isMainPage && playerName && (

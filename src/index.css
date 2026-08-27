@@ -137,6 +137,21 @@
   flex-direction: column;
 }
 
+.devotional-page-title,
+.devotional-conversation-title {
+  overflow-wrap: anywhere;
+}
+
+.devotional-conversation-title {
+  line-height: 1.35;
+}
+
+.devotional-tabs > [role="tab"] {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 .devotional-chat-panel,
 .devotional-notes-panel {
   min-height: 0;
@@ -180,14 +195,34 @@
 }
 
 @media (max-width: 767px) {
+  .devotional-page-title {
+    padding-inline: 0.25rem;
+    font-size: clamp(1.5rem, 8vw, 1.875rem);
+    line-height: 1.2;
+  }
+
   .devotional-workspace {
-    height: max(38rem, calc(100dvh - 5rem));
-    min-height: 0;
+    min-height: calc(100dvh - 5rem);
+    overflow: visible;
   }
 
   .devotional-message-log {
-    min-height: 0;
+    min-height: 14rem;
     max-height: none;
+    overflow: visible;
+  }
+
+  .devotional-workspace-header {
+    align-items: stretch;
+  }
+
+  .devotional-title-block,
+  .devotional-title-actions {
+    flex-basis: 100%;
+  }
+
+  .devotional-title-actions > :first-child {
+    flex: 1;
   }
 }
 
