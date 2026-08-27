@@ -33,7 +33,8 @@ interface GameState {
 }
 
 function buildDeck(): CardState[] {
-  const pairs = memoryPairs.slice(0, 6)
+  const shuffledPairs = [...memoryPairs].sort(() => 0.5 - Math.random())
+  const pairs = shuffledPairs.slice(0, 6)
   const cards: CardState[] = []
   for (const pair of pairs) {
     for (let i = 0; i < 2; i++) {

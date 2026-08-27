@@ -54,7 +54,8 @@ const LS_BEST = (d: Difficulty) => `mel_memory_best_${d}`
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function buildDeck(pairs: number): CardData[] {
-  const lessons = memoryPairs.slice(0, pairs)
+  const shuffledPairs = [...memoryPairs].sort(() => 0.5 - Math.random())
+  const lessons = shuffledPairs.slice(0, pairs)
   const cards: CardData[] = []
   lessons.forEach((lesson, pairId) => {
     const data = { emoji: lesson.emoji, title: lesson.title, verseRef: lesson.verseRef, message: lesson.message, pairId, isFlipped: false, isMatched: false }
