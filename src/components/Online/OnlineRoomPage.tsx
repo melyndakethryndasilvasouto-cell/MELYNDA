@@ -14,6 +14,7 @@ import OnlineTicTacToeBoard from './OnlineTicTacToeBoard'
 import OnlineMemoryBoard from './OnlineMemoryBoard'
 import OnlineCheckersBoard from './OnlineCheckersBoard'
 import OnlineQuizBoard from './OnlineQuizBoard'
+import OnlineUnoBoard from './OnlineUnoBoard'
 
 const EMPTY_ROOM_MESSAGES: OnlineChatMessage[] = []
 

@@ -228,10 +228,11 @@ export default function OnlineLobbyPage() {
               </p>
               <div className="flex flex-col gap-2">
                 {[
-                  { key: 'tic-tac-toe', emoji: '🛤️', label: 'Jogo da Velha' },
-                  { key: 'memory',      emoji: '🕊️', label: 'Memória da Bíblia' },
-                  { key: 'checkers',    emoji: '🛡️', label: 'Dama' },
-                  { key: 'quiz',        emoji: '📖', label: 'Quiz da Bíblia' },
+                  { key: 'tic-tac-toe', emoji: '❌⭕', label: 'Jogo da Velha' },
+                  { key: 'uno', emoji: '🃏', label: 'UNO' },
+                  { key: 'memory',      emoji: '🎴', label: 'Memória da Bíblia' },
+                  { key: 'checkers',    emoji: '🏁', label: 'Dama' },
+                  { key: 'quiz',        emoji: '❓', label: 'Quiz da Bíblia' },
                 ].map(g => (
                   <button key={g.key} type="button"
                     className="flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-black transition-all active:scale-95"
