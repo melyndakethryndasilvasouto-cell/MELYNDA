@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+﻿import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { AlertTriangle, Ban, LoaderCircle, MessageCircle, Mic, MicOff, PhoneOff, RotateCcw, Send, Volume2 } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -20,13 +20,13 @@ const EMPTY_ROOM_MESSAGES: OnlineChatMessage[] = []
 
 function roomError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error || '')
-  if (message.includes('NOT_YOUR_TURN')) return 'Agora é a vez do outro jogador.'
-  if (message.includes('CELL_OCCUPIED')) return 'Essa casa já está ocupada.'
-  if (message.includes('ROOM_NOT_ACTIVE')) return 'A partida ainda não está pronta ou já terminou.'
-  if (message.includes('MESSAGE_PERSONAL_DATA')) return 'Essa mensagem pode mostrar informação pessoal. Escreva de outro jeito.'
-  if (message.includes('MESSAGE_UNSAFE')) return 'Essa mensagem não parece segura para um chat infantil.'
+  if (message.includes('NOT_YOUR_TURN')) return 'Agora Ã© a vez do outro jogador.'
+  if (message.includes('CELL_OCCUPIED')) return 'Essa casa jÃ¡ estÃ¡ ocupada.'
+  if (message.includes('ROOM_NOT_ACTIVE')) return 'A partida ainda nÃ£o estÃ¡ pronta ou jÃ¡ terminou.'
+  if (message.includes('MESSAGE_PERSONAL_DATA')) return 'Essa mensagem pode mostrar informaÃ§Ã£o pessoal. Escreva de outro jeito.'
+  if (message.includes('MESSAGE_UNSAFE')) return 'Essa mensagem nÃ£o parece segura para um chat infantil.'
   if (message.includes('MESSAGE_RATE_LIMIT')) return 'Espere um pouquinho antes de enviar outra mensagem.'
-  return 'Não foi possível atualizar a partida. Tente novamente.'
+  return 'NÃ£o foi possÃ­vel atualizar a partida. Tente novamente.'
 }
 
 export default function OnlineRoomPage() {
@@ -68,7 +68,7 @@ export default function OnlineRoomPage() {
       const result = await supabase.from('online_rooms').select('*').eq('id', roomId).single()
       if (!active) return
       if (result.error) {
-        setError('Esta sala não existe ou não pertence a você.')
+        setError('Esta sala nÃ£o existe ou nÃ£o pertence a vocÃª.')
         setLoading(false)
         return
       }
@@ -136,7 +136,7 @@ export default function OnlineRoomPage() {
         if (subscriptionStatus === 'SUBSCRIBED') setRoomConnected(true)
         if (subscriptionStatus === 'CHANNEL_ERROR' || subscriptionStatus === 'TIMED_OUT') {
           setRoomConnected(false)
-          setError('A conexão privada da sala foi interrompida.')
+          setError('A conexÃ£o privada da sala foi interrompida.')
         }
       })
     setChannel(roomChannel)
@@ -167,7 +167,7 @@ export default function OnlineRoomPage() {
   const mySymbol = room?.host_id === userId ? 'X' : 'O'
   const opponentId = room ? (room.host_id === userId ? room.guest_id : room.host_id) : null
   const opponent = opponentId ? profiles[opponentId] : null
-  // TTT-specific state — cast safely since non-TTT games don't use these
+  // TTT-specific state â€” cast safely since non-TTT games don't use these
   
   
   
@@ -249,33 +249,33 @@ export default function OnlineRoomPage() {
     try {
       if (report) await reportPlayer(opponentId, 'other', 'room')
       await blockPlayer(opponentId)
-      setError(report ? 'Denúncia recebida. O jogador foi bloqueado.' : 'Jogador bloqueado.')
+      setError(report ? 'DenÃºncia recebida. O jogador foi bloqueado.' : 'Jogador bloqueado.')
       await leave(true)
     } catch (protectError) {
-      setError(protectError instanceof Error ? protectError.message : 'Não foi possível concluir essa proteção.')
+      setError(protectError instanceof Error ? protectError.message : 'NÃ£o foi possÃ­vel concluir essa proteÃ§Ã£o.')
     }
   }
 
   if (!safetyAccepted) return <OnlineSafetyGate onAccept={() => { acceptSafety(); void connect() }} notice={error} />
 
   if (loading || onlineStatus === 'connecting') {
-    return <div className="flex min-h-[60vh] items-center justify-center gap-2 font-bold" style={{ color: '#5B3A8A' }}><LoaderCircle className="animate-spin" /> Abrindo sala privada…</div>
+    return <div className="flex min-h-[60vh] items-center justify-center gap-2 font-bold" style={{ color: '#5B3A8A' }}><LoaderCircle className="animate-spin" /> Abrindo sala privadaâ€¦</div>
   }
 
   if (!room) {
-    return <section className="glass-card mt-8 p-6 text-center"><h1 className="font-title text-2xl" style={{ color: '#5B3A8A' }}>Sala indisponível</h1><p role="alert" className="mt-3 text-sm">{error}</p><button className="btn-primary mt-4" onClick={() => navigate('/online')}>Voltar ao Online</button></section>
+    return <section className="glass-card mt-8 p-6 text-center"><h1 className="font-title text-2xl" style={{ color: '#5B3A8A' }}>Sala indisponÃ­vel</h1><p role="alert" className="mt-3 text-sm">{error}</p><button className="btn-primary mt-4" onClick={() => navigate('/online')}>Voltar ao Online</button></section>
   }
 
   return (
     <section className="pb-6 pt-3">
       <header className="text-center">
-        <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#1D4E89' }}>Sala privada • Jogo online</p>
+        <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#1D4E89' }}>Sala privada â€¢ Jogo online</p>
         <h1 className="mt-1 font-title text-3xl" style={{ color: '#5B3A8A' }}>
-          {room.game === 'memory' ? '🕊️ Memória da Bíblia'
-            : room.game === 'checkers' ? '🛡️ Dama'
-            : room.game === 'quiz' ? '📖 Quiz da Bíblia'
-            : room.game === 'pong' ? '🎯 Ping Pong'
-            : '🛤️ Jogo da Velha'}
+          {room.game === 'memory' ? 'ðŸ•Šï¸ MemÃ³ria da BÃ­blia'
+            : room.game === 'checkers' ? 'ðŸ›¡ï¸ Dama'
+            : room.game === 'quiz' ? 'ðŸ“– Quiz da BÃ­blia'
+            : room.game === 'pong' ? 'ðŸŽ¯ Ping Pong'
+            : 'ðŸ›¤ï¸ Jogo da Velha'}
         </h1>
         
       </header>
@@ -283,17 +283,17 @@ export default function OnlineRoomPage() {
       <div className="glass-card mt-4 grid grid-cols-2 gap-3 p-3 text-center">
         <div className={isHost ? 'rounded-2xl bg-blue-50 p-2' : 'p-2'}>
           <p className="text-2xl" aria-hidden="true">{playerAvatar}</p>
-          <p className="truncate text-sm font-black">{playerName} {room.game === 'tic-tac-toe' ? `(${mySymbol})` : isHost ? '👑' : ''}</p>
+          <p className="truncate text-sm font-black">{playerName} {room.game === 'tic-tac-toe' ? `(${mySymbol})` : isHost ? 'ðŸ‘‘' : ''}</p>
         </div>
         <div className={!isHost ? 'rounded-2xl bg-purple-50 p-2' : 'p-2'}>
-          <p className="text-2xl" aria-hidden="true">{opponent?.avatar || '⏳'}</p>
+          <p className="text-2xl" aria-hidden="true">{opponent?.avatar || 'â³'}</p>
           <p className="truncate text-sm font-black">
-            {opponent ? `${opponent.name} ${room.game === 'tic-tac-toe' ? `(${mySymbol === 'X' ? 'O' : 'X'})` : ''}` : 'Aguardando…'}
+            {opponent ? `${opponent.name} ${room.game === 'tic-tac-toe' ? `(${mySymbol === 'X' ? 'O' : 'X'})` : ''}` : 'Aguardandoâ€¦'}
           </p>
         </div>
       </div>
 
-      {/* ── TicTacToe board ── */}
+      {/* â”€â”€ TicTacToe board â”€â”€ */}
       {(room.game === 'tic-tac-toe' || !room.game) && (
           <OnlineTicTacToeBoard
             isHost={isHost}
@@ -307,7 +307,7 @@ export default function OnlineRoomPage() {
           />
         )}
 
-      {/* ── Memory online board ── */}
+      {/* â”€â”€ Memory online board â”€â”€ */}
       {room.game === 'memory' && (
         <OnlineMemoryBoard
           isHost={isHost}
@@ -321,7 +321,7 @@ export default function OnlineRoomPage() {
         />
       )}
 
-      {/* ── Checkers online board ── */}
+      {/* â”€â”€ Checkers online board â”€â”€ */}
       {room.game === 'checkers' && (
         <OnlineCheckersBoard
           isHost={isHost}
@@ -335,7 +335,7 @@ export default function OnlineRoomPage() {
         />
       )}
 
-      {/* ── Quiz online board ── */}
+      {/* â”€â”€ Quiz online board â”€â”€ */}
       {room.game === 'quiz' && (
         <OnlineQuizBoard
           isHost={isHost}
@@ -360,7 +360,7 @@ export default function OnlineRoomPage() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="flex items-center gap-2 font-black" style={{ color: '#5B3A8A' }}><MessageCircle size={19} /> Conversa da partida</h2>
-            <p className="text-xs" style={{ color: '#6B7280' }}>Somente você e o outro jogador recebem esta conversa.</p>
+            <p className="text-xs" style={{ color: '#6B7280' }}>Somente vocÃª e o outro jogador recebem esta conversa.</p>
           </div>
           <div className="flex gap-2">
             {voice.status === 'off' || voice.status === 'error' ? (
@@ -375,15 +375,15 @@ export default function OnlineRoomPage() {
         </div>
         <p className="mt-2 flex items-center gap-1 text-xs font-bold" role="status" aria-live="polite" style={{ color: voice.status === 'connected' ? '#166534' : '#4B5563' }}>
           <Volume2 size={14} aria-hidden="true" />
-          {voice.status === 'off' ? 'Chamada ao vivo desligada' : voice.status === 'requesting' ? 'Aguardando permissão do microfone…' : voice.status === 'connected' ? 'Voz ao vivo conectada' : voice.status === 'connecting' ? 'Conectando a voz…' : voice.status === 'ready' ? 'Aguardando o outro jogador ativar a voz…' : 'Voz indisponível'}
+          {voice.status === 'off' ? 'Chamada ao vivo desligada' : voice.status === 'requesting' ? 'Aguardando permissÃ£o do microfoneâ€¦' : voice.status === 'connected' ? 'Voz ao vivo conectada' : voice.status === 'connecting' ? 'Conectando a vozâ€¦' : voice.status === 'ready' ? 'Aguardando o outro jogador ativar a vozâ€¦' : 'Voz indisponÃ­vel'}
         </p>
         {voice.error && <p role="alert" className="mt-2 text-xs font-bold" style={{ color: '#92400E' }}>{voice.error}</p>}
         {voiceConsentOpen && (voice.status === 'off' || voice.status === 'error') && (
-          <div className="mt-3 rounded-2xl border border-blue-200 bg-blue-50 p-3" role="group" aria-label="Confirmação para ativar o microfone">
-            <p className="text-sm font-bold" style={{ color: '#1D4E89' }}>O navegador pedirá acesso ao microfone para uma chamada direta. Ative somente com um amigo conhecido e um adulto responsável por perto. Para mais privacidade, prefira a mensagem de áudio curta.</p>
+          <div className="mt-3 rounded-2xl border border-blue-200 bg-blue-50 p-3" role="group" aria-label="ConfirmaÃ§Ã£o para ativar o microfone">
+            <p className="text-sm font-bold" style={{ color: '#1D4E89' }}>O navegador pedirÃ¡ acesso ao microfone para uma chamada direta. Ative somente com um amigo conhecido e um adulto responsÃ¡vel por perto. Para mais privacidade, prefira a mensagem de Ã¡udio curta.</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <button type="button" className="btn-primary text-xs" onClick={() => { setVoiceConsentOpen(false); void voice.start() }}><Mic size={16} /> Entendi, ligar microfone</button>
-              <button type="button" className="btn-secondary text-xs" onClick={() => setVoiceConsentOpen(false)}>Agora não</button>
+              <button type="button" className="btn-secondary text-xs" onClick={() => setVoiceConsentOpen(false)}>Agora nÃ£o</button>
             </div>
           </div>
         )}
@@ -391,21 +391,22 @@ export default function OnlineRoomPage() {
         <div ref={messageLogRef} onScroll={event => { const log = event.currentTarget; keepAtBottomRef.current = log.scrollHeight - log.scrollTop - log.clientHeight < 80; if (keepAtBottomRef.current) setNewMessages(false) }} className="mt-3 max-h-48 min-h-24 space-y-2 overflow-y-auto rounded-2xl bg-slate-50 p-3" role="log" aria-live="polite" aria-label="Mensagens privadas da partida">
           {messages.length === 0 ? <p className="text-center text-xs" style={{ color: '#6B7280' }}>Escreva ou grave uma mensagem gentil para seu amigo.</p> : messages.map(message => {
             const mine = message.sender_id === userId
-            const sender = mine ? { name: playerName, avatar: playerAvatar } : opponent || { name: 'Amigo', avatar: '👤' }
-            return <div key={message.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}><div className="max-w-[85%] rounded-2xl px-3 py-2 text-sm" style={{ background: mine ? '#DBEAFE' : '#F3E8FF', overflowWrap: 'anywhere' }}><strong className="block">{sender.avatar} {sender.name}</strong>{message.kind === 'text' ? <p>{message.body}</p> : <audio controls preload="none" src={message.audio_data || ''} className="mt-2 max-w-full" aria-label={`Áudio de ${sender.name}`} />}</div></div>
+            const sender = mine ? { name: playerName, avatar: playerAvatar } : opponent || { name: 'Amigo', avatar: 'ðŸ‘¤' }
+            return <div key={message.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}><div className="max-w-[85%] rounded-2xl px-3 py-2 text-sm" style={{ background: mine ? '#DBEAFE' : '#F3E8FF', overflowWrap: 'anywhere' }}><strong className="block">{sender.avatar} {sender.name}</strong>{message.kind === 'text' ? <p>{message.body}</p> : <audio controls preload="none" src={message.audio_data || ''} className="mt-2 max-w-full" aria-label={`Ãudio de ${sender.name}`} />}</div></div>
           })}
         </div>
-        {newMessages && <button type="button" className="mx-auto mt-2 flex min-h-11 items-center rounded-full bg-blue-700 px-4 text-sm font-black text-white" onClick={scrollMessagesToEnd}>Novas mensagens ↓</button>}
+        {newMessages && <button type="button" className="mx-auto mt-2 flex min-h-11 items-center rounded-full bg-blue-700 px-4 text-sm font-black text-white" onClick={scrollMessagesToEnd}>Novas mensagens â†“</button>}
         <form className="mt-3 flex gap-2" onSubmit={sendMessage}>
           <label htmlFor="room-chat-message" className="sr-only">Mensagem para o outro jogador</label>
           <input id="room-chat-message" value={draft} onChange={event => setDraft(event.target.value)} maxLength={180}
-            placeholder="Escreva com carinho…" className="min-w-0 flex-1 rounded-2xl border border-purple-200 bg-white px-3 text-sm" />
+            placeholder="Escreva com carinhoâ€¦" className="min-w-0 flex-1 rounded-2xl border border-purple-200 bg-white px-3 text-sm" />
           <button type="submit" className="btn-primary h-11 w-11 p-0" aria-label="Enviar mensagem" disabled={!roomConnected || !cleanRoomMessage(draft) || !opponent}><Send size={18} /></button>
         </form>
         <AudioMessageComposer disabled={!roomConnected || !opponent} onSend={sendAudio} />
         {opponentId && <div className="mt-3 grid grid-cols-2 gap-2"><button type="button" className="min-h-11 rounded-2xl bg-slate-100 px-3 text-sm font-bold" onClick={() => void protectFromOpponent()}><Ban className="inline" size={16} /> Bloquear</button><button type="button" className="min-h-11 rounded-2xl bg-orange-50 px-3 text-sm font-bold" style={{ color: '#9A3412' }} onClick={() => void protectFromOpponent(true)}><AlertTriangle className="inline" size={16} /> Denunciar</button></div>}
-        <p className="mt-2 text-xs font-bold" style={{ color: '#4B5563' }}>Converse somente com alguém conhecido. Não compartilhe nome completo, endereço, escola, telefone, senha ou fotos. Texto e áudio curto deixam de ficar disponíveis após 24 horas; a outra pessoa ainda pode gravar por fora do site. Se algo incomodar, bloqueie, saia e conte a um adulto responsável.</p>
+        <p className="mt-2 text-xs font-bold" style={{ color: '#4B5563' }}>Converse somente com alguÃ©m conhecido. NÃ£o compartilhe nome completo, endereÃ§o, escola, telefone, senha ou fotos. Texto e Ã¡udio curto deixam de ficar disponÃ­veis apÃ³s 24 horas; a outra pessoa ainda pode gravar por fora do site. Se algo incomodar, bloqueie, saia e conte a um adulto responsÃ¡vel.</p>
       </aside>
     </section>
   )
 }
+
