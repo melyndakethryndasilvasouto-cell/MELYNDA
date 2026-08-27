@@ -1,11 +1,11 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+﻿import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import { useSound } from '../../contexts/SoundContext'
 import { usePlayer } from '../../contexts/PlayerContext'
 import coloringLessons from '../../data/coloringLessons.json'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 type FillMap = Record<string, string>
 type UndoEntry = { id: string; prev: string }
 
@@ -19,7 +19,7 @@ interface DrawingDef {
   Component: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }>
 }
 
-// ─── Palette ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Palette â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const PALETTE: { label: string; color: string }[] = [
   { label: 'Branco',         color: '#FFFFFF' },
   { label: 'Preto',          color: '#111111' },
@@ -30,9 +30,9 @@ const PALETTE: { label: string; color: string }[] = [
   { label: 'Verde',          color: '#22C55E' },
   { label: 'Verde-Azulado',  color: '#14B8A6' },
   { label: 'Ciano',          color: '#06B6D4' },
-  { label: 'Azul Céu',       color: '#38BDF8' },
+  { label: 'Azul CÃ©u',       color: '#38BDF8' },
   { label: 'Azul',           color: '#3B82F6' },
-  { label: 'Índigo',         color: '#6366F1' },
+  { label: 'Ãndigo',         color: '#6366F1' },
   { label: 'Violeta',        color: '#8B5CF6' },
   { label: 'Roxo',           color: '#A855F8' },
   { label: 'Rosa',           color: '#EC4899' },
@@ -40,16 +40,16 @@ const PALETTE: { label: string; color: string }[] = [
   { label: 'Marrom',         color: '#92400E' },
   { label: 'Cinza',          color: '#9CA3AF' },
   { label: 'Azul Mel',       color: '#6BB8FF' },
-  { label: 'Lilás Mel',      color: '#A78BFA' },
+  { label: 'LilÃ¡s Mel',      color: '#A78BFA' },
   { label: 'Dourado',        color: '#F59E0B' },
   { label: 'Prata',          color: '#CBD5E1' },
-  { label: 'Pêssego',        color: '#FDBA74' },
-  { label: 'Hortelã',        color: '#6EE7B7' },
+  { label: 'PÃªssego',        color: '#FDBA74' },
+  { label: 'HortelÃ£',        color: '#6EE7B7' },
 ]
 
 const UNCOLORED = '#E5E7EB'
 
-// ─── Helper ───────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function rp(
   id: string,
   fills: FillMap,
@@ -68,7 +68,7 @@ function rp(
     },
     tabIndex: 0,
     role: 'button',
-    'aria-label': `Colorir região ${id.replace(/-/g, ' ')}`,
+    'aria-label': `Colorir regiÃ£o ${id.replace(/-/g, ' ')}`,
     style: { cursor: 'pointer' },
     stroke: '#9CA3AF',
     strokeWidth: 1,
@@ -76,7 +76,7 @@ function rp(
   }
 }
 
-// ─── SVG Drawings ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ SVG Drawings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const ArkSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> = ({ fills, onClickRegion }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" id="coloring-svg" width="100%" height="100%">
@@ -209,23 +209,23 @@ const CatSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> 
 
 const RainbowSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> = ({ fills, onClickRegion }) => {
   const arc = (r: number, id: string) => {
-    const r2 = r - 12
-    const d = `M ${100 - r} 150 A ${r} ${r} 0 0 1 ${100 + r} 150 L ${100 + r2} 150 A ${r2} ${r2} 0 0 0 ${100 - r2} 150 Z`
+    const r2 = r - 10
+    const d = `M ${100 - r} 160 A ${r} ${r} 0 0 1 ${100 + r} 160 L ${100 + r2} 160 A ${r2} ${r2} 0 0 0 ${100 - r2} 160 Z`
     return (
-      <path key={id} d={d} fill={fills[id] ?? UNCOLORED} stroke="#9CA3AF" strokeWidth={0.8}
+      <path key={id} d={d} fill={fills[id] ?? UNCOLORED} stroke="#1a1a1a" strokeWidth={1.5}
         onClick={() => onClickRegion(id)} style={{ cursor: 'pointer' }} />
     )
   }
   return (
     <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="coloring-svg" width="100%" height="100%">
-      {arc(155, 'rb-arc1')}
-      {arc(143, 'rb-arc2')}
-      {arc(131, 'rb-arc3')}
-      {arc(119, 'rb-arc4')}
-      {arc(107, 'rb-arc5')}
-      <ellipse cx="35" cy="150" rx="28" ry="18" fill={fills['rb-cloud-l'] ?? UNCOLORED} stroke="#9CA3AF" strokeWidth={1} onClick={() => onClickRegion('rb-cloud-l')} style={{ cursor: 'pointer' }} />
-      <ellipse cx="165" cy="150" rx="28" ry="18" fill={fills['rb-cloud-r'] ?? UNCOLORED} stroke="#9CA3AF" strokeWidth={1} onClick={() => onClickRegion('rb-cloud-r')} style={{ cursor: 'pointer' }} />
-      <rect x="0" y="150" width="200" height="50" fill="#F3EEFF" style={{ pointerEvents: 'none' }} />
+      <rect x="5" y="5" width="190" height="190" rx="16" {...rp('rb-sky', fills, onClickRegion)} />
+      {arc(90, 'rb-arc1')}
+      {arc(80, 'rb-arc2')}
+      {arc(70, 'rb-arc3')}
+      {arc(60, 'rb-arc4')}
+      {arc(50, 'rb-arc5')}
+      <path d="M 20 160 Q 30 140 45 145 Q 55 130 70 145 Q 85 140 90 160 Z" stroke="#1a1a1a" strokeWidth="1.5" {...rp('rb-cloud-l', fills, onClickRegion)} />
+      <path d="M 180 160 Q 170 140 155 145 Q 145 130 130 145 Q 115 140 110 160 Z" stroke="#1a1a1a" strokeWidth="1.5" {...rp('rb-cloud-r', fills, onClickRegion)} />
     </svg>
   )
 }
@@ -270,7 +270,7 @@ const CastleSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void 
   </svg>
 )
 
-// ─── Drawing Registry ──────────────────────────────────────────────────────────
+// â”€â”€â”€ Drawing Registry â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const lesson = (id: string) => coloringLessons.find(item => item.id === id)!
 
 const CrossSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> = ({ fills, onClickRegion }) => (
@@ -361,13 +361,104 @@ const TabletsSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void
   </svg>
 )
 
+
+// Pseudo-random number generator
+function random(seed: number) {
+  let t = seed += 0x6D2B79F5;
+  t = Math.imul(t ^ t >>> 15, t | 1);
+  t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+  return ((t ^ t >>> 14) >>> 0) / 4294967296;
+}
+
+export function getMandalaRegions(seed: number): string[] {
+  const rings = 4 + Math.floor(random(seed) * 3);
+  const segments = 6 + Math.floor(random(seed * 2) * 6) * 2;
+  const regions = [`md-${seed}-bg`, `md-${seed}-0`];
+  let idx = 1;
+  for (let r = 1; r <= rings; r++) {
+    for (let s = 0; s < segments; s++) {
+      regions.push(`md-${seed}-${idx++}`);
+    }
+  }
+  return regions;
+}
+
+const MandalaSVG: React.FC<{ seed: number; fills: FillMap; onClickRegion: (id: string) => void }> = ({ seed, fills, onClickRegion }) => {
+  const rings = 4 + Math.floor(random(seed) * 3);
+  const segments = 6 + Math.floor(random(seed * 2) * 6) * 2;
+  const shapes = [];
+  let regionIndex = 0;
+  
+  shapes.push(
+    <circle key="center" cx="100" cy="100" r={10 + random(seed)*10} 
+      {...rp(`md-${seed}-${regionIndex++}`, fills, onClickRegion, { stroke: '#1a1a1a', strokeWidth: 1.5 })} />
+  );
+  
+  for (let r = 1; r <= rings; r++) {
+    const radius = 20 + r * (80 / rings);
+    const prevRadius = 20 + (r - 1) * (80 / rings);
+    const shapeType = Math.floor(random(seed * r * 3) * 3);
+    for (let s = 0; s < segments; s++) {
+      const angle = (s * 360) / segments;
+      const nextAngle = ((s + 1) * 360) / segments;
+      const rad1 = (angle * Math.PI) / 180;
+      const rad2 = (nextAngle * Math.PI) / 180;
+      const x1 = 100 + prevRadius * Math.cos(rad1);
+      const y1 = 100 + prevRadius * Math.sin(rad1);
+      const x2 = 100 + prevRadius * Math.cos(rad2);
+      const y2 = 100 + prevRadius * Math.sin(rad2);
+      const x3 = 100 + radius * Math.cos(rad2);
+      const y3 = 100 + radius * Math.sin(rad2);
+      const x4 = 100 + radius * Math.cos(rad1);
+      const y4 = 100 + radius * Math.sin(rad1);
+      
+      if (shapeType === 0) {
+        shapes.push(
+          <path key={`${r}-${s}`} d={`M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} L ${x4} ${y4} Z`} 
+            {...rp(`md-${seed}-${regionIndex++}`, fills, onClickRegion, { stroke: '#1a1a1a', strokeWidth: 1.5 })} />
+        );
+      } else if (shapeType === 1) {
+        const midX = 100 + radius * Math.cos((rad1+rad2)/2);
+        const midY = 100 + radius * Math.sin((rad1+rad2)/2);
+        shapes.push(
+          <path key={`${r}-${s}`} d={`M ${x1} ${y1} L ${x2} ${y2} L ${midX} ${midY} Z`} 
+            {...rp(`md-${seed}-${regionIndex++}`, fills, onClickRegion, { stroke: '#1a1a1a', strokeWidth: 1.5 })} />
+        );
+      } else {
+        const midX = 100 + ((prevRadius + radius)/2) * Math.cos((rad1+rad2)/2);
+        const midY = 100 + ((prevRadius + radius)/2) * Math.sin((rad1+rad2)/2);
+        shapes.push(
+          <circle key={`${r}-${s}`} cx={midX} cy={midY} r={(radius - prevRadius)/2.5}
+            {...rp(`md-${seed}-${regionIndex++}`, fills, onClickRegion, { stroke: '#1a1a1a', strokeWidth: 1.5 })} />
+        );
+      }
+    }
+  }
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" id="coloring-svg" width="100%" height="100%">
+      <rect x="5" y="5" width="190" height="190" rx="16" {...rp(`md-${seed}-bg`, fills, onClickRegion, { stroke: '#1a1a1a', strokeWidth: 1.5 })} />
+      {shapes}
+    </svg>
+  );
+};
+
+const MANDALA_DRAWINGS: DrawingDef[] = Array.from({ length: 100 }).map((_, i) => ({
+  id: `mandala-${i}`,
+  name: `Vitral ${i + 1}`,
+  emoji: '💠',
+  verseRef: 'Salmos 19:1',
+  verseText: 'Os céus declaram a glória de Deus; o firmamento proclama a obra das suas mãos.',
+  regions: getMandalaRegions(i),
+  Component: ({ fills, onClickRegion }) => <MandalaSVG seed={i} fills={fills} onClickRegion={onClickRegion} />
+}));
+
 const DRAWINGS: DrawingDef[] = [
   { ...lesson('ark'), regions: ['ark-sky', 'ark-sun', 'ark-c1', 'ark-c2', 'ark-hull', 'ark-cb-base', 'ark-cb-up', 'ark-roof', 'ark-door', 'ark-w1', 'ark-w2', 'ark-wa1'], Component: ArkSVG },
   { ...lesson('new-life'), regions: ['bf-ant-l-t', 'bf-ant-r-t', 'bf-w-tl', 'bf-w-tr', 'bf-w-bl', 'bf-w-br', 'bf-wtl-p1', 'bf-wtl-p2', 'bf-wtl-p3', 'bf-wtr-p1', 'bf-wtr-p2', 'bf-wtr-p3', 'bf-wbl-p1', 'bf-wbl-p2', 'bf-wbl-p3', 'bf-wbr-p1', 'bf-wbr-p2', 'bf-wbr-p3', 'bf-ab', 'bf-th', 'bf-hd'], Component: ButterflySVG },
   { ...lesson('creation'), regions: ['fl-stem','fl-leaf-l','fl-leaf-r','fl-petal-t','fl-petal-b','fl-petal-l','fl-petal-r','fl-petal-tl','fl-petal-tr','fl-center'], Component: FlowerSVG },
   { ...lesson('bethlehem'), regions: ['st-body','st-inner','st-spark1','st-spark2','st-spark3','st-spark4','st-spark5'], Component: StarSVG },
   { ...lesson('lamb'), regions: ['lamb-field','lamb-body','lamb-head','lamb-ear-l','lamb-ear-r','lamb-leg-l','lamb-leg-r','lamb-wool-l','lamb-wool-m','lamb-wool-r'], Component: LambSVG },
-  { ...lesson('promise'), regions: ['rb-arc1','rb-arc2','rb-arc3','rb-arc4','rb-arc5','rb-cloud-l','rb-cloud-r'], Component: RainbowSVG },
+  { ...lesson('promise'), regions: ['rb-sky', 'rb-arc1','rb-arc2','rb-arc3','rb-arc4','rb-arc5','rb-cloud-l','rb-cloud-r'], Component: RainbowSVG },
   { ...lesson('love'), regions: ['ht-outer','ht-inner','ht-deco1','ht-deco2','ht-star1','ht-star2'], Component: HeartSVG },
   { ...lesson('fortress'), regions: ['cs-wall','cs-tower-l','cs-tower-r','cs-cren-l','cs-cren-r','cs-turret','cs-cren-m','cs-door','cs-win-l','cs-win-r','cs-win-m','cs-flag'], Component: CastleSVG },
   { ...lesson('cross'), regions: ['cr-sky','cr-hill','cr-wood-v','cr-wood-h','cr-sun','cr-cloud'], Component: CrossSVG },
@@ -403,7 +494,7 @@ function serializeDrawingWithVerse(svgElement: SVGSVGElement, drawing: DrawingDe
   reference.setAttribute('font-size', '9')
   reference.setAttribute('font-weight', '800')
   reference.setAttribute('fill', '#7B5EA7')
-  reference.textContent = `${drawing.name} — ${drawing.verseRef}`
+  reference.textContent = `${drawing.name} â€” ${drawing.verseRef}`
   svg.appendChild(reference)
 
   const words = drawing.verseText.split(' ')
@@ -433,7 +524,7 @@ function serializeDrawingWithVerse(svgElement: SVGSVGElement, drawing: DrawingDe
   return new XMLSerializer().serializeToString(svg)
 }
 
-// ─── Main Component ────────────────────────────────────────────────────────────
+// â”€â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function ColorBook() {
   const { playSound } = useSound()
   const { addAchievement } = usePlayer()
@@ -441,10 +532,10 @@ export default function ColorBook() {
   const [drawingIdx, setDrawingIdx] = useState(0)
   const [selectedColor, setSelectedColor] = useState('#EF4444')
   const [fills, setFills] = useState<Record<string, FillMap>>(() =>
-    Object.fromEntries(DRAWINGS.map(d => [d.id, {}]))
+    Object.fromEntries((DRAWINGS.concat(MANDALA_DRAWINGS)).map(d => [d.id, {}]))
   )
   const [undoStack, setUndoStack] = useState<Record<string, UndoEntry[]>>(() =>
-    Object.fromEntries(DRAWINGS.map(d => [d.id, []]))
+    Object.fromEntries((DRAWINGS.concat(MANDALA_DRAWINGS)).map(d => [d.id, []]))
   )
   const [showHelp, setShowHelp] = useState(false)
   const [switchModal, setSwitchModal] = useState<{ targetIdx: number } | null>(null)
@@ -471,7 +562,7 @@ export default function ColorBook() {
     completedRef.current.add(drawing.id)
     addAchievement(`colorbook-${drawing.id}`)
     if (completedRef.current.size === DRAWINGS.length) addAchievement('colorbook-master')
-    // 🎉 Celebration!
+    // ðŸŽ‰ Celebration!
     playSound('win')
     confetti({ particleCount: 120, spread: 90, origin: { y: 0.6 }, colors: ['#6BB8FF','#A78BFA','#FCD34D','#34D399','#ffffff'] })
     setTimeout(() => confetti({ particleCount: 80, spread: 120, origin: { y: 0.4, x: 0.3 }, colors: ['#FCA5A5','#A78BFA','#FCD34D'] }), 350)
@@ -542,7 +633,7 @@ export default function ColorBook() {
       {/* Header */}
       <div className="flex items-center justify-between px-3 pt-2 pb-1 flex-shrink-0">
         <h1 className="text-lg font-bold" style={{ fontFamily: 'Fredoka One, cursive', color: '#7B5EA7' }}>
-          🎨 Colorindo a Bíblia
+          ðŸŽ¨ Colorindo a BÃ­blia
         </h1>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 bg-white rounded-full px-3 py-1 shadow text-sm font-bold" style={{ color: '#4A90D9' }}>
@@ -559,7 +650,7 @@ export default function ColorBook() {
       {/* Drawing selector */}
       <div className="flex-shrink-0 px-2 pb-1">
         <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin' }}>
-          {DRAWINGS.map((d, i) => (
+          {(DRAWINGS.concat(MANDALA_DRAWINGS)).map((d, i) => (
             <button key={d.id} onClick={() => requestSwitch(i)}
               className="flex-shrink-0 flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-2xl border-2 transition-all"
               style={{
@@ -676,12 +767,12 @@ export default function ColorBook() {
               </h2>
               <ul className="text-sm space-y-2" style={{ color: '#4B5563' }}>
                 <li>Escolha uma cor na paleta colorida na parte de baixo.</li>
-                <li>Clique em uma região do desenho — ou use Tab e Enter — para colorir.</li>
-                <li>Escolha uma cena bíblica na fila no topo da tela.</li>
-                <li>Desfazer remove a última pincelada.</li>
+                <li>Clique em uma regiÃ£o do desenho â€” ou use Tab e Enter â€” para colorir.</li>
+                <li>Escolha uma cena bÃ­blica na fila no topo da tela.</li>
+                <li>Desfazer remove a Ãºltima pincelada.</li>
                 <li>Limpar apaga todas as cores do desenho atual.</li>
-                <li>Salvar baixa o SVG com a mensagem e a referência bíblica.</li>
-                <li>Complete todas as regiões para ganhar um selo!</li>
+                <li>Salvar baixa o SVG com a mensagem e a referÃªncia bÃ­blica.</li>
+                <li>Complete todas as regiÃµes para ganhar um selo!</li>
               </ul>
               <button className="btn-primary w-full mt-4"
                 onClick={() => { playSound('click'); setShowHelp(false) }}>
@@ -700,7 +791,7 @@ export default function ColorBook() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <motion.div className="glass-card p-6 max-w-xs w-full text-center"
               initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}>
-              <div className="text-4xl mb-2">🖼</div>
+              <div className="text-4xl mb-2">ðŸ–¼</div>
               <h2 className="text-lg font-bold mb-1"
                 style={{ fontFamily: 'Fredoka One, cursive', color: '#7B5EA7' }}>
                 Trocar de Desenho
@@ -726,7 +817,7 @@ export default function ColorBook() {
         )}
       </AnimatePresence>
 
-      {/* 🎉 Drawing Completion Celebration Overlay */}
+      {/* ðŸŽ‰ Drawing Completion Celebration Overlay */}
       <AnimatePresence>
         {showCelebration && (
           <motion.div
@@ -752,7 +843,7 @@ export default function ColorBook() {
                 className="text-6xl mb-3"
               >{drawing.emoji}</motion.div>
               <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: '#A78BFA' }}>
-                🎉 Desenho Completo!
+                ðŸŽ‰ Desenho Completo!
               </p>
               <h2 className="text-xl font-black mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#5B3A8A' }}>
                 {drawing.name}
@@ -766,7 +857,7 @@ export default function ColorBook() {
                 className="btn-primary w-full"
                 onClick={() => { playSound('click'); setShowCelebration(false) }}
               >
-                Continuar Colorindo! 🎨
+                Continuar Colorindo! ðŸŽ¨
               </button>
             </motion.div>
           </motion.div>
@@ -776,3 +867,5 @@ export default function ColorBook() {
     </div>
   )
 }
+
+
