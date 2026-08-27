@@ -42,7 +42,7 @@ interface OnlineContextValue {
 const OnlineContext = createContext<OnlineContextValue | null>(null)
 
 function friendlyError(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error || '')
+  const message = error instanceof Error ? error.message : (error && typeof error === 'object' && error.message) ? String(error.message) : JSON.stringify(error)
   if (message.includes('Anonymous sign-ins are disabled')) return 'O acesso de jogadores ainda precisa ser ativado no Supabase.'
   if (message.includes('CANNOT_INVITE_SELF')) return 'Você não pode convidar a si mesmo.'
     if (message.includes('INVITE_RATE_LIMIT')) return 'Espere alguns segundos antes de enviar outro convite.'
