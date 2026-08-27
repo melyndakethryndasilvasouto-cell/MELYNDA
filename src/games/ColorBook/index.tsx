@@ -525,6 +525,8 @@ function serializeDrawingWithVerse(svgElement: SVGSVGElement, drawing: DrawingDe
 }
 
 // â”€â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const ALL_DRAWINGS = [...DRAWINGS, ...MANDALA_DRAWINGS];
+
 export default function ColorBook() {
   const { playSound } = useSound()
   const { addAchievement } = usePlayer()
@@ -551,7 +553,7 @@ export default function ColorBook() {
     if (toastTimer.current) clearTimeout(toastTimer.current)
   }, [])
 
-  const drawing = DRAWINGS[drawingIdx]
+  const drawing = ALL_DRAWINGS[drawingIdx]
   const currentFills = fills[drawing.id]
   const currentUndo = undoStack[drawing.id]
   const coloredCount = drawing.regions.filter(r => currentFills[r] && currentFills[r] !== UNCOLORED).length
