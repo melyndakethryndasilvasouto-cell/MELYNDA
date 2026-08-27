@@ -44,7 +44,8 @@ const OnlineContext = createContext<OnlineContextValue | null>(null)
 function friendlyError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error || '')
   if (message.includes('Anonymous sign-ins are disabled')) return 'O acesso de jogadores ainda precisa ser ativado no Supabase.'
-  if (message.includes('INVITE_RATE_LIMIT')) return 'Espere alguns segundos antes de enviar outro convite.'
+  if (message.includes('CANNOT_INVITE_SELF')) return 'Você não pode convidar a si mesmo.'
+    if (message.includes('INVITE_RATE_LIMIT')) return 'Espere alguns segundos antes de enviar outro convite.'
   if (message.includes('MESSAGE_RATE_LIMIT')) return 'Espere um pouquinho antes de enviar outra mensagem.'
   if (message.includes('REPORT_RATE_LIMIT')) return 'A denúncia anterior já foi recebida. Espere um pouco antes de enviar outra.'
   if (message.includes('PLAYER_OFFLINE')) return 'Esse jogador acabou de sair do Online.'
@@ -54,7 +55,7 @@ function friendlyError(error: unknown) {
   if (message.includes('GROUP_LIMIT')) return 'Você já criou o máximo de cinco grupos.'
   if (message.includes('ALREADY_MEMBER')) return 'Esse jogador já participa do grupo.'
   if (message.includes('INVITE_EXPIRED') || message.includes('INVITE_UNAVAILABLE')) return 'Esse convite expirou ou já foi respondido.'
-  return 'Não foi possível atualizar o modo Online agora. Tente novamente.'
+  return 'ERRO_TECNICO: ' + message;
 }
 
 function pendingInvite<T extends { status: string; expires_at: string }>(invite: T) {
