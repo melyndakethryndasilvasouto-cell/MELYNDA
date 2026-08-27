@@ -17,7 +17,7 @@ interface Question {
 }
 
 type GameMode = 'solo' | 'duo'
-type Screen = 'mode' | 'game' | 'result'
+type Screen = 'mode' | 'local-setup' | 'game' | 'result'
 
 const ALL_QUESTIONS = quizQuestions as Question[]
 
@@ -226,27 +226,61 @@ export default function Quiz() {
               Aprender brincando
             </h2>
             {bestScore > 0 && (
-              <p className="text-sm mb-3" style={{ color: '#A78BFA' }}>
-                 🏅 Melhor pontuação: <strong>{bestScore} pts</strong>
+              <p className="text-sm mb-4" style={{ color: '#A78BFA' }}>
+                 🏆 Melhor pontuação: <strong>{bestScore} pts</strong>
               </p>
             )}
-            <label className="block text-sm font-bold mb-3 text-left" style={{ color: '#4B5563' }}>
-              Nome do Jogador 2 (para o modo dupla):
+            
+            <div className="flex flex-col gap-3 mt-4">
+              <button className="btn-primary py-4 text-lg" style={{ minHeight: 56 }} onClick={() => startGame('solo')}>
+                🧍‍♀️ Jogar sozinha
+              </button>
+
+              <button className="btn-secondary py-4 text-lg shadow-sm" style={{ minHeight: 56, background: '#EFF6FF', borderColor: '#BFDBFE', color: '#2563EB' }} onClick={() => window.location.href = '/online'}>
+                🌐 Jogar com Amigo Online
+              </button>
+
+              <button className="btn-secondary py-4 text-lg" style={{ minHeight: 56 }} onClick={() => setScreen('local-setup')}>
+                📱 Passar o Celular (Local)
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {screen === 'local-setup' && (
+          <motion.div
+            key="local-setup"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="glass-card p-8 w-full max-w-md text-center"
+          >
+             <h2 className="text-2xl font-bold mb-4" style={{ fontFamily: "'Fredoka One'", color: '#7B5EA7' }}>
+              Modo Local
+            </h2>
+            <p className="text-sm mb-5 text-gray-500">
+              Jogue com alguém do seu lado. Vocês vão se revezar para responder!
+            </p>
+            <label className="block text-sm font-bold mb-4 text-left" style={{ color: '#4B5563' }}>
+              Nome do Jogador 2:
               <input
                 value={player2Name}
-                onChange={e => setPlayer2Name(e.target.value.slice(0, 16) || 'Jogador 2')}
+                onChange={e => setPlayer2Name(e.target.value.slice(0, 16) || '')}
                 maxLength={16}
-                placeholder="Jogador 2"
-                className="mt-1 w-full rounded-2xl border border-purple-200 px-4 py-2 text-base font-bold"
-                style={{ minHeight: 44, fontFamily: "'Nunito'" }}
+                placeholder="Ex: João"
+                className="mt-2 w-full rounded-2xl border border-purple-200 px-4 py-3 text-base font-bold outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-200"
+                style={{ fontFamily: "'Nunito'" }}
               />
             </label>
-            <div className="flex flex-col gap-3 mt-2">
-              <button className="btn-primary py-4 text-lg" style={{ minHeight: 56 }} onClick={() => startGame('solo')}>
-                 🧍 Jogar sozinha
+            <div className="flex gap-3">
+              <button className="btn-secondary flex-1 py-3" onClick={() => setScreen('mode')}>
+                Voltar
               </button>
-              <button className="btn-secondary py-4 text-lg" style={{ minHeight: 56 }} onClick={() => startGame('duo')}>
-                👥 Dois Jogadores (turnos alternados)
+              <button className="btn-primary flex-1 py-3" onClick={() => {
+                if(!player2Name.trim()) setPlayer2Name('Jogador 2')
+                startGame('duo')
+              }}>
+                Começar
               </button>
             </div>
           </motion.div>
