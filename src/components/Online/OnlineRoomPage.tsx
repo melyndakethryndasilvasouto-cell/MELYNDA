@@ -10,6 +10,7 @@ import { useRoomVoice } from '../../online/useRoomVoice'
 import { supabase } from '../../services/supabase'
 import AudioMessageComposer from './AudioMessageComposer'
 import OnlineSafetyGate from './OnlineSafetyGate'
+import OnlineTicTacToeBoard from './OnlineTicTacToeBoard'
 import OnlineMemoryBoard from './OnlineMemoryBoard'
 import OnlineCheckersBoard from './OnlineCheckersBoard'
 import OnlineQuizBoard from './OnlineQuizBoard'
@@ -166,18 +167,11 @@ export default function OnlineRoomPage() {
   const opponentId = room ? (room.host_id === userId ? room.guest_id : room.host_id) : null
   const opponent = opponentId ? profiles[opponentId] : null
   // TTT-specific state — cast safely since non-TTT games don't use these
-  const tttState = room?.state as { board?: (string | null)[]; turn?: string; result?: string } | undefined
-  const board = (tttState?.board || Array(9).fill(null)) as (string | null)[]
-  const result = (tttState?.result || 'playing') as string
-  const myTurn = room?.status === 'active' && tttState?.turn === mySymbol
-  const statusText = useMemo(() => {
-    if (!room) return 'Abrindo sala…'
-    if (room.status === 'waiting') return 'Aguardando o outro jogador aceitar o convite…'
-    if (room.status === 'cancelled') return 'Esta sala foi encerrada.'
-    if (result === 'draw') return 'Empate! Vocês jogaram muito bem.'
-    if (result === 'X' || result === 'O') return result === mySymbol ? 'Você venceu! 🎉' : `${opponent?.name || 'Seu amigo'} venceu!`
-    return myTurn ? 'Sua vez!' : `Vez de ${opponent?.name || 'outro jogador'}…`
-  }, [mySymbol, myTurn, opponent?.name, result, room])
+  
+  
+  
+  
+  
 
   const scrollMessagesToEnd = useCallback(() => {
     const log = messageLogRef.current
@@ -192,28 +186,12 @@ export default function OnlineRoomPage() {
     else if (messages.length) setNewMessages(true)
   }, [messages.length, scrollMessagesToEnd])
 
-  const play = async (cell: number) => {
-    if (!supabase || moving || !myTurn || board[cell] !== null) return
-    setMoving(true)
-    setError('')
-    const response = await supabase.rpc('play_online_ttt', { room: roomId, cell })
-    if (response.error) setError(roomError(response.error))
-    else setRoom(response.data as OnlineRoom)
-    setMoving(false)
-  }
-
   const restart = async () => {
     if (!supabase) return
-    if (room?.game === 'tic-tac-toe' || !room?.game) {
-      const response = await supabase.rpc('restart_online_ttt', { room: roomId })
-      if (response.error) setError(roomError(response.error))
-      else setRoom(response.data as OnlineRoom)
-    } else {
-      channel?.send({ type: 'broadcast', event: 'game-restart', payload: {} })
-      const response = await supabase.rpc('restart_online_room', { room: roomId })
-      if (response.error) setError(roomError(response.error))
-      else { setBroadcastGameState(null); setGuestMove(null); setRoom(response.data as OnlineRoom) }
-    }
+    channel?.send({ type: 'broadcast', event: 'game-restart', payload: {} })
+    const response = await supabase.rpc('restart_online_room', { room: roomId })
+    if (response.error) setError(roomError(response.error))
+    else { setBroadcastGameState(null); setGuestMove(null); setRoom(response.data as OnlineRoom) }
   }
 
   // Broadcast helpers used by non-TTT game components
@@ -298,9 +276,7 @@ export default function OnlineRoomPage() {
             : room.game === 'pong' ? '🎯 Ping Pong'
             : '🛤️ Jogo da Velha'}
         </h1>
-        {room.game === 'tic-tac-toe' && (
-          <p className="mt-2 font-black" aria-live="polite" style={{ color: myTurn ? '#166534' : '#6B7280' }}>{statusText}</p>
-        )}
+        
       </header>
 
       <div className="glass-card mt-4 grid grid-cols-2 gap-3 p-3 text-center">
@@ -318,15 +294,17 @@ export default function OnlineRoomPage() {
 
       {/* ── TicTacToe board ── */}
       {(room.game === 'tic-tac-toe' || !room.game) && (
-        <div className="mx-auto mt-5 grid w-full max-w-[340px] grid-cols-3 gap-3" aria-label="Tabuleiro do Jogo da Velha">
-          {board.map((cell, index) => (
-            <button key={index} type="button" onClick={() => void play(index)} disabled={!myTurn || moving || cell !== null}
-              aria-label={cell ? `Casa ${index + 1}, marcada com ${cell}` : `Casa ${index + 1}, vazia`}
-              className="flex aspect-square items-center justify-center rounded-3xl bg-white text-5xl font-black shadow-md transition-transform enabled:active:scale-90 disabled:cursor-default"
-              style={{ color: cell === 'X' ? '#4A90D9' : '#7B5EA7', border: '2px solid rgba(196,181,253,.55)' }}>{cell}</button>
-          ))}
-        </div>
-      )}
+          <OnlineTicTacToeBoard
+            isHost={isHost}
+            roomStatus={room.status}
+            opponent={opponent}
+            broadcastGameState={broadcastGameState}
+            guestMove={guestMove}
+            onBroadcastState={broadcastState}
+            onBroadcastMove={broadcastMove}
+            onFinish={finishRoom}
+          />
+        )}
 
       {/* ── Memory online board ── */}
       {room.game === 'memory' && (
