@@ -12,6 +12,7 @@ interface Question {
   correct: number
   category: string
   verseRef: string
+  verseText: string
   explanation: string
 }
 
@@ -21,8 +22,8 @@ type Screen = 'mode' | 'game' | 'result'
 const ALL_QUESTIONS = quizQuestions as Question[]
 
 const QUESTIONS_PER_GAME = 10
-const TIMER_SECONDS = 15
-const LEARNING_DELAY_MS = 5500
+const TIMER_SECONDS = 20
+const READING_SECONDS = 30
 const OPTION_LABELS = ['A', 'B', 'C', 'D']
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -56,7 +57,7 @@ export default function Quiz() {
   const [screen, setScreen] = useState<Screen>('mode')
   const [mode, setMode] = useState<GameMode>('solo')
   const [showHelp, setShowHelp] = useState(false)
-  const player2Name = 'Jogador 2'
+  const [player2Name, setPlayer2Name] = useState('Jogador 2')
 
   const [questions, setQuestions] = useState<Question[]>([])
   const [qIndex, setQIndex] = useState(0)
@@ -67,9 +68,11 @@ export default function Quiz() {
   const [answered, setAnswered] = useState(false)
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | 'timeout' | null>(null)
   const [timeLeft, setTimeLeft] = useState(TIMER_SECONDS)
+  const [readingTimeLeft, setReadingTimeLeft] = useState(READING_SECONDS)
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const nextRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const readingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const clearTimers = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current)
@@ -93,30 +96,46 @@ export default function Quiz() {
     setScreen('game')
   }
 
-  const scheduleNext = useCallback(() => {
-    nextRef.current = setTimeout(() => {
-      setQIndex(prev => {
-        const next = prev + 1
-        if (next >= QUESTIONS_PER_GAME) {
-          setScreen('result')
-          return prev
-        }
-        if (mode === 'duo') setCurrentPlayer(p => p === 1 ? 2 : 1)
-        setSelected(null)
-        setAnswered(false)
-        setFeedback(null)
-        setTimeLeft(TIMER_SECONDS)
-        return next
-      })
-    }, LEARNING_DELAY_MS)
+  const advanceQuestion = useCallback(() => {
+    if (readingTimerRef.current) { clearInterval(readingTimerRef.current); readingTimerRef.current = null }
+    setQIndex(prev => {
+      const next = prev + 1
+      if (next >= QUESTIONS_PER_GAME) {
+        setScreen('result')
+        return prev
+      }
+      if (mode === 'duo') setCurrentPlayer(p => p === 1 ? 2 : 1)
+      setSelected(null)
+      setAnswered(false)
+      setFeedback(null)
+      setTimeLeft(TIMER_SECONDS)
+      setReadingTimeLeft(READING_SECONDS)
+      return next
+    })
   }, [mode])
+
+  const startReadingTimer = useCallback(() => {
+    setReadingTimeLeft(READING_SECONDS)
+    if (readingTimerRef.current) clearInterval(readingTimerRef.current)
+    readingTimerRef.current = setInterval(() => {
+      setReadingTimeLeft(t => {
+        if (t <= 1) {
+          clearInterval(readingTimerRef.current!)
+          readingTimerRef.current = null
+          advanceQuestion()
+          return 0
+        }
+        return t - 1
+      })
+    }, 1000)
+  }, [advanceQuestion])
 
   const handleTimeout = useCallback(() => {
     playSound('error')
     setAnswered(true)
     setFeedback('timeout')
-    scheduleNext()
-  }, [playSound, scheduleNext])
+    startReadingTimer()
+  }, [playSound, startReadingTimer])
 
   useEffect(() => {
     if (screen !== 'game' || answered) return
@@ -150,7 +169,7 @@ export default function Quiz() {
       playSound('error')
       setFeedback('wrong')
     }
-    scheduleNext()
+    startReadingTimer()
   }
 
   useEffect(() => {
@@ -207,11 +226,22 @@ export default function Quiz() {
               Aprender brincando
             </h2>
             {bestScore > 0 && (
-              <p className="text-sm mb-4" style={{ color: '#A78BFA' }}>
+              <p className="text-sm mb-3" style={{ color: '#A78BFA' }}>
                  🏅 Melhor pontuação: <strong>{bestScore} pts</strong>
               </p>
             )}
-            <div className="flex flex-col gap-3 mt-4">
+            <label className="block text-sm font-bold mb-3 text-left" style={{ color: '#4B5563' }}>
+              Nome do Jogador 2 (para o modo dupla):
+              <input
+                value={player2Name}
+                onChange={e => setPlayer2Name(e.target.value.slice(0, 16) || 'Jogador 2')}
+                maxLength={16}
+                placeholder="Jogador 2"
+                className="mt-1 w-full rounded-2xl border border-purple-200 px-4 py-2 text-base font-bold"
+                style={{ minHeight: 44, fontFamily: "'Nunito'" }}
+              />
+            </label>
+            <div className="flex flex-col gap-3 mt-2">
               <button className="btn-primary py-4 text-lg" style={{ minHeight: 56 }} onClick={() => startGame('solo')}>
                  🧍 Jogar sozinha
               </button>
@@ -313,21 +343,62 @@ export default function Quiz() {
                   initial={{ opacity: 0, y: 10, scale: 0.9 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0 }}
-                  className="text-center px-5 py-4 rounded-2xl"
+                  className="rounded-3xl overflow-hidden"
                   role="status"
                   aria-live="polite"
                   style={{
-                    background: feedback === 'correct' ? '#D1FAE5' : '#FEE2E2',
-                    color: feedback === 'correct' ? '#065F46' : '#991B1B'
+                    background: feedback === 'correct' ? '#D1FAE5' : '#FFF3CD',
+                    border: `2px solid ${feedback === 'correct' ? '#34D399' : '#F59E0B'}`,
                   }}
                 >
-                  <p className="font-black text-lg">
-                    {feedback === 'correct' && '✅ Correto! +10 pontos'}
-                    {feedback === 'wrong' && `💡 A resposta é: ${currentQ.options[currentQ.correct]}`}
-                    {feedback === 'timeout' && `⏰ A resposta é: ${currentQ.options[currentQ.correct]}`}
-                  </p>
-                  <p className="text-sm mt-2 leading-snug" style={{ color: '#374151' }}>{currentQ.explanation}</p>
-                  <span className="verse-chip mt-2">Confira em {currentQ.verseRef}</span>
+                  {/* Status header */}
+                  <div className="px-5 pt-4 pb-2">
+                    <p className="font-black text-lg text-center">
+                      {feedback === 'correct' && '✅ Correto! +10 pontos'}
+                      {feedback === 'wrong' && `💡 A resposta certa é: ${currentQ.options[currentQ.correct]}`}
+                      {feedback === 'timeout' && `⏰ Tempo! A resposta é: ${currentQ.options[currentQ.correct]}`}
+                    </p>
+                    <p className="text-sm mt-1 text-center leading-snug" style={{ color: '#374151' }}>
+                      {currentQ.explanation}
+                    </p>
+                  </div>
+
+                  {/* Full verse text */}
+                  <div className="mx-4 mb-3 rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.7)' }}>
+                    <p className="text-xs font-black uppercase tracking-wide mb-2" style={{ color: '#7B5EA7' }}>
+                      📖 {currentQ.verseRef}
+                    </p>
+                    <p className="text-base font-bold leading-relaxed italic" style={{ color: '#1F2937', fontFamily: "'Nunito'" }}>
+                      "{currentQ.verseText}"
+                    </p>
+                  </div>
+
+                  {/* 30s countdown + Continue button */}
+                  <div className="px-4 pb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold" style={{ color: '#6B7280' }}>
+                        Próxima em {readingTimeLeft}s
+                      </span>
+                      <button
+                        type="button"
+                        onClick={advanceQuestion}
+                        className="rounded-2xl px-4 py-2 text-sm font-black transition-all active:scale-95"
+                        style={{ background: 'linear-gradient(135deg,#7B5EA7,#4A90D9)', color: '#fff', minHeight: 44 }}
+                      >
+                        Continuar →
+                      </button>
+                    </div>
+                    {/* Progress bar counting down */}
+                    <div className="h-2 w-full rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.12)' }}>
+                      <motion.div
+                        className="h-full rounded-full"
+                        style={{ background: '#7B5EA7' }}
+                        initial={{ width: '100%' }}
+                        animate={{ width: `${(readingTimeLeft / READING_SECONDS) * 100}%` }}
+                        transition={{ duration: 1, ease: 'linear' }}
+                      />
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
