@@ -75,6 +75,7 @@ test('cliente usa identidade server-side, grupos privados, proteção infantil e
   assert.match(lobby, /Frases aprovadas para proteger as crianças/)
   assert.match(lobby, /Bloquear/)
   assert.match(lobby, /Denunciar/)
+  assert.doesNotMatch(lobby, /disponívelis/)
   assert.match(group, /send_online_group_message/)
   assert.match(group, /send_online_group_audio/)
   assert.match(group, /Somente você, como dono/)

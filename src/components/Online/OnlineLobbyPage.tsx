@@ -150,7 +150,7 @@ export default function OnlineLobbyPage() {
 
       <div className="mt-5 flex items-center justify-center gap-2 rounded-2xl px-3 py-2 text-sm font-black" style={{ color: status === 'connected' ? '#166534' : '#6B7280', background: status === 'connected' ? '#DCFCE7' : '#F3F4F6' }}>
         {status === 'connecting' ? <LoaderCircle className="animate-spin" size={18} /> : <Radio size={18} />}
-        {status === 'connected' ? `${otherPlayers.length} amigo${otherPlayers.length === 1 ? '' : 's'} disponível${otherPlayers.length === 1 ? '' : 'is'}` : 'Conectando com segurança…'}
+        {status === 'connected' ? `${otherPlayers.length} amigo${otherPlayers.length === 1 ? '' : 's'} disponíve${otherPlayers.length === 1 ? 'l' : 'is'}` : 'Conectando com segurança…'}
       </div>
 
       {(error || notice) && <p role="status" className="mt-3 rounded-2xl bg-amber-50 p-3 text-sm font-bold" style={{ color: '#92400E' }}>{notice || error}</p>}
