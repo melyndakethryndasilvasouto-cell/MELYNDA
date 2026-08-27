@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { isSafeName } from '../utils/safety'
 
 interface Props { onComplete: (name: string, avatar: string) => void }
 
@@ -29,6 +30,10 @@ export default function PlayerSetup({ onComplete }: Props) {
     e.preventDefault()
     const nickname = cleanNickname(name)
     if (nickname.length >= 2) {
+      if (!isSafeName(nickname)) {
+        alert('Esse apelido não é permitido. Escolha outro mais legal!');
+        return;
+      }
       setName(nickname)
       setStep('avatar')
     }
