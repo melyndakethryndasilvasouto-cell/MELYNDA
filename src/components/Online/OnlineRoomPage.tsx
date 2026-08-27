@@ -349,6 +349,20 @@ export default function OnlineRoomPage() {
         />
       )}
 
+      {/* 🃏 UNO online board 🃏 */}
+      {room.game === 'uno' && (
+        <OnlineUnoBoard
+          isHost={isHost}
+          roomStatus={room.status}
+          opponent={opponent}
+          broadcastGameState={broadcastGameState}
+          guestMove={guestMove}
+          onBroadcastState={broadcastState}
+          onBroadcastMove={broadcastMove}
+          onFinish={finishRoom}
+        />
+      )}
+
       {error && <p role="alert" className="mt-3 rounded-2xl bg-amber-50 p-3 text-center text-sm font-bold" style={{ color: '#92400E' }}>{error}</p>}
 
       <div className="mt-4 flex flex-wrap justify-center gap-2">
