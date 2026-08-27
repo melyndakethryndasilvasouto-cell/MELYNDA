@@ -257,17 +257,11 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
     if (safetyAccepted) void connect()
   }, [connect, safetyAccepted])
 
-  const goOffline = useCallback(async () => {
+    const goOffline = useCallback(() => {
     clearHeartbeat()
-    let presenceCleared = true
-    if (supabase && connectedUserRef.current) {
-      let result = await supabase.rpc('go_offline')
-      if (result.error) {
-        await new Promise(resolve => window.setTimeout(resolve, 500))
-        result = await supabase.rpc('go_offline')
-      }
-      presenceCleared = !result.error
-    }
+    const lastUser = connectedUserRef.current;
+    
+    // Disconnect locally IMMEDIATELY for snappy UX
     disconnect()
     sessionStorage.removeItem('mel-online-consent')
     localStorage.removeItem('mel-online-consent')
@@ -280,7 +274,18 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
     setGroupInvites([])
     setGroups([])
     setLobbyMessages([])
-    setError(presenceCleared ? '' : 'Você parou de enviar atividade, mas não foi possível confirmar a remoção imediata. Seu apelido pode levar até 90 segundos para sumir da lista.')
+    setError('')
+
+    // Notify server asynchronously
+    if (supabase && lastUser) {
+      supabase.rpc('go_offline').then(result => {
+        if (result.error) {
+          window.setTimeout(() => supabase.rpc('go_offline'), 500)
+        }
+      }).catch(err => {
+        console.error('Background offline rpc failed', err)
+      })
+    }
   }, [clearHeartbeat, disconnect])
 
   const sendLobbyMessage = useCallback(async (messageIndex: number) => {
