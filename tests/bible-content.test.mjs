@@ -8,7 +8,7 @@ const referencePattern = /^(?:[1-3] )?[A-Za-zÀ-ÿ]+(?: [A-Za-zÀ-ÿ]+)* \d+:\d+
 
 test('cada jogo possui uma missão bíblica única e completa', async () => {
   const missions = await readJson('src/data/gameMissions.json')
-  assert.equal(missions.length, 10)
+  assert.equal(missions.length, 11)
   assert.equal(new Set(missions.map(({ path }) => path)).size, missions.length)
   assert.equal(new Set(missions.map(({ gameId }) => gameId)).size, missions.length)
 
@@ -33,6 +33,7 @@ test('cada jogo possui uma missão bíblica única e completa', async () => {
       quiz: 'Quiz da Bíblia',
       puzzle: 'Quebra-Cabeça',
       pong: 'Ping Pong',
+      forca: 'Forca Bíblica',
     },
   )
 })
@@ -52,9 +53,9 @@ test('quiz bíblico tem banco amplo, respostas válidas e ensino em todas as que
   }
 })
 
-test('memória bíblica oferece dez pares distintos com referência e mensagem', async () => {
+test('memória bíblica oferece quarenta pares distintos com referência e mensagem', async () => {
   const pairs = await readJson('src/data/memoryPairs.json')
-  assert.equal(pairs.length, 10)
+  assert.equal(pairs.length, 40)
   assert.equal(new Set(pairs.map(({ id }) => id)).size, pairs.length)
   assert.equal(new Set(pairs.map(({ emoji }) => emoji)).size, pairs.length)
   for (const pair of pairs) {
@@ -63,11 +64,11 @@ test('memória bíblica oferece dez pares distintos com referência e mensagem',
   }
 })
 
-test('colorir possui oito lições bíblicas vinculadas aos desenhos esperados', async () => {
+test('colorir possui lições bíblicas vinculadas aos desenhos esperados', async () => {
   const lessons = await readJson('src/data/coloringLessons.json')
   assert.deepEqual(
     lessons.map(({ id }) => id),
-    ['ark', 'new-life', 'creation', 'bethlehem', 'lamb', 'promise', 'love', 'fortress'],
+    ['ark', 'new-life', 'creation', 'bethlehem', 'lamb', 'promise', 'love', 'fortress', 'cross', 'loaves', 'crown', 'dove', 'whale', 'tablets'],
   )
   for (const lesson of lessons) {
     assert.match(lesson.verseRef, referencePattern)

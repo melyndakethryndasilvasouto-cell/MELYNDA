@@ -13,6 +13,14 @@ export const ONLINE_GAME_LABELS: Record<OnlineGameKey, string> = {
   pong: 'Ping Pong',
 }
 
+export const ONLINE_GAME_OPTIONS = [
+  { key: 'tic-tac-toe', emoji: '❌⭕', label: ONLINE_GAME_LABELS['tic-tac-toe'] },
+  { key: 'uno', emoji: '🃏', label: ONLINE_GAME_LABELS.uno },
+  { key: 'memory', emoji: '🎴', label: ONLINE_GAME_LABELS.memory },
+  { key: 'checkers', emoji: '🏁', label: ONLINE_GAME_LABELS.checkers },
+  { key: 'quiz', emoji: '❓', label: ONLINE_GAME_LABELS.quiz },
+] as const
+
 const PATH_GAMES: Record<string, OnlineGameKey> = {
   '/memoria': 'memory',
   '/jogo-da-velha': 'tic-tac-toe',

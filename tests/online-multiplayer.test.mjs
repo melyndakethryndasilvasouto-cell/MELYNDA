@@ -17,6 +17,7 @@ test('migração online protege salas, convites e jogadas no servidor', async ()
   const social = await readFile(new URL('supabase/migrations/20260827013000_safe_social_groups.sql', root), 'utf8')
   const blockCleanup = await readFile(new URL('supabase/migrations/20260827023000_block_cleanup_and_group_privacy.sql', root), 'utf8')
   const pendingBlockFix = await readFile(new URL('supabase/migrations/20260827070000_fix_pending_invite_block.sql', root), 'utf8')
+  const inviteSchemaFix = await readFile(new URL('supabase/migrations/20260827183000_fix_online_invite_schema.sql', root), 'utf8')
 
   for (const table of ['online_profiles', 'online_rooms', 'online_invites']) {
     assert.match(sql, new RegExp(`alter table public\\.${table} enable row level security`, 'i'))
@@ -59,6 +60,12 @@ test('migração online protege salas, convites e jogadas no servidor', async ()
   assert.match(pendingBlockFix, /create or replace function public\.respond_online_invite[\s\S]*pg_advisory_xact_lock[\s\S]*for update/i)
   assert.match(pendingBlockFix, /create or replace function public\.go_offline[\s\S]*delete from public\.online_presence[\s\S]*status = 'cancelled'/i)
   assert.match(pendingBlockFix, /revoke all on function public\.block_online_player\(uuid\) from public, anon/i)
+  assert.match(inviteSchemaFix, /create or replace function public\.create_online_invite\(guest uuid, game_type text/i)
+  assert.match(inviteSchemaFix, /private\.online_users_blocked\(caller, guest\)/i)
+  assert.match(inviteSchemaFix, /online_blocks[\s\S]*blocker_id|blocked_id/i)
+  assert.match(inviteSchemaFix, /online_invites \(room_id, from_user, to_user, from_name, from_avatar\)/i)
+  assert.doesNotMatch(inviteSchemaFix, /online_blocks[\s\S]*(?:\bblocker\b|\bblocked\b)(?!_id)/i)
+  assert.doesNotMatch(inviteSchemaFix, /online_invites \([^)]*\bhost_id\b/i)
 })
 
 test('cliente usa identidade server-side, grupos privados, proteção infantil e voz sob consentimento', async () => {

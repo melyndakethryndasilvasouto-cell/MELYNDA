@@ -496,7 +496,7 @@ try {
   })()`)
   if (!answeredQuiz) throw new Error('Primeira opção do Quiz não foi encontrada')
   await new Promise(resolveWait => setTimeout(resolveWait, 400))
-  const learnedFromQuiz = await evaluate(`document.body.innerText.includes('Confira em')`)
+  const learnedFromQuiz = await evaluate(`Boolean(document.querySelector('[role="status"]')?.innerText?.includes('Continuar'))`)
   if (!learnedFromQuiz) throw new Error('Feedback bíblico do Quiz não apareceu após a resposta')
   await evaluate('window.scrollTo(0, document.body.scrollHeight)')
   console.log(`SCREENSHOT ${await screenshot('ui-quiz-feedback-mobile.png')}`)
@@ -542,6 +542,12 @@ try {
 
   await viewport(320, 800)
   await navigate('/colorir')
+  const openedColoring = await evaluate(`(() => {
+    const drawing = [...document.querySelectorAll('button')].find(item => item.textContent?.includes('Arca de Noé'))
+    drawing?.click()
+    return Boolean(drawing)
+  })()`)
+  await new Promise(resolveWait => setTimeout(resolveWait, 250))
   const coloredRegion = await evaluate(`(() => {
     const region = document.querySelector('#coloring-svg [role="button"]')
     region?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
@@ -549,7 +555,7 @@ try {
   })()`)
   await new Promise(resolveWait => setTimeout(resolveWait, 300))
   const coloringProgress = await evaluate(`document.body.innerText.includes('1/12')`)
-  if (!coloredRegion || !coloringProgress) throw new Error('Interação de colorir não atualizou o progresso da Arca')
+  if (!openedColoring || !coloredRegion || !coloringProgress) throw new Error('Interação de colorir não atualizou o progresso da Arca')
   console.log(`SCREENSHOT ${await screenshot('ui-coloring-mobile.png')}`)
   console.log('INTERACTION_OK game=coloring progress=1/12')
 

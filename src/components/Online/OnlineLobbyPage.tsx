@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useOnline } from '../../contexts/OnlineContext'
-import { activityLabel } from '../../online/gameRegistry'
+import { activityLabel, ONLINE_GAME_OPTIONS } from '../../online/gameRegistry'
 import { LOBBY_QUICK_MESSAGES, OnlinePlayer } from '../../online/types'
 import OnlineSafetyGate from './OnlineSafetyGate'
 import { useAccessibleDialog } from '../../online/useAccessibleDialog'
@@ -161,7 +161,7 @@ export default function OnlineLobbyPage() {
           <h2 id="invites-title" className="font-black" style={{ color: '#5B3A8A' }}>Convites recebidos</h2>
           {invites.map(invite => (
             <article key={invite.id} className="glass-card p-4">
-              <p className="font-black"><span aria-hidden="true">{invite.from_avatar}</span> {invite.from_name} quer jogar Jogo da Velha.</p>
+              <p className="font-black"><span aria-hidden="true">{invite.from_avatar}</span> {invite.from_name} quer jogar com você.</p>
               <p className="mt-2 rounded-xl bg-yellow-50 p-2 text-xs font-bold" style={{ color: '#854D0E' }}>Aceite somente se você conhece essa pessoa. Se estiver em outro jogo, ele será encerrado somente depois da sua confirmação.</p>
               <div className="mt-3 grid grid-cols-2 gap-2"><button type="button" className="btn-primary text-sm" disabled={busy === invite.id} onClick={() => void answer(invite.id, true)}>Jogar agora</button><button type="button" className="btn-secondary text-sm" disabled={busy === invite.id} onClick={() => void answer(invite.id, false)}>Continuar aqui</button></div>
             </article>
@@ -227,13 +227,7 @@ export default function OnlineLobbyPage() {
                 com {pickingGameFor.avatar} {pickingGameFor.name}
               </p>
               <div className="flex flex-col gap-2">
-                {[
-                  { key: 'tic-tac-toe', emoji: '❌⭕', label: 'Jogo da Velha' },
-                  { key: 'uno', emoji: '🃏', label: 'UNO' },
-                  { key: 'memory',      emoji: '🎴', label: 'Memória da Bíblia' },
-                  { key: 'checkers',    emoji: '🏁', label: 'Dama' },
-                  { key: 'quiz',        emoji: '❓', label: 'Quiz da Bíblia' },
-                ].map(g => (
+                {ONLINE_GAME_OPTIONS.map(g => (
                   <button key={g.key} type="button"
                     className="flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-black transition-all active:scale-95"
                     style={{ background: 'linear-gradient(135deg,#EDE9FE,#DBEAFE)', color: '#5B3A8A', border: '2px solid #C4B5FD' }}

@@ -83,7 +83,7 @@ export default function OnlineRoomPage() {
           name: profile.display_name,
           avatar: profile.avatar,
           activity: 'playing',
-          gameKey: 'tic-tac-toe',
+          gameKey: loadedRoom.game,
           updatedAt: new Date().toISOString(),
         }
         setProfiles(next)
@@ -159,10 +159,10 @@ export default function OnlineRoomPage() {
       .then(({ data }) => {
         if (data) setProfiles(previous => ({
           ...previous,
-          [data.user_id]: { userId: data.user_id, name: data.display_name, avatar: data.avatar, activity: 'playing', gameKey: 'tic-tac-toe', updatedAt: new Date().toISOString() },
+          [data.user_id]: { userId: data.user_id, name: data.display_name, avatar: data.avatar, activity: 'playing', gameKey: room?.game || 'tic-tac-toe', updatedAt: new Date().toISOString() },
         }))
       })
-  }, [profiles, room?.guest_id])
+  }, [profiles, room?.game, room?.guest_id])
 
   const mySymbol = room?.host_id === userId ? 'X' : 'O'
   const opponentId = room ? (room.host_id === userId ? room.guest_id : room.host_id) : null
@@ -274,6 +274,7 @@ export default function OnlineRoomPage() {
           {room.game === 'memory' ? '🕊️ Memória da Bíblia'
             : room.game === 'checkers' ? '🛡️ Dama'
             : room.game === 'quiz' ? '📖 Quiz da Bíblia'
+            : room.game === 'uno' ? '🃏 UNO'
             : room.game === 'pong' ? '🎯 Ping Pong'
             : '🕹️ Jogo da Velha'}
         </h1>
@@ -401,6 +402,14 @@ export default function OnlineRoomPage() {
             </div>
           </div>
         )}
+
+      {room.game === 'pong' && (
+        <div className="glass-card mt-5 p-5 text-center">
+          <p className="text-4xl" aria-hidden="true">🎯</p>
+          <p className="mt-2 font-black" style={{ color: '#5B3A8A' }}>Ping Pong online está em preparação.</p>
+          <p className="mt-1 text-sm" style={{ color: '#4B5563' }}>Esta sala foi preservada, mas ainda não há tabuleiro online para ela.</p>
+        </div>
+      )}
 
         <div ref={messageLogRef} onScroll={event => { const log = event.currentTarget; keepAtBottomRef.current = log.scrollHeight - log.scrollTop - log.clientHeight < 80; if (keepAtBottomRef.current) setNewMessages(false) }} className="mt-3 max-h-48 min-h-24 space-y-2 overflow-y-auto rounded-2xl bg-slate-50 p-3" role="log" aria-live="polite" aria-label="Mensagens privadas da partida">
           {messages.length === 0 ? <p className="text-center text-xs" style={{ color: '#6B7280' }}>Escreva ou grave uma mensagem gentil para seu amigo.</p> : messages.map(message => {
