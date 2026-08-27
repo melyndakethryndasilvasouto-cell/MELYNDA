@@ -1,7 +1,16 @@
+import { readFile } from 'node:fs/promises'
 import { createClient } from '@supabase/supabase-js'
 
-const url = process.env.VITE_SUPABASE_URL || ''
-const key = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || ''
+function parseEnvFile(text) {
+  return Object.fromEntries(text.split(/\r?\n/).flatMap(line => {
+    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)=(.*)\s*$/)
+    return match ? [[match[1], match[2].trim()]] : []
+  }))
+}
+
+const localEnv = parseEnvFile(await readFile(new URL('../.env.local', import.meta.url), 'utf8').catch(() => ''))
+const url = process.env.VITE_SUPABASE_URL || localEnv.VITE_SUPABASE_URL || ''
+const key = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || localEnv.VITE_SUPABASE_PUBLISHABLE_KEY || ''
 if (!url || !key) throw new Error('Defina VITE_SUPABASE_URL e VITE_SUPABASE_PUBLISHABLE_KEY para o teste online.')
 
 function client() {

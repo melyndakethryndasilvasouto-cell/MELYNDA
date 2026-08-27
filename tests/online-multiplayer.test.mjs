@@ -18,6 +18,7 @@ test('migração online protege salas, convites e jogadas no servidor', async ()
   const blockCleanup = await readFile(new URL('supabase/migrations/20260827023000_block_cleanup_and_group_privacy.sql', root), 'utf8')
   const pendingBlockFix = await readFile(new URL('supabase/migrations/20260827070000_fix_pending_invite_block.sql', root), 'utf8')
   const inviteSchemaFix = await readFile(new URL('supabase/migrations/20260827183000_fix_online_invite_schema.sql', root), 'utf8')
+  const verifyOnline = await readFile(new URL('scripts/verify-online.mjs', root), 'utf8')
 
   for (const table of ['online_profiles', 'online_rooms', 'online_invites']) {
     assert.match(sql, new RegExp(`alter table public\\.${table} enable row level security`, 'i'))
@@ -66,6 +67,9 @@ test('migração online protege salas, convites e jogadas no servidor', async ()
   assert.match(inviteSchemaFix, /online_invites \(room_id, from_user, to_user, from_name, from_avatar\)/i)
   assert.doesNotMatch(inviteSchemaFix, /online_blocks[\s\S]*(?:\bblocker\b|\bblocked\b)(?!_id)/i)
   assert.doesNotMatch(inviteSchemaFix, /online_invites \([^)]*\bhost_id\b/i)
+  assert.match(verifyOnline, /readFile\(new URL\('\.\.\/.env\.local'/i)
+  assert.match(verifyOnline, /localEnv\.VITE_SUPABASE_URL/i)
+  assert.match(verifyOnline, /localEnv\.VITE_SUPABASE_PUBLISHABLE_KEY/i)
 })
 
 test('cliente usa identidade server-side, grupos privados, proteção infantil e voz sob consentimento', async () => {
