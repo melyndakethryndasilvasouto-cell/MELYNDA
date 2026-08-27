@@ -1,12 +1,282 @@
 [
-  { "id": "bible", "emoji": "📖", "title": "Bíblia", "verseRef": "Salmo 119:105", "message": "A Palavra de Deus ilumina o nosso caminho." },
-  { "id": "ark", "emoji": "🚢", "title": "Arca de Noé", "verseRef": "Gênesis 6:22", "message": "Noé confiou em Deus e fez tudo como Ele orientou." },
-  { "id": "rainbow", "emoji": "🌈", "title": "Arco da Promessa", "verseRef": "Gênesis 9:13", "message": "O arco no céu lembra a aliança e a fidelidade de Deus." },
-  { "id": "lamb", "emoji": "🐑", "title": "Bom Pastor", "verseRef": "João 10:11", "message": "Jesus é o Bom Pastor e cuida de suas ovelhas." },
-  { "id": "lion", "emoji": "🦁", "title": "Daniel e os Leões", "verseRef": "Daniel 6:22", "message": "Deus cuidou de Daniel quando ele permaneceu fiel." },
-  { "id": "star", "emoji": "⭐", "title": "Estrela de Belém", "verseRef": "Mateus 2:10-11", "message": "A estrela guiou os visitantes até o menino Jesus." },
-  { "id": "fish", "emoji": "🐟", "title": "Peixes", "verseRef": "João 6:9-13", "message": "Jesus multiplicou uma pequena oferta para alimentar muita gente." },
-  { "id": "bread", "emoji": "🍞", "title": "Pão da Vida", "verseRef": "João 6:35", "message": "Jesus oferece vida verdadeira a quem confia nele." },
-  { "id": "dove", "emoji": "🕊️", "title": "Paz", "verseRef": "Gálatas 5:22", "message": "O Espírito de Deus produz amor, alegria e paz em nós." },
-  { "id": "cross", "emoji": "✝️", "title": "Jesus Vive", "verseRef": "Mateus 28:5-6", "message": "Jesus venceu a morte e está vivo." }
+  {
+    "id": "bible",
+    "emoji": "📖",
+    "title": "Bíblia",
+    "verseRef": "Salmo 119:105",
+    "message": "A Palavra de Deus ilumina o nosso caminho."
+  },
+  {
+    "id": "ark",
+    "emoji": "🚢",
+    "title": "Arca de Noé",
+    "verseRef": "Gênesis 6:22",
+    "message": "Noé confiou em Deus e fez tudo como Ele orientou."
+  },
+  {
+    "id": "rainbow",
+    "emoji": "🌈",
+    "title": "Arco da Promessa",
+    "verseRef": "Gênesis 9:13",
+    "message": "O arco no céu lembra a aliança e a fidelidade de Deus."
+  },
+  {
+    "id": "lamb",
+    "emoji": "🐑",
+    "title": "Bom Pastor",
+    "verseRef": "João 10:11",
+    "message": "Jesus é o Bom Pastor e cuida de suas ovelhas."
+  },
+  {
+    "id": "lion",
+    "emoji": "🦁",
+    "title": "Daniel e os Leões",
+    "verseRef": "Daniel 6:22",
+    "message": "Deus cuidou de Daniel quando ele permaneceu fiel."
+  },
+  {
+    "id": "star",
+    "emoji": "⭐",
+    "title": "Estrela de Belém",
+    "verseRef": "Mateus 2:10-11",
+    "message": "A estrela guiou os visitantes até o menino Jesus."
+  },
+  {
+    "id": "fish",
+    "emoji": "🐟",
+    "title": "Peixes",
+    "verseRef": "João 6:9-13",
+    "message": "Jesus multiplicou uma pequena oferta para alimentar muita gente."
+  },
+  {
+    "id": "bread",
+    "emoji": "🍞",
+    "title": "Pão da Vida",
+    "verseRef": "João 6:35",
+    "message": "Jesus oferece vida verdadeira a quem confia nele."
+  },
+  {
+    "id": "dove",
+    "emoji": "🕊️",
+    "title": "Paz",
+    "verseRef": "Gálatas 5:22",
+    "message": "O Espírito de Deus produz amor, alegria e paz em nós."
+  },
+  {
+    "id": "cross",
+    "emoji": "✝️",
+    "title": "Jesus Vive",
+    "verseRef": "Mateus 28:5-6",
+    "message": "Jesus venceu a morte e está vivo."
+  },
+  {
+    "id": "jonah",
+    "emoji": "🐋",
+    "title": "Jonas",
+    "verseRef": "Jonas 2:1",
+    "message": "Deus ouviu a oração de Jonas e o salvou."
+  },
+  {
+    "id": "samson",
+    "emoji": "💪",
+    "title": "Sansão",
+    "verseRef": "Juízes 16:17",
+    "message": "Deus deu a Sansão uma força impressionante."
+  },
+  {
+    "id": "david_harp",
+    "emoji": "🎸",
+    "title": "Davi",
+    "verseRef": "1 Samuel 16:23",
+    "message": "Davi tocava para acalmar o coração do rei."
+  },
+  {
+    "id": "water_wine",
+    "emoji": "💧",
+    "title": "Água em Vinho",
+    "verseRef": "João 2:11",
+    "message": "Jesus transformou a água no melhor vinho."
+  },
+  {
+    "id": "walk_water",
+    "emoji": "🚶",
+    "title": "Andando na Água",
+    "verseRef": "Mateus 14:25",
+    "message": "Jesus andou sobre o mar e acalmou a tempestade."
+  },
+  {
+    "id": "fruit_love",
+    "emoji": "🍎",
+    "title": "Fruto do Espírito",
+    "verseRef": "Gálatas 5:22",
+    "message": "O Espírito Santo nos ensina a amar."
+  },
+  {
+    "id": "moses_sea",
+    "emoji": "🌊",
+    "title": "Mar Vermelho",
+    "verseRef": "Êxodo 14:21",
+    "message": "Deus abriu o mar para o seu povo passar em segurança."
+  },
+  {
+    "id": "burning_bush",
+    "emoji": "🔥",
+    "title": "Sarça Ardente",
+    "verseRef": "Êxodo 3:2",
+    "message": "Deus falou com Moisés através do fogo que não apagava."
+  },
+  {
+    "id": "ten_commandments",
+    "emoji": "📜",
+    "title": "Dez Mandamentos",
+    "verseRef": "Êxodo 20:1",
+    "message": "Deus deu regras para nos proteger e nos guiar."
+  },
+  {
+    "id": "jericho",
+    "emoji": "🎺",
+    "title": "Muralhas de Jericó",
+    "verseRef": "Josué 6:20",
+    "message": "Com gritos e trombetas, as muralhas caíram."
+  },
+  {
+    "id": "goliath",
+    "emoji": "🪨",
+    "title": "Davi e Golias",
+    "verseRef": "1 Samuel 17:50",
+    "message": "Davi derrotou o gigante confiando em Deus."
+  },
+  {
+    "id": "elijah_fire",
+    "emoji": "⚡",
+    "title": "Fogo do Céu",
+    "verseRef": "1 Reis 18:38",
+    "message": "Deus respondeu a Elias mandando fogo do céu."
+  },
+  {
+    "id": "esther",
+    "emoji": "👑",
+    "title": "Rainha Ester",
+    "verseRef": "Ester 4:14",
+    "message": "Ester foi corajosa para salvar o seu povo."
+  },
+  {
+    "id": "daniel_pray",
+    "emoji": "🙏",
+    "title": "Daniel",
+    "verseRef": "Daniel 6:10",
+    "message": "Daniel orava a Deus três vezes ao dia."
+  },
+  {
+    "id": "furnace",
+    "emoji": "♨️",
+    "title": "Fornalha de Fogo",
+    "verseRef": "Daniel 3:25",
+    "message": "Deus protegeu os três amigos do rei malvado."
+  },
+  {
+    "id": "blind_bartimaeus",
+    "emoji": "👁️",
+    "title": "Cura do Cego",
+    "verseRef": "Marcos 10:52",
+    "message": "Jesus curou o cego que teve muita fé."
+  },
+  {
+    "id": "lost_sheep",
+    "emoji": "🐑",
+    "title": "A Ovelha Perdida",
+    "verseRef": "Lucas 15:6",
+    "message": "Jesus nos busca como um pastor busca sua ovelhinha."
+  },
+  {
+    "id": "good_samaritan",
+    "emoji": "🩹",
+    "title": "O Bom Samaritano",
+    "verseRef": "Lucas 10:33",
+    "message": "Devemos ajudar todas as pessoas com amor."
+  },
+  {
+    "id": "prodigal_son",
+    "emoji": "🏠",
+    "title": "O Filho Pródigo",
+    "verseRef": "Lucas 15:20",
+    "message": "Deus é um Pai que nos perdoa e nos recebe de volta."
+  },
+  {
+    "id": "zacchaeus",
+    "emoji": "🌳",
+    "title": "Zaqueu",
+    "verseRef": "Lucas 19:4",
+    "message": "Zaqueu subiu na árvore para ver Jesus."
+  },
+  {
+    "id": "lazarus",
+    "emoji": "🪦",
+    "title": "Lázaro",
+    "verseRef": "João 11:43",
+    "message": "Jesus mostrou que tem o poder de dar a vida."
+  },
+  {
+    "id": "mary_martha",
+    "emoji": "🧹",
+    "title": "Maria e Marta",
+    "verseRef": "Lucas 10:41",
+    "message": "O mais importante é ouvir as palavras de Jesus."
+  },
+  {
+    "id": "last_supper",
+    "emoji": "🍇",
+    "title": "A Última Ceia",
+    "verseRef": "Mateus 26:26",
+    "message": "Jesus repartiu o pão e o vinho com seus amigos."
+  },
+  {
+    "id": "empty_tomb",
+    "emoji": "🌅",
+    "title": "O Túmulo Vazio",
+    "verseRef": "Lucas 24:3",
+    "message": "Ele não está aqui, ele ressuscitou!"
+  },
+  {
+    "id": "pentecost",
+    "emoji": "🌬️",
+    "title": "Pentecostes",
+    "verseRef": "Atos 2:4",
+    "message": "O Espírito Santo encheu a todos de coragem."
+  },
+  {
+    "id": "paul_shipwreck",
+    "emoji": "⛵",
+    "title": "O Barco de Paulo",
+    "verseRef": "Atos 27:44",
+    "message": "Deus protegeu Paulo durante a grande tempestade."
+  },
+  {
+    "id": "armor_god",
+    "emoji": "🛡️",
+    "title": "Armadura de Deus",
+    "verseRef": "Efésios 6:11",
+    "message": "Use a armadura de Deus para se proteger do mal."
+  },
+  {
+    "id": "tree_life",
+    "emoji": "🌱",
+    "title": "Árvore da Vida",
+    "verseRef": "Apocalipse 22:2",
+    "message": "No céu, a árvore da vida trará cura para todos."
+  },
+  {
+    "id": "new_jerusalem",
+    "emoji": "🏰",
+    "title": "Nova Jerusalém",
+    "verseRef": "Apocalipse 21:2",
+    "message": "Deus preparou uma cidade linda para nós."
+  },
+  {
+    "id": "no_more_tears",
+    "emoji": "😊",
+    "title": "Alegria Eterna",
+    "verseRef": "Apocalipse 21:4",
+    "message": "Deus enxugará de nossos olhos todas as lágrimas."
+  }
 ]

@@ -1,56 +1,1136 @@
 [
-  { "question": "Quem criou os céus e a terra?", "options": ["Moisés", "Deus", "Noé", "Davi"], "correct": 1, "category": "Criação", "verseRef": "Gênesis 1:1", "verseText": "No começo Deus criou os céus e a terra.", "explanation": "A Bíblia começa ensinando que Deus é o Criador de tudo." },
-  { "question": "O que Deus chamou à existência no primeiro dia?", "options": ["A luz", "Os animais", "As estrelas", "As plantas"], "correct": 0, "category": "Criação", "verseRef": "Gênesis 1:3", "verseText": "Então Deus disse: — Que haja luz! E a luz começou a existir.", "explanation": "Deus disse que houvesse luz e separou a luz da escuridão." },
-  { "question": "Como se chamava a primeira mulher?", "options": ["Sara", "Maria", "Eva", "Rute"], "correct": 2, "category": "Criação", "verseRef": "Gênesis 3:20", "verseText": "O homem pôs na sua mulher o nome de Eva por ser ela a mãe de todos os seres humanos.", "explanation": "Adão chamou sua mulher de Eva, a mãe de todos os viventes." },
-  { "question": "Em qual jardim Adão e Eva viviam?", "options": ["Getsêmani", "Éden", "Carmelo", "Oliveiras"], "correct": 1, "category": "Criação", "verseRef": "Gênesis 2:8", "verseText": "Depois o Senhor Deus plantou um jardim na região do Éden, no Leste, e ali pôs o ser humano que ele havia formado.", "explanation": "Deus preparou o jardim do Éden para o primeiro casal." },
-  { "question": "Qual sinal Deus colocou no céu depois do dilúvio?", "options": ["Uma coroa", "Uma coluna", "Um arco-íris", "Uma escada"], "correct": 2, "category": "Criação", "verseRef": "Gênesis 9:13", "verseText": "Vou colocar o meu arco nas nuvens. O arco-íris será o sinal da aliança que estou fazendo com o mundo.", "explanation": "O arco no céu foi dado como sinal da aliança de Deus." },
-  { "question": "Quem construiu uma grande arca por orientação de Deus?", "options": ["Abraão", "Noé", "José", "Josué"], "correct": 1, "category": "Criação", "verseRef": "Gênesis 6:14", "verseText": "Pegue madeira boa e construa para você uma grande barca. Faça divisões nela e tape todos os buracos com piche, por dentro e por fora.", "explanation": "Noé confiou em Deus e construiu a arca." },
-  { "question": "Em qual dia Deus descansou da obra da criação?", "options": ["Terceiro", "Quinto", "Sexto", "Sétimo"], "correct": 3, "category": "Criação", "verseRef": "Gênesis 2:2-3", "verseText": "No sétimo dia Deus acabou de fazer todas as coisas e descansou de todo o trabalho que havia feito. Então abençoou o sétimo dia e o separou como um dia sagrado, pois nesse dia ele acabou de fazer todas as coisas e descansou.", "explanation": "No sétimo dia, Deus descansou e abençoou esse dia." },
-  { "question": "À imagem de quem o ser humano foi criado?", "options": ["Dos anjos", "Dos animais", "De Deus", "Do sol"], "correct": 2, "category": "Criação", "verseRef": "Gênesis 1:27", "verseText": "Assim Deus criou os seres humanos; ele os criou parecidos com Deus. Ele os criou homem e mulher.", "explanation": "Cada pessoa tem valor porque foi criada à imagem de Deus." },
-
-  { "question": "Qual filho Deus prometeu a Abraão e Sara?", "options": ["Isaque", "José", "Samuel", "Salomão"], "correct": 0, "category": "Histórias", "verseRef": "Gênesis 21:1-3", "verseText": "De acordo com a sua promessa, o Senhor Deus abençoou Sara. Ela ficou grávida e, na velhice de Abraão, lhe deu um filho. O menino nasceu no tempo que Deus havia marcado, e Abraão pôs nele o nome de Isaque.", "explanation": "Isaque nasceu conforme a promessa que Deus havia feito." },
-  { "question": "Quem recebeu de seu pai uma túnica especial?", "options": ["Elias", "José", "Gideão", "Daniel"], "correct": 1, "category": "Histórias", "verseRef": "Gênesis 37:3", "verseText": "Jacó já era velho quando José nasceu e por isso ele o amava mais do que a todos os seus outros filhos. Jacó mandou fazer para José uma túnica longa, de mangas compridas.", "explanation": "Jacó deu a José uma túnica especial." },
-  { "question": "Quem foi colocado em um cesto quando ainda era bebê?", "options": ["Davi", "Moisés", "Sansão", "João"], "correct": 1, "category": "Histórias", "verseRef": "Êxodo 2:3", "verseText": "Como não podia escondê-lo por mais tempo, ela pegou uma cesta de junco, tapou os buracos com betume e piche, pôs nela o menino e deixou a cesta entre os juncos, na beira do rio.", "explanation": "A mãe de Moisés colocou o bebê em um cesto para protegê-lo." },
-  { "question": "Qual mar se abriu para o povo de Israel passar?", "options": ["Mar Morto", "Mar da Galileia", "Mar Vermelho", "Mar Mediterrâneo"], "correct": 2, "category": "Histórias", "verseRef": "Êxodo 14:21-22", "verseText": "Moisés estendeu a mão sobre o mar, e Deus, o Senhor, com um vento leste muito forte, fez com que o mar recuasse. O vento soprou a noite inteira e fez o mar virar terra seca. As águas foram divididas, e os israelitas passaram pelo mar em terra seca, com muralhas de água nos dois lados.", "explanation": "Deus abriu o mar e fez um caminho seguro para o povo." },
-  { "question": "Em qual monte Moisés recebeu os Dez Mandamentos?", "options": ["Sinai", "Carmelo", "Oliveiras", "Sião"], "correct": 0, "category": "Histórias", "verseRef": "Êxodo 19:20", "verseText": "O Senhor desceu no alto do monte Sinai e chamou Moisés para que fosse até lá. Moisés subiu.", "explanation": "Deus falou com Moisés no monte Sinai e ensinou seus mandamentos." },
-  { "question": "Qual jovem venceu o gigante Golias?", "options": ["Samuel", "Davi", "Jônatas", "Josias"], "correct": 1, "category": "Histórias", "verseRef": "1 Samuel 17:50", "verseText": "E assim Davi venceu Golias e o matou apenas com uma pedra.", "explanation": "Davi confiou em Deus e enfrentou Golias com coragem." },
-  { "question": "Quem foi lançado na cova dos leões?", "options": ["Daniel", "Elias", "Eliseu", "Neemias"], "correct": 0, "category": "Histórias", "verseRef": "Daniel 6:22", "verseText": "O meu Deus mandou o seu Anjo, e este fechou a boca dos leões para que não me ferissem. Pois Deus sabe que não fiz nada contra ele. E também não cometi nenhum crime contra o senhor.", "explanation": "Deus protegeu Daniel porque ele permaneceu fiel." },
-  { "question": "Quais amigos de Daniel foram lançados na fornalha?", "options": ["Pedro, Tiago e João", "Caim, Abel e Sete", "Sadraque, Mesaque e Abede-Nego", "Paulo, Silas e Barnabé"], "correct": 2, "category": "Histórias", "verseRef": "Daniel 3:25", "verseText": "— Como é, então, que estou vendo quatro homens andando soltos na fornalha? — perguntou o rei. — Eles estão passeando lá dentro, sem sofrerem nada. E o quarto homem parece um anjo.", "explanation": "Os três amigos confiaram em Deus, e Ele os guardou no fogo." },
-  { "question": "Qual rainha ajudou a salvar seu povo?", "options": ["Jezabel", "Ester", "Bate-Seba", "Vasti"], "correct": 1, "category": "Histórias", "verseRef": "Ester 4:14", "verseText": "Se você ficar calada numa situação como esta, do Céu virão socorro e ajuda para os judeus, e eles serão salvos; porém você morrerá, e a família do seu pai desaparecerá. Mas quem sabe? Talvez você tenha sido feita rainha justamente para ajudar numa situação como esta!", "explanation": "Ester agiu com coragem e intercedeu por seu povo." },
-  { "question": "Quem foi engolido por um grande peixe?", "options": ["Jonas", "Jó", "Joel", "Josué"], "correct": 0, "category": "Histórias", "verseRef": "Jonas 1:17", "verseText": "O Senhor ordenou que um grande peixe engolisse Jonas. E ele ficou dentro do peixe três dias e três noites.", "explanation": "Deus usou um grande peixe para preservar a vida de Jonas." },
-  { "question": "Ao som de trombetas, quais muralhas caíram?", "options": ["Belém", "Jericó", "Nínive", "Jerusalém"], "correct": 1, "category": "Histórias", "verseRef": "Josué 6:20", "verseText": "Então os sacerdotes tocaram as cornetas. Logo que o povo ouviu este som, gritou com toda a força, e a muralha caiu. Aí todos subiram, entraram na cidade e a tomaram.", "explanation": "O povo obedeceu às instruções de Deus, e as muralhas de Jericó caíram." },
-  { "question": "Quem ficou conhecido por sua grande força?", "options": ["Sansão", "Saul", "Salomão", "Simeão"], "correct": 0, "category": "Histórias", "verseRef": "Juízes 16:17", "verseText": "E acabou lhe contando a verdade: — O meu cabelo nunca foi cortado! Eu fui dedicado a Deus como nazireu desde que nasci. Se o meu cabelo for cortado, perderei a minha força, ficarei fraco e serei como qualquer um.", "explanation": "A força de Sansão fazia parte de uma missão dada por Deus." },
-  { "question": "Quem escolheu acompanhar Noemi com fidelidade?", "options": ["Raquel", "Rute", "Rebeca", "Raabe"], "correct": 1, "category": "Histórias", "verseRef": "Rute 1:16", "verseText": "Porém Rute respondeu: — Não me proíba de ir com a senhora, nem me peça para abandoná-la! Onde a senhora for, eu irei; e onde morar, eu também morarei. O seu povo será o meu povo, e o seu Deus será o meu Deus.", "explanation": "Rute demonstrou amor, lealdade e fé ao permanecer com Noemi." },
-  { "question": "Qual rei pediu sabedoria a Deus?", "options": ["Saul", "Davi", "Salomão", "Herodes"], "correct": 2, "category": "Histórias", "verseRef": "1 Reis 3:9", "verseText": "Portanto, dá-me sabedoria para que eu possa governar o teu povo com justiça e saber a diferença entre o bem e o mal. Se não for assim, como é que eu poderei governar este teu grande povo?", "explanation": "Salomão pediu um coração sábio para governar com justiça." },
-  { "question": "Qual profeta foi alimentado por corvos?", "options": ["Elias", "Isaías", "Jeremias", "Ezequiel"], "correct": 0, "category": "Histórias", "verseRef": "1 Reis 17:4-6", "verseText": "Você terá água do riacho para beber; e eu mandei que os corvos levem comida para você ali. Elias obedeceu à ordem do Senhor e foi e ficou morando perto do riacho de Querite. Ele bebia água do riacho, e os corvos vinham trazer pão e carne todas as manhãs e todas as tardes.", "explanation": "Deus cuidou de Elias e enviou corvos com alimento." },
-
-  { "question": "Em qual cidade Jesus nasceu?", "options": ["Nazaré", "Jerusalém", "Belém", "Cafarnaum"], "correct": 2, "category": "Jesus", "verseRef": "Mateus 2:1", "verseText": "Jesus nasceu na cidade de Belém, na região da Judeia, quando Herodes era rei da terra de Israel.", "explanation": "Jesus nasceu em Belém, como as Escrituras anunciavam." },
-  { "question": "Como se chamava a mãe de Jesus?", "options": ["Marta", "Maria", "Madalena", "Isabel"], "correct": 1, "category": "Jesus", "verseRef": "Lucas 1:31", "verseText": "Você ficará grávida, dará à luz um filho e porá nele o nome de Jesus.", "explanation": "O anjo anunciou a Maria que ela daria à luz Jesus." },
-  { "question": "Quem batizou Jesus no rio Jordão?", "options": ["Pedro", "João Batista", "Tiago", "André"], "correct": 1, "category": "Jesus", "verseRef": "Mateus 3:17", "verseText": "E do céu veio uma voz, que disse: — Este é o meu Filho querido, que me dá muita alegria!", "explanation": "João Batista batizou Jesus, e Deus confirmou seu amor pelo Filho." },
-  { "question": "Quantos apóstolos Jesus escolheu?", "options": ["7", "10", "12", "40"], "correct": 2, "category": "Jesus", "verseRef": "Mateus 10:1", "verseText": "Jesus chamou os seus doze discípulos e lhes deu autoridade para expulsar espíritos maus e curar todas as enfermidades e doenças graves.", "explanation": "Jesus escolheu doze apóstolos para aprenderem e anunciarem sua mensagem." },
-  { "question": "Qual foi o primeiro milagre de Jesus registrado em João?", "options": ["Acalmar a tempestade", "Curar um cego", "Transformar água em vinho", "Multiplicar pães"], "correct": 2, "category": "Jesus", "verseRef": "João 2:11", "verseText": "Jesus fez esse seu primeiro milagre em Caná da Galileia. Assim ele revelou a sua natureza divina, e os seus discípulos creram nele.", "explanation": "Em uma festa de casamento, Jesus transformou água em vinho." },
-  { "question": "Quantos pães e peixes um menino ofereceu a Jesus?", "options": ["Cinco pães e dois peixes", "Dois pães e cinco peixes", "Sete pães e sete peixes", "Doze pães e um peixe"], "correct": 0, "category": "Jesus", "verseRef": "João 6:11", "verseText": "Em seguida Jesus pegou os pães, deu graças a Deus e os repartiu com todos; e fez o mesmo com os peixes. E todos comeram à vontade.", "explanation": "Jesus multiplicou cinco pães e dois peixes para alimentar uma multidão." },
-  { "question": "Sobre o que Jesus caminhou durante uma tempestade?", "options": ["Areia", "Pedras", "Água", "Nuvens"], "correct": 2, "category": "Jesus", "verseRef": "Mateus 14:25", "verseText": "Já de madrugada, entre as três e as seis horas, Jesus foi até lá, andando em cima da água.", "explanation": "Jesus caminhou sobre as águas e mostrou seu poder aos discípulos." },
-  { "question": "Qual amigo Jesus chamou para fora do túmulo?", "options": ["Lázaro", "Zaqueu", "Nicodemos", "Bartimeu"], "correct": 0, "category": "Jesus", "verseRef": "João 11:43", "verseText": "Depois de dizer isso, gritou: — Lázaro, venha para fora!", "explanation": "Jesus chamou Lázaro e demonstrou que tem poder sobre a morte." },
-  { "question": "Na parábola, o pastor procurou qual animal perdido?", "options": ["Um camelo", "Uma ovelha", "Um jumento", "Uma pomba"], "correct": 1, "category": "Jesus", "verseRef": "Lucas 15:5-6", "verseText": "Quando a encontra, fica muito contente e volta com ela nos ombros. Chegando à sua casa, chama os amigos e vizinhos e diz: 'Alegrem-se comigo porque achei a minha ovelha perdida.'", "explanation": "Jesus contou que o pastor procura a ovelha perdida e se alegra ao encontrá-la." },
-  { "question": "Quem ajudou o homem ferido na estrada para Jericó?", "options": ["Um soldado", "Um samaritano", "Um rei", "Um pescador"], "correct": 1, "category": "Jesus", "verseRef": "Lucas 10:33-34", "verseText": "Mas um samaritano que estava viajando por aquele caminho chegou até ali. Quando viu o homem, ficou com muita pena dele. Então chegou perto dele, limpou os seus ferimentos com azeite e vinho e em seguida os enfaixou. Depois disso, o samaritano colocou-o no seu próprio animal e o levou para uma pensão, onde cuidou dele.", "explanation": "O bom samaritano mostrou amor ao cuidar de alguém que precisava." },
-  { "question": "Como começa a oração que Jesus ensinou aos discípulos?", "options": ["Senhor dos Exércitos", "Pai nosso", "Rei de Israel", "Deus de Abraão"], "correct": 1, "category": "Jesus", "verseRef": "Mateus 6:9", "verseText": "Portanto, orem assim: Pai nosso, que estás no céu, que todos reconheçam que o teu nome é santo.", "explanation": "Jesus ensinou seus seguidores a se aproximarem de Deus como Pai." },
-  { "question": "Qual é o grande mandamento ensinado por Jesus?", "options": ["Ser sempre o primeiro", "Guardar tudo para si", "Amar a Deus e ao próximo", "Nunca fazer perguntas"], "correct": 2, "category": "Jesus", "verseRef": "Mateus 22:37-39", "verseText": "Jesus respondeu: — Ame o Senhor, seu Deus, com todo o coração, com toda a alma e com toda a mente. Este é o maior mandamento e o mais importante. E o segundo mais importante é parecido com o primeiro: Ame os outros como você ama a você mesmo.", "explanation": "Jesus resumiu a vontade de Deus em amar a Deus e amar o próximo." },
-  { "question": "O que Jesus disse sobre as crianças que se aproximavam dele?", "options": ["Deixem que venham", "Mandem que voltem", "Esperem crescer", "Fiquem em silêncio"], "correct": 0, "category": "Jesus", "verseRef": "Marcos 10:14", "verseText": "Quando viu isso, Jesus não gostou e disse: — Deixem que as crianças venham a mim e não proíbam que elas façam isso, pois o Reino de Deus é das pessoas que são como estas crianças.", "explanation": "Jesus recebeu as crianças com amor e ensinou que o Reino também é delas." },
-  { "question": "O que aconteceu no terceiro dia depois da morte de Jesus?", "options": ["Ele ressuscitou", "Ele viajou", "Ele escreveu um livro", "Ele construiu um templo"], "correct": 0, "category": "Jesus", "verseRef": "1 Coríntios 15:3-4", "verseText": "Eu passei para vocês o ensinamento que recebi e que é da mais alta importância: Cristo morreu pelos nossos pecados, como está escrito nas Escrituras Sagradas; ele foi sepultado e, no terceiro dia, foi ressuscitado, como está escrito nas Escrituras.", "explanation": "Jesus ressuscitou no terceiro dia e venceu a morte." },
-  { "question": "Antes de subir ao céu, o que Jesus mandou seus seguidores fazerem?", "options": ["Esconder a mensagem", "Fazer discípulos", "Construir um palácio", "Voltar a pescar"], "correct": 1, "category": "Jesus", "verseRef": "Mateus 28:19-20", "verseText": "Portanto, vão a todos os povos do mundo e façam com que sejam meus seguidores, batizando esses seguidores em nome do Pai, do Filho e do Espírito Santo e ensinando-os a obedecer a tudo o que tenho ordenado a vocês. E lembrem disto: eu estou com vocês todos os dias, até o fim dos tempos.", "explanation": "Jesus enviou seus seguidores para compartilhar o evangelho e ensinar pessoas." },
-  { "question": "Quem subiu em uma árvore para ver Jesus?", "options": ["Zaqueu", "Tomé", "Filipe", "Estêvão"], "correct": 0, "category": "Jesus", "verseRef": "Lucas 19:5", "verseText": "Quando Jesus chegou àquele lugar, olhou para cima e disse a Zaqueu: — Zaqueu, desça depressa, pois hoje preciso ficar na sua casa.", "explanation": "Zaqueu subiu em uma árvore, e Jesus o chamou pelo nome." },
-
-  { "question": "Qual livro é comparado a uma lâmpada para os pés?", "options": ["Um dicionário", "A Palavra de Deus", "Um mapa", "Um diário"], "correct": 1, "category": "Vida Cristã", "verseRef": "Salmo 119:105", "verseText": "A tua palavra é lâmpada para guiar os meus passos, é luz que ilumina o meu caminho.", "explanation": "A Palavra de Deus orienta nossas escolhas como uma luz no caminho." },
-  { "question": "Qual destes faz parte do fruto do Espírito?", "options": ["Inveja", "Orgulho", "Amor", "Briga"], "correct": 2, "category": "Vida Cristã", "verseRef": "Gálatas 5:22-23", "verseText": "Mas o Espírito de Deus produz o amor, a alegria, a paz, a paciência, a delicadeza, a bondade, a fidelidade, a humildade e o domínio próprio. E contra essas coisas não existe lei.", "explanation": "Amor, alegria, paz e outras boas atitudes são fruto do Espírito." },
-  { "question": "Na armadura de Deus, o que é a espada do Espírito?", "options": ["A força", "A Palavra de Deus", "A fama", "A riqueza"], "correct": 1, "category": "Vida Cristã", "verseRef": "Efésios 6:17", "verseText": "Recebam a salvação como capacete e a palavra de Deus como a espada que o Espírito Santo lhes dá.", "explanation": "A Palavra de Deus é chamada de espada do Espírito." },
-  { "question": "O que a Bíblia nos incentiva a fazer sem cessar?", "options": ["Competir", "Orar", "Dormir", "Viajar"], "correct": 1, "category": "Vida Cristã", "verseRef": "1 Tessalonicenses 5:17", "verseText": "Orem sempre.", "explanation": "Podemos conversar com Deus em todos os momentos por meio da oração." },
-  { "question": "Por que podemos amar outras pessoas?", "options": ["Porque Deus nos amou primeiro", "Porque somos melhores", "Porque nunca erramos", "Porque todos pensam igual"], "correct": 0, "category": "Vida Cristã", "verseRef": "1 João 4:19", "verseText": "Nós amamos porque Deus nos amou primeiro.", "explanation": "O amor de Deus por nós nos ensina a amar outras pessoas." },
-  { "question": "Segundo João 3:16, o que Deus amou?", "options": ["Somente uma cidade", "Somente os reis", "O mundo", "Somente os discípulos"], "correct": 2, "category": "Vida Cristã", "verseRef": "João 3:16", "verseText": "Porque Deus amou o mundo tanto, que deu o seu único Filho, para que todo aquele que nele crer não morra, mas tenha a vida eterna.", "explanation": "Deus amou o mundo e entregou seu Filho para oferecer vida a quem crê." },
-  { "question": "Como Jesus ensinou que devemos tratar as pessoas?", "options": ["Como gostaríamos de ser tratados", "Com indiferença", "Sempre em silêncio", "Apenas quando concordam conosco"], "correct": 0, "category": "Vida Cristã", "verseRef": "Mateus 7:12", "verseText": "Façam aos outros o que querem que eles façam a vocês; pois isso é o que querem dizer a Lei de Moisés e os ensinamentos dos Profetas.", "explanation": "Jesus ensinou a fazer aos outros o bem que desejamos receber." },
-  { "question": "Qual atitude Jesus ensinou quando alguém nos ofende?", "options": ["Vingança", "Perdão", "Mentira", "Desprezo"], "correct": 1, "category": "Vida Cristã", "verseRef": "Mateus 18:22", "verseText": "— Não! — respondeu Jesus. — Você não deve perdoar sete vezes, mas setenta e sete vezes.", "explanation": "Jesus ensina um perdão generoso e perseverante." },
-  { "question": "O que devemos fazer quando alguém precisa de ajuda?", "options": ["Ignorar", "Zombar", "Praticar o bem", "Esperar outra pessoa"], "correct": 2, "category": "Vida Cristã", "verseRef": "Gálatas 6:10", "verseText": "Portanto, sempre que pudermos, devemos fazer o bem a todos, especialmente aos que fazem parte da nossa família na fé.", "explanation": "A Bíblia incentiva a aproveitar oportunidades para fazer o bem." },
-  { "question": "Qual destas atitudes combina com o amor descrito na Bíblia?", "options": ["Paciência e bondade", "Inveja e orgulho", "Raiva e egoísmo", "Mentira e maldade"], "correct": 0, "category": "Vida Cristã", "verseRef": "1 Coríntios 13:4", "verseText": "Quem ama é paciente e bondoso. Quem ama não é ciumento, nem orgulhoso, nem vaidoso.", "explanation": "O amor é paciente, bondoso e busca o bem do outro." },
-  { "question": "O que podemos entregar a Deus porque Ele cuida de nós?", "options": ["Nossa ansiedade", "Somente brinquedos", "A tarefa de outros", "Nossos elogios"], "correct": 0, "category": "Vida Cristã", "verseRef": "1 Pedro 5:7", "verseText": "Entreguem todas as suas preocupações a Deus, pois ele cuida de vocês.", "explanation": "Podemos apresentar nossas preocupações a Deus e confiar em seu cuidado." },
-  { "question": "Quem veio sobre os discípulos no dia de Pentecostes?", "options": ["Um exército", "O Espírito Santo", "Um rei", "Um profeta antigo"], "correct": 1, "category": "Vida Cristã", "verseRef": "Atos 2:1-4", "verseText": "Todos ficaram cheios do Espírito Santo e começaram a falar em outras línguas, de acordo com o poder que o Espírito dava a cada pessoa.", "explanation": "O Espírito Santo fortaleceu os discípulos para anunciarem Jesus." }
+  {
+    "question": "Quem criou os céus e a terra?",
+    "options": [
+      "Moisés",
+      "Deus",
+      "Noé",
+      "Davi"
+    ],
+    "correct": 1,
+    "category": "Criação",
+    "verseRef": "Gênesis 1:1",
+    "verseText": "No começo Deus criou os céus e a terra.",
+    "explanation": "A Bíblia começa ensinando que Deus é o Criador de tudo."
+  },
+  {
+    "question": "O que Deus chamou à existência no primeiro dia?",
+    "options": [
+      "A luz",
+      "Os animais",
+      "As estrelas",
+      "As plantas"
+    ],
+    "correct": 0,
+    "category": "Criação",
+    "verseRef": "Gênesis 1:3",
+    "verseText": "Então Deus disse: — Que haja luz! E a luz começou a existir.",
+    "explanation": "Deus disse que houvesse luz e separou a luz da escuridão."
+  },
+  {
+    "question": "Como se chamava a primeira mulher?",
+    "options": [
+      "Sara",
+      "Maria",
+      "Eva",
+      "Rute"
+    ],
+    "correct": 2,
+    "category": "Criação",
+    "verseRef": "Gênesis 3:20",
+    "verseText": "O homem pôs na sua mulher o nome de Eva por ser ela a mãe de todos os seres humanos.",
+    "explanation": "Adão chamou sua mulher de Eva, a mãe de todos os viventes."
+  },
+  {
+    "question": "Em qual jardim Adão e Eva viviam?",
+    "options": [
+      "Getsêmani",
+      "Éden",
+      "Carmelo",
+      "Oliveiras"
+    ],
+    "correct": 1,
+    "category": "Criação",
+    "verseRef": "Gênesis 2:8",
+    "verseText": "Depois o Senhor Deus plantou um jardim na região do Éden, no Leste, e ali pôs o ser humano que ele havia formado.",
+    "explanation": "Deus preparou o jardim do Éden para o primeiro casal."
+  },
+  {
+    "question": "Qual sinal Deus colocou no céu depois do dilúvio?",
+    "options": [
+      "Uma coroa",
+      "Uma coluna",
+      "Um arco-íris",
+      "Uma escada"
+    ],
+    "correct": 2,
+    "category": "Criação",
+    "verseRef": "Gênesis 9:13",
+    "verseText": "Vou colocar o meu arco nas nuvens. O arco-íris será o sinal da aliança que estou fazendo com o mundo.",
+    "explanation": "O arco no céu foi dado como sinal da aliança de Deus."
+  },
+  {
+    "question": "Quem construiu uma grande arca por orientação de Deus?",
+    "options": [
+      "Abraão",
+      "Noé",
+      "José",
+      "Josué"
+    ],
+    "correct": 1,
+    "category": "Criação",
+    "verseRef": "Gênesis 6:14",
+    "verseText": "Pegue madeira boa e construa para você uma grande barca. Faça divisões nela e tape todos os buracos com piche, por dentro e por fora.",
+    "explanation": "Noé confiou em Deus e construiu a arca."
+  },
+  {
+    "question": "Em qual dia Deus descansou da obra da criação?",
+    "options": [
+      "Terceiro",
+      "Quinto",
+      "Sexto",
+      "Sétimo"
+    ],
+    "correct": 3,
+    "category": "Criação",
+    "verseRef": "Gênesis 2:2-3",
+    "verseText": "No sétimo dia Deus acabou de fazer todas as coisas e descansou de todo o trabalho que havia feito. Então abençoou o sétimo dia e o separou como um dia sagrado, pois nesse dia ele acabou de fazer todas as coisas e descansou.",
+    "explanation": "No sétimo dia, Deus descansou e abençoou esse dia."
+  },
+  {
+    "question": "À imagem de quem o ser humano foi criado?",
+    "options": [
+      "Dos anjos",
+      "Dos animais",
+      "De Deus",
+      "Do sol"
+    ],
+    "correct": 2,
+    "category": "Criação",
+    "verseRef": "Gênesis 1:27",
+    "verseText": "Assim Deus criou os seres humanos; ele os criou parecidos com Deus. Ele os criou homem e mulher.",
+    "explanation": "Cada pessoa tem valor porque foi criada à imagem de Deus."
+  },
+  {
+    "question": "Qual filho Deus prometeu a Abraão e Sara?",
+    "options": [
+      "Isaque",
+      "José",
+      "Samuel",
+      "Salomão"
+    ],
+    "correct": 0,
+    "category": "Histórias",
+    "verseRef": "Gênesis 21:1-3",
+    "verseText": "De acordo com a sua promessa, o Senhor Deus abençoou Sara. Ela ficou grávida e, na velhice de Abraão, lhe deu um filho. O menino nasceu no tempo que Deus havia marcado, e Abraão pôs nele o nome de Isaque.",
+    "explanation": "Isaque nasceu conforme a promessa que Deus havia feito."
+  },
+  {
+    "question": "Quem recebeu de seu pai uma túnica especial?",
+    "options": [
+      "Elias",
+      "José",
+      "Gideão",
+      "Daniel"
+    ],
+    "correct": 1,
+    "category": "Histórias",
+    "verseRef": "Gênesis 37:3",
+    "verseText": "Jacó já era velho quando José nasceu e por isso ele o amava mais do que a todos os seus outros filhos. Jacó mandou fazer para José uma túnica longa, de mangas compridas.",
+    "explanation": "Jacó deu a José uma túnica especial."
+  },
+  {
+    "question": "Quem foi colocado em um cesto quando ainda era bebê?",
+    "options": [
+      "Davi",
+      "Moisés",
+      "Sansão",
+      "João"
+    ],
+    "correct": 1,
+    "category": "Histórias",
+    "verseRef": "Êxodo 2:3",
+    "verseText": "Como não podia escondê-lo por mais tempo, ela pegou uma cesta de junco, tapou os buracos com betume e piche, pôs nela o menino e deixou a cesta entre os juncos, na beira do rio.",
+    "explanation": "A mãe de Moisés colocou o bebê em um cesto para protegê-lo."
+  },
+  {
+    "question": "Qual mar se abriu para o povo de Israel passar?",
+    "options": [
+      "Mar Morto",
+      "Mar da Galileia",
+      "Mar Vermelho",
+      "Mar Mediterrâneo"
+    ],
+    "correct": 2,
+    "category": "Histórias",
+    "verseRef": "Êxodo 14:21-22",
+    "verseText": "Moisés estendeu a mão sobre o mar, e Deus, o Senhor, com um vento leste muito forte, fez com que o mar recuasse. O vento soprou a noite inteira e fez o mar virar terra seca. As águas foram divididas, e os israelitas passaram pelo mar em terra seca, com muralhas de água nos dois lados.",
+    "explanation": "Deus abriu o mar e fez um caminho seguro para o povo."
+  },
+  {
+    "question": "Em qual monte Moisés recebeu os Dez Mandamentos?",
+    "options": [
+      "Sinai",
+      "Carmelo",
+      "Oliveiras",
+      "Sião"
+    ],
+    "correct": 0,
+    "category": "Histórias",
+    "verseRef": "Êxodo 19:20",
+    "verseText": "O Senhor desceu no alto do monte Sinai e chamou Moisés para que fosse até lá. Moisés subiu.",
+    "explanation": "Deus falou com Moisés no monte Sinai e ensinou seus mandamentos."
+  },
+  {
+    "question": "Qual jovem venceu o gigante Golias?",
+    "options": [
+      "Samuel",
+      "Davi",
+      "Jônatas",
+      "Josias"
+    ],
+    "correct": 1,
+    "category": "Histórias",
+    "verseRef": "1 Samuel 17:50",
+    "verseText": "E assim Davi venceu Golias e o matou apenas com uma pedra.",
+    "explanation": "Davi confiou em Deus e enfrentou Golias com coragem."
+  },
+  {
+    "question": "Quem foi lançado na cova dos leões?",
+    "options": [
+      "Daniel",
+      "Elias",
+      "Eliseu",
+      "Neemias"
+    ],
+    "correct": 0,
+    "category": "Histórias",
+    "verseRef": "Daniel 6:22",
+    "verseText": "O meu Deus mandou o seu Anjo, e este fechou a boca dos leões para que não me ferissem. Pois Deus sabe que não fiz nada contra ele. E também não cometi nenhum crime contra o senhor.",
+    "explanation": "Deus protegeu Daniel porque ele permaneceu fiel."
+  },
+  {
+    "question": "Quais amigos de Daniel foram lançados na fornalha?",
+    "options": [
+      "Pedro, Tiago e João",
+      "Caim, Abel e Sete",
+      "Sadraque, Mesaque e Abede-Nego",
+      "Paulo, Silas e Barnabé"
+    ],
+    "correct": 2,
+    "category": "Histórias",
+    "verseRef": "Daniel 3:25",
+    "verseText": "— Como é, então, que estou vendo quatro homens andando soltos na fornalha? — perguntou o rei. — Eles estão passeando lá dentro, sem sofrerem nada. E o quarto homem parece um anjo.",
+    "explanation": "Os três amigos confiaram em Deus, e Ele os guardou no fogo."
+  },
+  {
+    "question": "Qual rainha ajudou a salvar seu povo?",
+    "options": [
+      "Jezabel",
+      "Ester",
+      "Bate-Seba",
+      "Vasti"
+    ],
+    "correct": 1,
+    "category": "Histórias",
+    "verseRef": "Ester 4:14",
+    "verseText": "Se você ficar calada numa situação como esta, do Céu virão socorro e ajuda para os judeus, e eles serão salvos; porém você morrerá, e a família do seu pai desaparecerá. Mas quem sabe? Talvez você tenha sido feita rainha justamente para ajudar numa situação como esta!",
+    "explanation": "Ester agiu com coragem e intercedeu por seu povo."
+  },
+  {
+    "question": "Quem foi engolido por um grande peixe?",
+    "options": [
+      "Jonas",
+      "Jó",
+      "Joel",
+      "Josué"
+    ],
+    "correct": 0,
+    "category": "Histórias",
+    "verseRef": "Jonas 1:17",
+    "verseText": "O Senhor ordenou que um grande peixe engolisse Jonas. E ele ficou dentro do peixe três dias e três noites.",
+    "explanation": "Deus usou um grande peixe para preservar a vida de Jonas."
+  },
+  {
+    "question": "Ao som de trombetas, quais muralhas caíram?",
+    "options": [
+      "Belém",
+      "Jericó",
+      "Nínive",
+      "Jerusalém"
+    ],
+    "correct": 1,
+    "category": "Histórias",
+    "verseRef": "Josué 6:20",
+    "verseText": "Então os sacerdotes tocaram as cornetas. Logo que o povo ouviu este som, gritou com toda a força, e a muralha caiu. Aí todos subiram, entraram na cidade e a tomaram.",
+    "explanation": "O povo obedeceu às instruções de Deus, e as muralhas de Jericó caíram."
+  },
+  {
+    "question": "Quem ficou conhecido por sua grande força?",
+    "options": [
+      "Sansão",
+      "Saul",
+      "Salomão",
+      "Simeão"
+    ],
+    "correct": 0,
+    "category": "Histórias",
+    "verseRef": "Juízes 16:17",
+    "verseText": "E acabou lhe contando a verdade: — O meu cabelo nunca foi cortado! Eu fui dedicado a Deus como nazireu desde que nasci. Se o meu cabelo for cortado, perderei a minha força, ficarei fraco e serei como qualquer um.",
+    "explanation": "A força de Sansão fazia parte de uma missão dada por Deus."
+  },
+  {
+    "question": "Quem escolheu acompanhar Noemi com fidelidade?",
+    "options": [
+      "Raquel",
+      "Rute",
+      "Rebeca",
+      "Raabe"
+    ],
+    "correct": 1,
+    "category": "Histórias",
+    "verseRef": "Rute 1:16",
+    "verseText": "Porém Rute respondeu: — Não me proíba de ir com a senhora, nem me peça para abandoná-la! Onde a senhora for, eu irei; e onde morar, eu também morarei. O seu povo será o meu povo, e o seu Deus será o meu Deus.",
+    "explanation": "Rute demonstrou amor, lealdade e fé ao permanecer com Noemi."
+  },
+  {
+    "question": "Qual rei pediu sabedoria a Deus?",
+    "options": [
+      "Saul",
+      "Davi",
+      "Salomão",
+      "Herodes"
+    ],
+    "correct": 2,
+    "category": "Histórias",
+    "verseRef": "1 Reis 3:9",
+    "verseText": "Portanto, dá-me sabedoria para que eu possa governar o teu povo com justiça e saber a diferença entre o bem e o mal. Se não for assim, como é que eu poderei governar este teu grande povo?",
+    "explanation": "Salomão pediu um coração sábio para governar com justiça."
+  },
+  {
+    "question": "Qual profeta foi alimentado por corvos?",
+    "options": [
+      "Elias",
+      "Isaías",
+      "Jeremias",
+      "Ezequiel"
+    ],
+    "correct": 0,
+    "category": "Histórias",
+    "verseRef": "1 Reis 17:4-6",
+    "verseText": "Você terá água do riacho para beber; e eu mandei que os corvos levem comida para você ali. Elias obedeceu à ordem do Senhor e foi e ficou morando perto do riacho de Querite. Ele bebia água do riacho, e os corvos vinham trazer pão e carne todas as manhãs e todas as tardes.",
+    "explanation": "Deus cuidou de Elias e enviou corvos com alimento."
+  },
+  {
+    "question": "Em qual cidade Jesus nasceu?",
+    "options": [
+      "Nazaré",
+      "Jerusalém",
+      "Belém",
+      "Cafarnaum"
+    ],
+    "correct": 2,
+    "category": "Jesus",
+    "verseRef": "Mateus 2:1",
+    "verseText": "Jesus nasceu na cidade de Belém, na região da Judeia, quando Herodes era rei da terra de Israel.",
+    "explanation": "Jesus nasceu em Belém, como as Escrituras anunciavam."
+  },
+  {
+    "question": "Como se chamava a mãe de Jesus?",
+    "options": [
+      "Marta",
+      "Maria",
+      "Madalena",
+      "Isabel"
+    ],
+    "correct": 1,
+    "category": "Jesus",
+    "verseRef": "Lucas 1:31",
+    "verseText": "Você ficará grávida, dará à luz um filho e porá nele o nome de Jesus.",
+    "explanation": "O anjo anunciou a Maria que ela daria à luz Jesus."
+  },
+  {
+    "question": "Quem batizou Jesus no rio Jordão?",
+    "options": [
+      "Pedro",
+      "João Batista",
+      "Tiago",
+      "André"
+    ],
+    "correct": 1,
+    "category": "Jesus",
+    "verseRef": "Mateus 3:17",
+    "verseText": "E do céu veio uma voz, que disse: — Este é o meu Filho querido, que me dá muita alegria!",
+    "explanation": "João Batista batizou Jesus, e Deus confirmou seu amor pelo Filho."
+  },
+  {
+    "question": "Quantos apóstolos Jesus escolheu?",
+    "options": [
+      "7",
+      "10",
+      "12",
+      "40"
+    ],
+    "correct": 2,
+    "category": "Jesus",
+    "verseRef": "Mateus 10:1",
+    "verseText": "Jesus chamou os seus doze discípulos e lhes deu autoridade para expulsar espíritos maus e curar todas as enfermidades e doenças graves.",
+    "explanation": "Jesus escolheu doze apóstolos para aprenderem e anunciarem sua mensagem."
+  },
+  {
+    "question": "Qual foi o primeiro milagre de Jesus registrado em João?",
+    "options": [
+      "Acalmar a tempestade",
+      "Curar um cego",
+      "Transformar água em vinho",
+      "Multiplicar pães"
+    ],
+    "correct": 2,
+    "category": "Jesus",
+    "verseRef": "João 2:11",
+    "verseText": "Jesus fez esse seu primeiro milagre em Caná da Galileia. Assim ele revelou a sua natureza divina, e os seus discípulos creram nele.",
+    "explanation": "Em uma festa de casamento, Jesus transformou água em vinho."
+  },
+  {
+    "question": "Quantos pães e peixes um menino ofereceu a Jesus?",
+    "options": [
+      "Cinco pães e dois peixes",
+      "Dois pães e cinco peixes",
+      "Sete pães e sete peixes",
+      "Doze pães e um peixe"
+    ],
+    "correct": 0,
+    "category": "Jesus",
+    "verseRef": "João 6:11",
+    "verseText": "Em seguida Jesus pegou os pães, deu graças a Deus e os repartiu com todos; e fez o mesmo com os peixes. E todos comeram à vontade.",
+    "explanation": "Jesus multiplicou cinco pães e dois peixes para alimentar uma multidão."
+  },
+  {
+    "question": "Sobre o que Jesus caminhou durante uma tempestade?",
+    "options": [
+      "Areia",
+      "Pedras",
+      "Água",
+      "Nuvens"
+    ],
+    "correct": 2,
+    "category": "Jesus",
+    "verseRef": "Mateus 14:25",
+    "verseText": "Já de madrugada, entre as três e as seis horas, Jesus foi até lá, andando em cima da água.",
+    "explanation": "Jesus caminhou sobre as águas e mostrou seu poder aos discípulos."
+  },
+  {
+    "question": "Qual amigo Jesus chamou para fora do túmulo?",
+    "options": [
+      "Lázaro",
+      "Zaqueu",
+      "Nicodemos",
+      "Bartimeu"
+    ],
+    "correct": 0,
+    "category": "Jesus",
+    "verseRef": "João 11:43",
+    "verseText": "Depois de dizer isso, gritou: — Lázaro, venha para fora!",
+    "explanation": "Jesus chamou Lázaro e demonstrou que tem poder sobre a morte."
+  },
+  {
+    "question": "Na parábola, o pastor procurou qual animal perdido?",
+    "options": [
+      "Um camelo",
+      "Uma ovelha",
+      "Um jumento",
+      "Uma pomba"
+    ],
+    "correct": 1,
+    "category": "Jesus",
+    "verseRef": "Lucas 15:5-6",
+    "verseText": "Quando a encontra, fica muito contente e volta com ela nos ombros. Chegando à sua casa, chama os amigos e vizinhos e diz: 'Alegrem-se comigo porque achei a minha ovelha perdida.'",
+    "explanation": "Jesus contou que o pastor procura a ovelha perdida e se alegra ao encontrá-la."
+  },
+  {
+    "question": "Quem ajudou o homem ferido na estrada para Jericó?",
+    "options": [
+      "Um soldado",
+      "Um samaritano",
+      "Um rei",
+      "Um pescador"
+    ],
+    "correct": 1,
+    "category": "Jesus",
+    "verseRef": "Lucas 10:33-34",
+    "verseText": "Mas um samaritano que estava viajando por aquele caminho chegou até ali. Quando viu o homem, ficou com muita pena dele. Então chegou perto dele, limpou os seus ferimentos com azeite e vinho e em seguida os enfaixou. Depois disso, o samaritano colocou-o no seu próprio animal e o levou para uma pensão, onde cuidou dele.",
+    "explanation": "O bom samaritano mostrou amor ao cuidar de alguém que precisava."
+  },
+  {
+    "question": "Como começa a oração que Jesus ensinou aos discípulos?",
+    "options": [
+      "Senhor dos Exércitos",
+      "Pai nosso",
+      "Rei de Israel",
+      "Deus de Abraão"
+    ],
+    "correct": 1,
+    "category": "Jesus",
+    "verseRef": "Mateus 6:9",
+    "verseText": "Portanto, orem assim: Pai nosso, que estás no céu, que todos reconheçam que o teu nome é santo.",
+    "explanation": "Jesus ensinou seus seguidores a se aproximarem de Deus como Pai."
+  },
+  {
+    "question": "Qual é o grande mandamento ensinado por Jesus?",
+    "options": [
+      "Ser sempre o primeiro",
+      "Guardar tudo para si",
+      "Amar a Deus e ao próximo",
+      "Nunca fazer perguntas"
+    ],
+    "correct": 2,
+    "category": "Jesus",
+    "verseRef": "Mateus 22:37-39",
+    "verseText": "Jesus respondeu: — Ame o Senhor, seu Deus, com todo o coração, com toda a alma e com toda a mente. Este é o maior mandamento e o mais importante. E o segundo mais importante é parecido com o primeiro: Ame os outros como você ama a você mesmo.",
+    "explanation": "Jesus resumiu a vontade de Deus em amar a Deus e amar o próximo."
+  },
+  {
+    "question": "O que Jesus disse sobre as crianças que se aproximavam dele?",
+    "options": [
+      "Deixem que venham",
+      "Mandem que voltem",
+      "Esperem crescer",
+      "Fiquem em silêncio"
+    ],
+    "correct": 0,
+    "category": "Jesus",
+    "verseRef": "Marcos 10:14",
+    "verseText": "Quando viu isso, Jesus não gostou e disse: — Deixem que as crianças venham a mim e não proíbam que elas façam isso, pois o Reino de Deus é das pessoas que são como estas crianças.",
+    "explanation": "Jesus recebeu as crianças com amor e ensinou que o Reino também é delas."
+  },
+  {
+    "question": "O que aconteceu no terceiro dia depois da morte de Jesus?",
+    "options": [
+      "Ele ressuscitou",
+      "Ele viajou",
+      "Ele escreveu um livro",
+      "Ele construiu um templo"
+    ],
+    "correct": 0,
+    "category": "Jesus",
+    "verseRef": "1 Coríntios 15:3-4",
+    "verseText": "Eu passei para vocês o ensinamento que recebi e que é da mais alta importância: Cristo morreu pelos nossos pecados, como está escrito nas Escrituras Sagradas; ele foi sepultado e, no terceiro dia, foi ressuscitado, como está escrito nas Escrituras.",
+    "explanation": "Jesus ressuscitou no terceiro dia e venceu a morte."
+  },
+  {
+    "question": "Antes de subir ao céu, o que Jesus mandou seus seguidores fazerem?",
+    "options": [
+      "Esconder a mensagem",
+      "Fazer discípulos",
+      "Construir um palácio",
+      "Voltar a pescar"
+    ],
+    "correct": 1,
+    "category": "Jesus",
+    "verseRef": "Mateus 28:19-20",
+    "verseText": "Portanto, vão a todos os povos do mundo e façam com que sejam meus seguidores, batizando esses seguidores em nome do Pai, do Filho e do Espírito Santo e ensinando-os a obedecer a tudo o que tenho ordenado a vocês. E lembrem disto: eu estou com vocês todos os dias, até o fim dos tempos.",
+    "explanation": "Jesus enviou seus seguidores para compartilhar o evangelho e ensinar pessoas."
+  },
+  {
+    "question": "Quem subiu em uma árvore para ver Jesus?",
+    "options": [
+      "Zaqueu",
+      "Tomé",
+      "Filipe",
+      "Estêvão"
+    ],
+    "correct": 0,
+    "category": "Jesus",
+    "verseRef": "Lucas 19:5",
+    "verseText": "Quando Jesus chegou àquele lugar, olhou para cima e disse a Zaqueu: — Zaqueu, desça depressa, pois hoje preciso ficar na sua casa.",
+    "explanation": "Zaqueu subiu em uma árvore, e Jesus o chamou pelo nome."
+  },
+  {
+    "question": "Qual livro é comparado a uma lâmpada para os pés?",
+    "options": [
+      "Um dicionário",
+      "A Palavra de Deus",
+      "Um mapa",
+      "Um diário"
+    ],
+    "correct": 1,
+    "category": "Vida Cristã",
+    "verseRef": "Salmo 119:105",
+    "verseText": "A tua palavra é lâmpada para guiar os meus passos, é luz que ilumina o meu caminho.",
+    "explanation": "A Palavra de Deus orienta nossas escolhas como uma luz no caminho."
+  },
+  {
+    "question": "Qual destes faz parte do fruto do Espírito?",
+    "options": [
+      "Inveja",
+      "Orgulho",
+      "Amor",
+      "Briga"
+    ],
+    "correct": 2,
+    "category": "Vida Cristã",
+    "verseRef": "Gálatas 5:22-23",
+    "verseText": "Mas o Espírito de Deus produz o amor, a alegria, a paz, a paciência, a delicadeza, a bondade, a fidelidade, a humildade e o domínio próprio. E contra essas coisas não existe lei.",
+    "explanation": "Amor, alegria, paz e outras boas atitudes são fruto do Espírito."
+  },
+  {
+    "question": "Na armadura de Deus, o que é a espada do Espírito?",
+    "options": [
+      "A força",
+      "A Palavra de Deus",
+      "A fama",
+      "A riqueza"
+    ],
+    "correct": 1,
+    "category": "Vida Cristã",
+    "verseRef": "Efésios 6:17",
+    "verseText": "Recebam a salvação como capacete e a palavra de Deus como a espada que o Espírito Santo lhes dá.",
+    "explanation": "A Palavra de Deus é chamada de espada do Espírito."
+  },
+  {
+    "question": "O que a Bíblia nos incentiva a fazer sem cessar?",
+    "options": [
+      "Competir",
+      "Orar",
+      "Dormir",
+      "Viajar"
+    ],
+    "correct": 1,
+    "category": "Vida Cristã",
+    "verseRef": "1 Tessalonicenses 5:17",
+    "verseText": "Orem sempre.",
+    "explanation": "Podemos conversar com Deus em todos os momentos por meio da oração."
+  },
+  {
+    "question": "Por que podemos amar outras pessoas?",
+    "options": [
+      "Porque Deus nos amou primeiro",
+      "Porque somos melhores",
+      "Porque nunca erramos",
+      "Porque todos pensam igual"
+    ],
+    "correct": 0,
+    "category": "Vida Cristã",
+    "verseRef": "1 João 4:19",
+    "verseText": "Nós amamos porque Deus nos amou primeiro.",
+    "explanation": "O amor de Deus por nós nos ensina a amar outras pessoas."
+  },
+  {
+    "question": "Segundo João 3:16, o que Deus amou?",
+    "options": [
+      "Somente uma cidade",
+      "Somente os reis",
+      "O mundo",
+      "Somente os discípulos"
+    ],
+    "correct": 2,
+    "category": "Vida Cristã",
+    "verseRef": "João 3:16",
+    "verseText": "Porque Deus amou o mundo tanto, que deu o seu único Filho, para que todo aquele que nele crer não morra, mas tenha a vida eterna.",
+    "explanation": "Deus amou o mundo e entregou seu Filho para oferecer vida a quem crê."
+  },
+  {
+    "question": "Como Jesus ensinou que devemos tratar as pessoas?",
+    "options": [
+      "Como gostaríamos de ser tratados",
+      "Com indiferença",
+      "Sempre em silêncio",
+      "Apenas quando concordam conosco"
+    ],
+    "correct": 0,
+    "category": "Vida Cristã",
+    "verseRef": "Mateus 7:12",
+    "verseText": "Façam aos outros o que querem que eles façam a vocês; pois isso é o que querem dizer a Lei de Moisés e os ensinamentos dos Profetas.",
+    "explanation": "Jesus ensinou a fazer aos outros o bem que desejamos receber."
+  },
+  {
+    "question": "Qual atitude Jesus ensinou quando alguém nos ofende?",
+    "options": [
+      "Vingança",
+      "Perdão",
+      "Mentira",
+      "Desprezo"
+    ],
+    "correct": 1,
+    "category": "Vida Cristã",
+    "verseRef": "Mateus 18:22",
+    "verseText": "— Não! — respondeu Jesus. — Você não deve perdoar sete vezes, mas setenta e sete vezes.",
+    "explanation": "Jesus ensina um perdão generoso e perseverante."
+  },
+  {
+    "question": "O que devemos fazer quando alguém precisa de ajuda?",
+    "options": [
+      "Ignorar",
+      "Zombar",
+      "Praticar o bem",
+      "Esperar outra pessoa"
+    ],
+    "correct": 2,
+    "category": "Vida Cristã",
+    "verseRef": "Gálatas 6:10",
+    "verseText": "Portanto, sempre que pudermos, devemos fazer o bem a todos, especialmente aos que fazem parte da nossa família na fé.",
+    "explanation": "A Bíblia incentiva a aproveitar oportunidades para fazer o bem."
+  },
+  {
+    "question": "Qual destas atitudes combina com o amor descrito na Bíblia?",
+    "options": [
+      "Paciência e bondade",
+      "Inveja e orgulho",
+      "Raiva e egoísmo",
+      "Mentira e maldade"
+    ],
+    "correct": 0,
+    "category": "Vida Cristã",
+    "verseRef": "1 Coríntios 13:4",
+    "verseText": "Quem ama é paciente e bondoso. Quem ama não é ciumento, nem orgulhoso, nem vaidoso.",
+    "explanation": "O amor é paciente, bondoso e busca o bem do outro."
+  },
+  {
+    "question": "O que podemos entregar a Deus porque Ele cuida de nós?",
+    "options": [
+      "Nossa ansiedade",
+      "Somente brinquedos",
+      "A tarefa de outros",
+      "Nossos elogios"
+    ],
+    "correct": 0,
+    "category": "Vida Cristã",
+    "verseRef": "1 Pedro 5:7",
+    "verseText": "Entreguem todas as suas preocupações a Deus, pois ele cuida de vocês.",
+    "explanation": "Podemos apresentar nossas preocupações a Deus e confiar em seu cuidado."
+  },
+  {
+    "question": "Quem veio sobre os discípulos no dia de Pentecostes?",
+    "options": [
+      "Um exército",
+      "O Espírito Santo",
+      "Um rei",
+      "Um profeta antigo"
+    ],
+    "correct": 1,
+    "category": "Vida Cristã",
+    "verseRef": "Atos 2:1-4",
+    "verseText": "Todos ficaram cheios do Espírito Santo e começaram a falar em outras línguas, de acordo com o poder que o Espírito dava a cada pessoa.",
+    "explanation": "O Espírito Santo fortaleceu os discípulos para anunciarem Jesus."
+  },
+  {
+    "question": "O que Jesus fez na festa de casamento em Caná?",
+    "options": [
+      "Curou um cego",
+      "Transformou água em vinho",
+      "Multiplicou os pães",
+      "Andou sobre as águas"
+    ],
+    "correct": 1,
+    "category": "Milagres de Jesus",
+    "verseRef": "João 2:11",
+    "verseText": "Jesus fez esse seu primeiro milagre em Caná da Galileia. Assim ele revelou a sua natureza divina...",
+    "explanation": "Jesus demonstrou seu poder e transformou água no melhor vinho."
+  },
+  {
+    "question": "Quem Jesus curou ao tocar em seus olhos?",
+    "options": [
+      "Um mudo",
+      "Um paralítico",
+      "Um cego",
+      "Um surdo"
+    ],
+    "correct": 2,
+    "category": "Milagres de Jesus",
+    "verseRef": "João 9:6-7",
+    "verseText": "Ele cuspiu no chão, fez lama com a saliva, passou a lama nos olhos do cego e disse: — Vá lavar o rosto no tanque de Siloé.",
+    "explanation": "Jesus deu a visão a um homem que nasceu cego."
+  },
+  {
+    "question": "Como Jesus ajudou Pedro a pagar o imposto?",
+    "options": [
+      "Deu-lhe dinheiro",
+      "Mandou pescar um peixe",
+      "Pediu esmola",
+      "Vendeu o barco"
+    ],
+    "correct": 1,
+    "category": "Milagres de Jesus",
+    "verseRef": "Mateus 17:27",
+    "verseText": "Mas, para não ofender essa gente, vá ao lago, jogue o anzol e puxe o primeiro peixe que você fisgar. Na boca dele você achará uma moeda...",
+    "explanation": "Jesus providenciou exatamente a quantia certa dentro da boca de um peixe!"
+  },
+  {
+    "question": "O que aconteceu quando Jesus tocou na orelha do servo do Grande Sacerdote?",
+    "options": [
+      "Ele gritou",
+      "A orelha caiu",
+      "A orelha foi curada",
+      "Ele ficou surdo"
+    ],
+    "correct": 2,
+    "category": "Milagres de Jesus",
+    "verseRef": "Lucas 22:51",
+    "verseText": "Mas Jesus disse: — Parem com isso! Então tocou na orelha do homem e o curou.",
+    "explanation": "Mesmo sendo preso, Jesus curou o ferimento daquele homem."
+  },
+  {
+    "question": "Quem Jesus fez levantar de uma maca e andar?",
+    "options": [
+      "O cego de nascença",
+      "Um paralítico",
+      "O filho da viúva",
+      "Zaqueu"
+    ],
+    "correct": 1,
+    "category": "Milagres de Jesus",
+    "verseRef": "Marcos 2:11",
+    "verseText": "— Eu digo a você: levante-se, pegue a sua cama e vá para casa!",
+    "explanation": "Jesus perdoou seus pecados e o curou."
+  },
+  {
+    "question": "Como Jesus acalmou a grande tempestade no lago?",
+    "options": [
+      "Comandou o vento e a água",
+      "Pegou um remo maior",
+      "Pediu ajuda a Pedro",
+      "Pulou do barco"
+    ],
+    "correct": 0,
+    "category": "Milagres de Jesus",
+    "verseRef": "Marcos 4:39",
+    "verseText": "Então ele se levantou, falou duro com o vento e disse ao lago: — Silêncio! Fique quieto! O vento parou, e tudo ficou calmo.",
+    "explanation": "Jesus tem poder sobre toda a natureza."
+  },
+  {
+    "question": "Quem Jesus ressuscitou na cidade de Naim?",
+    "options": [
+      "Lázaro",
+      "A filha de Jairo",
+      "O filho de uma viúva",
+      "Um rei"
+    ],
+    "correct": 2,
+    "category": "Milagres de Jesus",
+    "verseRef": "Lucas 7:14-15",
+    "verseText": "Aí ele chegou mais perto e tocou no caixão. ... Então disse: — Moço, eu ordeno a você: levante-se! O moço sentou-se e começou a falar...",
+    "explanation": "Jesus sentiu muita pena daquela viúva e devolveu a vida ao filho dela."
+  },
+  {
+    "question": "Onde aconteceu a primeira pesca maravilhosa?",
+    "options": [
+      "No Rio Jordão",
+      "No Mar Vermelho",
+      "No Lago da Galileia",
+      "No Mar Morto"
+    ],
+    "correct": 2,
+    "category": "Milagres de Jesus",
+    "verseRef": "Lucas 5:4-6",
+    "verseText": "Leve o barco para o lugar onde o lago é fundo e joguem as redes para pescar. ... Eles fizeram isso e apanharam tanto peixe, que as redes estavam se rebentando.",
+    "explanation": "Pedro confiou na palavra de Jesus e pescou uma quantidade enorme de peixes."
+  },
+  {
+    "question": "O que aconteceu à figueira quando Jesus não encontrou frutos nela?",
+    "options": [
+      "Ela deu maçãs",
+      "Ela ficou cheia de flores",
+      "Ela secou na mesma hora",
+      "Ela cresceu mais"
+    ],
+    "correct": 2,
+    "category": "Milagres de Jesus",
+    "verseRef": "Mateus 21:19",
+    "verseText": "Disse a ela: — Nunca mais dê figos! E na mesma hora a figueira secou.",
+    "explanation": "Esse milagre mostrou aos discípulos o poder da palavra de Jesus."
+  },
+  {
+    "question": "Quantos leprosos voltaram para agradecer a Jesus depois de curados?",
+    "options": [
+      "Dez",
+      "Um",
+      "Nenhum",
+      "Sete"
+    ],
+    "correct": 1,
+    "category": "Milagres de Jesus",
+    "verseRef": "Lucas 17:15-16",
+    "verseText": "Quando um deles, que era samaritano, viu que estava curado, voltou louvando a Deus em voz alta. Ajoelhou-se aos pés de Jesus e lhe agradeceu.",
+    "explanation": "Dos dez que foram curados, apenas um lembrou de voltar para agradecer."
+  },
+  {
+    "question": "Quem foi chamado de 'amigo de Deus' e acreditou que sua família seria grande como as estrelas?",
+    "options": [
+      "Noé",
+      "Davi",
+      "Abraão",
+      "Paulo"
+    ],
+    "correct": 2,
+    "category": "Heróis da Fé",
+    "verseRef": "Gênesis 15:5-6",
+    "verseText": "Ele levou Abrão para fora e disse: — Olhe para o céu e conte as estrelas se puder. Pois bem! Será esse o número dos seus descendentes. Abrão creu em Deus, o Senhor...",
+    "explanation": "Abraão teve muita fé e confiou na promessa."
+  },
+  {
+    "question": "Qual heroína escondeu os espiões em Jericó?",
+    "options": [
+      "Raabe",
+      "Ester",
+      "Débora",
+      "Rute"
+    ],
+    "correct": 0,
+    "category": "Heróis da Fé",
+    "verseRef": "Josué 2:1",
+    "verseText": "Os dois foram e entraram na casa de uma prostituta chamada Raabe e passaram a noite ali.",
+    "explanation": "A coragem de Raabe ajudou os israelitas e ela foi salva."
+  },
+  {
+    "question": "Qual profeta subiu ao céu em um redemoinho com uma carruagem de fogo?",
+    "options": [
+      "Elias",
+      "Isaías",
+      "Jeremias",
+      "Eliseu"
+    ],
+    "correct": 0,
+    "category": "Heróis da Fé",
+    "verseRef": "2 Reis 2:11",
+    "verseText": "De repente, uma carruagem de fogo puxada por cavalos de fogo os separou um do outro, e Elias foi levado para o céu num redemoinho.",
+    "explanation": "Deus levou Elias vivo para o céu de forma extraordinária."
+  },
+  {
+    "question": "Quem liderou o povo de Israel após a morte de Moisés?",
+    "options": [
+      "Gideão",
+      "Arão",
+      "Josué",
+      "Elias"
+    ],
+    "correct": 2,
+    "category": "Heróis da Fé",
+    "verseRef": "Josué 1:1-2",
+    "verseText": "Depois da morte de Moisés, ... o Senhor Deus falou com o ajudante de Moisés. O nome dele era Josué. Deus disse: — O meu servo Moisés está morto. Agora você e todo o povo de Israel se preparem para atravessar o rio Jordão...",
+    "explanation": "Josué foi o líder corajoso escolhido por Deus."
+  },
+  {
+    "question": "Quem foi a juíza guerreira de Israel que se sentava debaixo de uma palmeira?",
+    "options": [
+      "Miriã",
+      "Débora",
+      "Sara",
+      "Raquel"
+    ],
+    "correct": 1,
+    "category": "Heróis da Fé",
+    "verseRef": "Juízes 4:4-5",
+    "verseText": "Nesse tempo uma profetisa chamada Débora, mulher de Lapidote, era juíza de Israel. Ela costumava sentar-se debaixo de uma palmeira...",
+    "explanation": "Débora ajudou a liderar o povo para a vitória contra seus inimigos."
+  },
+  {
+    "question": "Com quantos soldados Gideão derrotou o grande exército midianita?",
+    "options": [
+      "Dez mil",
+      "Trezentos",
+      "Três mil",
+      "Cem"
+    ],
+    "correct": 1,
+    "category": "Heróis da Fé",
+    "verseRef": "Juízes 7:7",
+    "verseText": "Aí o Senhor disse a Gideão: — Com estes trezentos homens que lamberam a água, eu libertarei vocês e lhes darei a vitória sobre os midianitas...",
+    "explanation": "Deus mostrou que a vitória vem dEle, não do número de soldados."
+  },
+  {
+    "question": "Quem ungia os primeiros reis de Israel, derramando azeite sobre a cabeça deles?",
+    "options": [
+      "Samuel",
+      "Isaías",
+      "Natã",
+      "Ezequiel"
+    ],
+    "correct": 0,
+    "category": "Heróis da Fé",
+    "verseRef": "1 Samuel 10:1",
+    "verseText": "Aí Samuel pegou um frasco de azeite e derramou na cabeça de Saul. Beijou-o e disse: — O Senhor Deus está ungindo você para ser o chefe do seu povo...",
+    "explanation": "Samuel foi um profeta e juiz fiel a Deus desde a infância."
+  },
+  {
+    "question": "Qual era a profissão de Davi antes de se tornar rei?",
+    "options": [
+      "Carpinteiro",
+      "Ferreiro",
+      "Pescador",
+      "Pastor de ovelhas"
+    ],
+    "correct": 3,
+    "category": "Heróis da Fé",
+    "verseRef": "1 Samuel 16:11",
+    "verseText": "— Eles estão todos aqui? — perguntou Samuel. Jessé respondeu: — Falta o caçula, que está cuidando das ovelhas.",
+    "explanation": "Davi cuidava das ovelhinhas do seu pai e aprendeu a cuidar delas."
+  },
+  {
+    "question": "Quem ajudou a reconstruir os muros de Jerusalém enfrentando ameaças?",
+    "options": [
+      "Neemias",
+      "Esdras",
+      "Jeremias",
+      "Malaquias"
+    ],
+    "correct": 0,
+    "category": "Heróis da Fé",
+    "verseRef": "Neemias 6:15",
+    "verseText": "A reconstrução da muralha foi terminada no dia vinte e cinco do mês de elul. A obra toda demorou cinquenta e dois dias.",
+    "explanation": "Neemias orou a Deus e trabalhou com dedicação."
+  },
+  {
+    "question": "Quem foi o jovem levado para a Babilônia que interpretava os sonhos do rei?",
+    "options": [
+      "José",
+      "Daniel",
+      "Ezequiel",
+      "Sadraque"
+    ],
+    "correct": 1,
+    "category": "Heróis da Fé",
+    "verseRef": "Daniel 2:19",
+    "verseText": "Naquela noite, Daniel teve uma visão, e nela Deus lhe explicou o mistério. Então Daniel louvou o Deus do céu...",
+    "explanation": "Deus deu sabedoria a Daniel para entender coisas muito difíceis."
+  },
+  {
+    "question": "Segundo o livro de Provérbios, o que devemos guardar mais do que qualquer outra coisa?",
+    "options": [
+      "O nosso tesouro",
+      "O nosso coração",
+      "A nossa casa",
+      "Os nossos brinquedos"
+    ],
+    "correct": 1,
+    "category": "Provérbios",
+    "verseRef": "Provérbios 4:23",
+    "verseText": "Tenha cuidado com o que você pensa, pois a sua vida é dirigida pelos seus pensamentos.",
+    "explanation": "Nossos sentimentos e pensamentos dirigem nossas ações."
+  },
+  {
+    "question": "O que afasta a raiva?",
+    "options": [
+      "Um grito forte",
+      "Uma cara fechada",
+      "Uma resposta delicada",
+      "Correr longe"
+    ],
+    "correct": 2,
+    "category": "Provérbios",
+    "verseRef": "Provérbios 15:1",
+    "verseText": "A resposta delicada acalma o furor, mas a palavra dura aumenta a raiva.",
+    "explanation": "Falar com calma e carinho ajuda a resolver brigas."
+  },
+  {
+    "question": "A quem a formiga é apresentada como exemplo?",
+    "options": [
+      "Ao dorminhoco",
+      "Ao corajoso",
+      "Ao inteligente",
+      "Ao preguiçoso"
+    ],
+    "correct": 3,
+    "category": "Provérbios",
+    "verseRef": "Provérbios 6:6",
+    "verseText": "Preguiçoso, aprenda uma lição com as formigas! Elas não têm líder, nem chefe, nem governador, mas guardam comida no verão...",
+    "explanation": "As formigas são muito trabalhadoras e se preparam para o futuro."
+  },
+  {
+    "question": "O que é melhor ter do que muitas riquezas?",
+    "options": [
+      "Uma casa grande",
+      "A paz e o amor",
+      "Um exército forte",
+      "Tornar-se famoso"
+    ],
+    "correct": 1,
+    "category": "Provérbios",
+    "verseRef": "Provérbios 15:17",
+    "verseText": "É melhor comer verduras na companhia de quem a gente ama do que comer a carne mais deliciosa onde existe ódio.",
+    "explanation": "O amor é mais importante e valioso que qualquer riqueza."
+  },
+  {
+    "question": "O que acontece com quem anda com os sábios?",
+    "options": [
+      "Fica pobre",
+      "Torna-se sábio",
+      "Fica orgulhoso",
+      "Ganha presentes"
+    ],
+    "correct": 1,
+    "category": "Provérbios",
+    "verseRef": "Provérbios 13:20",
+    "verseText": "Quem anda com os sábios será sábio, mas quem anda com os tolos acabará mal.",
+    "explanation": "As amizades influenciam muito em como somos e o que fazemos."
+  },
+  {
+    "question": "O que alegra o coração humano, segundo Provérbios 17:22?",
+    "options": [
+      "Muitos doces",
+      "Um coração alegre",
+      "Um dia ensolarado",
+      "Uma festa longa"
+    ],
+    "correct": 1,
+    "category": "Provérbios",
+    "verseRef": "Provérbios 17:22",
+    "verseText": "A alegria faz bem à saúde; estar sempre triste é morrer aos poucos.",
+    "explanation": "Estar feliz e alegre é como um bom remédio para o corpo."
+  },
+  {
+    "question": "Onde o caminho de Deus é comparado à luz que brilha mais e mais?",
+    "options": [
+      "No caminho dos ímpios",
+      "Na subida da montanha",
+      "No caminho dos justos",
+      "Nas ruas das cidades"
+    ],
+    "correct": 2,
+    "category": "Provérbios",
+    "verseRef": "Provérbios 4:18",
+    "verseText": "O caminho dos justos é como a primeira luz da manhã, que brilha cada vez mais até virar luz do dia.",
+    "explanation": "Fazer o que é certo nos leva a uma vida mais iluminada e bonita."
+  },
+  {
+    "question": "Segundo Provérbios, o que o amigo de verdade faz?",
+    "options": [
+      "Nunca nos corrige",
+      "Fica calado",
+      "Nos abandona na dor",
+      "Ama em todos os momentos"
+    ],
+    "correct": 3,
+    "category": "Provérbios",
+    "verseRef": "Provérbios 17:17",
+    "verseText": "O amigo ama sempre e na desgraça ele se torna um irmão.",
+    "explanation": "O amor verdadeiro aparece nas horas difíceis."
+  },
+  {
+    "question": "O que o orgulho atrai para a pessoa?",
+    "options": [
+      "Sabedoria",
+      "A queda e o fracasso",
+      "Muitos amigos",
+      "Bênçãos e poder"
+    ],
+    "correct": 1,
+    "category": "Provérbios",
+    "verseRef": "Provérbios 16:18",
+    "verseText": "O orgulho leva à destruição, e a vaidade faz cair na desgraça.",
+    "explanation": "Achar que se é melhor que os outros é perigoso."
+  },
+  {
+    "question": "O que é mais precioso do que rubis e pedras finas?",
+    "options": [
+      "A sabedoria",
+      "O ouro",
+      "A prata",
+      "O bronze"
+    ],
+    "correct": 0,
+    "category": "Provérbios",
+    "verseRef": "Provérbios 8:11",
+    "verseText": "Pois a sabedoria é melhor do que as joias; tudo o que você deseja não pode se comparar com ela.",
+    "explanation": "Conhecer e obedecer a Deus é a maior riqueza."
+  }
 ]
