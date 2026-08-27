@@ -258,6 +258,94 @@ const CastleSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void 
 // ─── Drawing Registry ──────────────────────────────────────────────────────────
 const lesson = (id: string) => coloringLessons.find(item => item.id === id)!
 
+const CrossSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> = ({ fills, onClickRegion }) => (
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="coloring-svg" width="100%" height="100%">
+    <rect x="5" y="8" width="190" height="184" rx="16" {...rp('cr-sky', fills, onClickRegion)} />
+    <path d="M 5 150 Q 100 120 195 150 L 195 192 L 5 192 Z" {...rp('cr-hill', fills, onClickRegion)} />
+    <rect x="90" y="40" width="20" height="120" rx="3" {...rp('cr-wood-v', fills, onClickRegion)} />
+    <rect x="60" y="60" width="80" height="20" rx="3" {...rp('cr-wood-h', fills, onClickRegion)} />
+    <circle cx="160" cy="40" r="20" {...rp('cr-sun', fills, onClickRegion)} />
+    <path d="M 20 50 Q 30 30 50 40 Q 70 30 75 50 Q 90 60 70 70 Q 50 80 30 65 Q 10 60 20 50 Z" {...rp('cr-cloud', fills, onClickRegion)} />
+  </svg>
+)
+
+const LoavesSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> = ({ fills, onClickRegion }) => (
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="coloring-svg" width="100%" height="100%">
+    <rect x="5" y="8" width="190" height="184" rx="16" {...rp('lv-bg', fills, onClickRegion)} />
+    <path d="M 30 100 L 45 170 L 155 170 L 170 100 Z" {...rp('lv-basket', fills, onClickRegion)} />
+    <ellipse cx="100" cy="100" rx="70" ry="20" {...rp('lv-basket-top', fills, onClickRegion)} />
+    <ellipse cx="60" cy="85" rx="25" ry="15" {...rp('lv-bread1', fills, onClickRegion)} />
+    <ellipse cx="100" cy="75" rx="25" ry="15" {...rp('lv-bread2', fills, onClickRegion)} />
+    <ellipse cx="140" cy="85" rx="25" ry="15" {...rp('lv-bread3', fills, onClickRegion)} />
+    <ellipse cx="80" cy="60" rx="25" ry="15" {...rp('lv-bread4', fills, onClickRegion)} />
+    <ellipse cx="120" cy="60" rx="25" ry="15" {...rp('lv-bread5', fills, onClickRegion)} />
+    <path d="M 40 130 Q 70 110 90 130 Q 110 150 120 120 L 135 110 L 130 135 Z" {...rp('lv-fish1', fills, onClickRegion)} />
+    <path d="M 160 130 Q 130 110 110 130 Q 90 150 80 120 L 65 110 L 70 135 Z" {...rp('lv-fish2', fills, onClickRegion)} />
+  </svg>
+)
+
+const CrownSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> = ({ fills, onClickRegion }) => (
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="coloring-svg" width="100%" height="100%">
+    <rect x="5" y="8" width="190" height="184" rx="16" {...rp('cw-bg', fills, onClickRegion)} />
+    <path d="M 30 150 L 40 80 L 70 120 L 100 60 L 130 120 L 160 80 L 170 150 Z" {...rp('cw-gold', fills, onClickRegion)} />
+    <rect x="25" y="150" width="150" height="20" rx="5" {...rp('cw-base', fills, onClickRegion)} />
+    <circle cx="40" cy="80" r="8" {...rp('cw-j1', fills, onClickRegion)} />
+    <circle cx="100" cy="60" r="10" {...rp('cw-j2', fills, onClickRegion)} />
+    <circle cx="160" cy="80" r="8" {...rp('cw-j3', fills, onClickRegion)} />
+    <polygon points="100,130 90,140 100,150 110,140" {...rp('cw-j4', fills, onClickRegion)} />
+    <polygon points="60,135 55,142 60,149 65,142" {...rp('cw-j5', fills, onClickRegion)} />
+    <polygon points="140,135 135,142 140,149 145,142" {...rp('cw-j6', fills, onClickRegion)} />
+  </svg>
+)
+
+const DoveSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> = ({ fills, onClickRegion }) => (
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="coloring-svg" width="100%" height="100%">
+    <rect x="5" y="8" width="190" height="184" rx="16" {...rp('dv-sky', fills, onClickRegion)} />
+    <path d="M 100 100 C 70 90 40 110 30 70 C 60 70 80 80 100 100 Z" {...rp('dv-wing-l', fills, onClickRegion)} />
+    <path d="M 100 100 C 130 90 160 110 170 70 C 140 70 120 80 100 100 Z" {...rp('dv-wing-r', fills, onClickRegion)} />
+    <ellipse cx="100" cy="115" rx="20" ry="40" {...rp('dv-body', fills, onClickRegion)} />
+    <circle cx="100" cy="65" r="15" {...rp('dv-head', fills, onClickRegion)} />
+    <polygon points="100,75 95,50 105,50" {...rp('dv-beak', fills, onClickRegion)} />
+    <path d="M 85 145 L 70 170 L 95 160 Z" {...rp('dv-tail-l', fills, onClickRegion)} />
+    <path d="M 115 145 L 130 170 L 105 160 Z" {...rp('dv-tail-r', fills, onClickRegion)} />
+    <path d="M 100 50 Q 120 30 140 40" fill="none" stroke="#22C55E" strokeWidth="3" />
+    <circle cx="125" cy="35" r="5" {...rp('dv-leaf1', fills, onClickRegion)} />
+    <circle cx="135" cy="45" r="5" {...rp('dv-leaf2', fills, onClickRegion)} />
+  </svg>
+)
+
+const WhaleSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> = ({ fills, onClickRegion }) => (
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="coloring-svg" width="100%" height="100%">
+    <rect x="5" y="8" width="190" height="184" rx="16" {...rp('wh-sky', fills, onClickRegion)} />
+    <path d="M 5 130 Q 50 140 100 130 T 195 130 L 195 192 L 5 192 Z" {...rp('wh-water', fills, onClickRegion)} />
+    <path d="M 150 110 Q 100 40 40 90 Q 20 110 30 130 Q 100 150 170 130 L 180 100 Z" {...rp('wh-body', fills, onClickRegion)} />
+    <path d="M 170 130 L 190 110 L 190 150 Z" {...rp('wh-tail', fills, onClickRegion)} />
+    <ellipse cx="100" cy="130" rx="30" ry="10" {...rp('wh-belly', fills, onClickRegion)} />
+    <circle cx="50" cy="95" r="6" {...rp('wh-eye', fills, onClickRegion)} />
+    <path d="M 100 65 Q 100 40 80 30" fill="none" stroke="#38BDF8" strokeWidth="4" />
+    <path d="M 105 65 Q 110 30 130 20" fill="none" stroke="#38BDF8" strokeWidth="4" />
+    <circle cx="75" cy="35" r="8" {...rp('wh-spout1', fills, onClickRegion)} />
+    <circle cx="130" cy="25" r="8" {...rp('wh-spout2', fills, onClickRegion)} />
+  </svg>
+)
+
+const TabletsSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> = ({ fills, onClickRegion }) => (
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="coloring-svg" width="100%" height="100%">
+    <rect x="5" y="8" width="190" height="184" rx="16" {...rp('tb-bg', fills, onClickRegion)} />
+    <path d="M 5 150 Q 100 100 195 150 L 195 192 L 5 192 Z" {...rp('tb-hill', fills, onClickRegion)} />
+    <path d="M 40 70 A 30 30 0 0 1 100 70 L 100 140 L 40 140 Z" {...rp('tb-tab1', fills, onClickRegion)} />
+    <path d="M 100 70 A 30 30 0 0 1 160 70 L 160 140 L 100 140 Z" {...rp('tb-tab2', fills, onClickRegion)} />
+    <line x1="55" y1="80" x2="85" y2="80" stroke="#000" strokeWidth="2" />
+    <line x1="55" y1="95" x2="85" y2="95" stroke="#000" strokeWidth="2" />
+    <line x1="55" y1="110" x2="85" y2="110" stroke="#000" strokeWidth="2" />
+    <line x1="55" y1="125" x2="85" y2="125" stroke="#000" strokeWidth="2" />
+    <line x1="115" y1="80" x2="145" y2="80" stroke="#000" strokeWidth="2" />
+    <line x1="115" y1="95" x2="145" y2="95" stroke="#000" strokeWidth="2" />
+    <line x1="115" y1="110" x2="145" y2="110" stroke="#000" strokeWidth="2" />
+    <line x1="115" y1="125" x2="145" y2="125" stroke="#000" strokeWidth="2" />
+  </svg>
+)
+
 const DRAWINGS: DrawingDef[] = [
   { ...lesson('ark'), regions: ['ark-sky','ark-water','ark-hull','ark-cabin','ark-roof','ark-door','ark-window-l','ark-window-r','ark-animal-l','ark-animal-r','ark-rainbow-1','ark-rainbow-2'], Component: ArkSVG },
   { ...lesson('new-life'), regions: ['bf-wing-ul','bf-wing-ur','bf-wing-ll','bf-wing-lr','bf-body','bf-head'], Component: ButterflySVG },
@@ -267,6 +355,12 @@ const DRAWINGS: DrawingDef[] = [
   { ...lesson('promise'), regions: ['rb-arc1','rb-arc2','rb-arc3','rb-arc4','rb-arc5','rb-cloud-l','rb-cloud-r'], Component: RainbowSVG },
   { ...lesson('love'), regions: ['ht-outer','ht-inner','ht-deco1','ht-deco2','ht-star1','ht-star2'], Component: HeartSVG },
   { ...lesson('fortress'), regions: ['cs-wall','cs-tower-l','cs-tower-r','cs-cren-l','cs-cren-r','cs-turret','cs-cren-m','cs-door','cs-win-l','cs-win-r','cs-win-m','cs-flag'], Component: CastleSVG },
+  { ...lesson('cross'), regions: ['cr-sky','cr-hill','cr-wood-v','cr-wood-h','cr-sun','cr-cloud'], Component: CrossSVG },
+  { ...lesson('loaves'), regions: ['lv-bg','lv-basket','lv-basket-top','lv-bread1','lv-bread2','lv-bread3','lv-bread4','lv-bread5','lv-fish1','lv-fish2'], Component: LoavesSVG },
+  { ...lesson('crown'), regions: ['cw-bg','cw-gold','cw-base','cw-j1','cw-j2','cw-j3','cw-j4','cw-j5','cw-j6'], Component: CrownSVG },
+  { ...lesson('dove'), regions: ['dv-sky','dv-wing-l','dv-wing-r','dv-body','dv-head','dv-beak','dv-tail-l','dv-tail-r','dv-leaf1','dv-leaf2'], Component: DoveSVG },
+  { ...lesson('whale'), regions: ['wh-sky','wh-water','wh-body','wh-tail','wh-belly','wh-eye','wh-spout1','wh-spout2'], Component: WhaleSVG },
+  { ...lesson('tablets'), regions: ['tb-bg','tb-hill','tb-tab1','tb-tab2'], Component: TabletsSVG },
 ]
 
 function serializeDrawingWithVerse(svgElement: SVGSVGElement, drawing: DrawingDef) {
@@ -528,14 +622,14 @@ export default function ColorBook() {
       </div>
 
       {/* Palette */}
-      <div className="flex-shrink-0 px-2 pb-3">
-        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin' }}>
+      <div className="flex-shrink-0 px-2 pb-4 w-full max-w-2xl mx-auto mt-2">
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-3 p-1">
           {PALETTE.map(({ label, color }) => (
             <button key={color} title={label}
               onClick={() => { playSound('click'); setSelectedColor(color) }}
               className="flex-shrink-0 rounded-full transition-transform active:scale-90"
               style={{
-                width: 44, height: 44, minWidth: 44,
+                width: 44, height: 44,
                 background: color,
                 border: selectedColor === color
                   ? '3px solid #7B5EA7'
