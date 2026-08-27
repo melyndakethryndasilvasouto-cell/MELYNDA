@@ -96,12 +96,13 @@ test('catálogos bíblicos estão conectados às telas que os utilizam', async (
 })
 
 test('devocional possui rota, navegação, privacidade e histórico local personalizado', async () => {
-  const [app, header, devotional, guide, client] = await Promise.all([
+  const [app, header, devotional, guide, client, styles] = await Promise.all([
     readFile(new URL('src/App.tsx', root), 'utf8'),
     readFile(new URL('src/components/Layout/Header.tsx', root), 'utf8'),
     readFile(new URL('src/components/Devotional/DevotionalPage.tsx', root), 'utf8'),
     readFile(new URL('src/components/shared/FaithMissionBanner.tsx', root), 'utf8'),
     readFile(new URL('src/services/bibleGuide.ts', root), 'utf8'),
+    readFile(new URL('src/index.css', root), 'utf8'),
   ])
 
   assert.match(app, /path="\/devocional"/)
@@ -118,4 +119,15 @@ test('devocional possui rota, navegação, privacidade e histórico local person
   assert.match(devotional, /Não escreva nome completo/)
   assert.doesNotMatch(devotional, /question:[^\n]*playerName/)
   assert.match(client, /\/api\/bible-guide/)
+  assert.match(devotional, /mobileView/)
+  assert.match(devotional, /aria-haspopup="dialog"/)
+  assert.match(devotional, /role="log"/)
+  assert.match(devotional, /aria-controls="devotional-panel-chat"/)
+  assert.match(devotional, /handleTabKeyDown/)
+  assert.match(devotional, /log\.scrollTo/)
+  assert.doesNotMatch(devotional, /scrollIntoView/)
+  assert.match(devotional, /overflowWrap: 'anywhere'/)
+  assert.match(styles, /100dvh/)
+  assert.match(styles, /safe-area-inset-bottom/)
+  assert.match(styles, /\.devotional-page \.btn-primary/)
 })

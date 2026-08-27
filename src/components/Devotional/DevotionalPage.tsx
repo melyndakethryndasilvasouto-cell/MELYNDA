@@ -1,10 +1,11 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { FormEvent, KeyboardEvent as ReactKeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   BookHeart,
   Check,
   FileText,
   MessageCircleQuestion,
+  MessagesSquare,
   Pencil,
   Plus,
   Search,
@@ -52,12 +53,19 @@ export default function DevotionalPage() {
   const [search, setSearch] = useState('')
   const [sortMode, setSortMode] = useState<'recent' | 'name'>('recent')
   const [panel, setPanel] = useState<'chat' | 'notes'>('chat')
+  const [mobileView, setMobileView] = useState<'chat' | 'history'>('chat')
+  const [mobileLayout, setMobileLayout] = useState(() => window.matchMedia('(max-width: 767px)').matches)
   const [error, setError] = useState('')
   const [saveStatus, setSaveStatus] = useState<'saving' | 'saved' | 'error'>('saved')
   const [loadingConversationId, setLoadingConversationId] = useState('')
   const requestAbortRef = useRef<AbortController | null>(null)
   const questionRef = useRef<HTMLTextAreaElement>(null)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messageLogRef = useRef<HTMLDivElement>(null)
+  const historyTriggerRef = useRef<HTMLButtonElement>(null)
+  const historyCloseRef = useRef<HTMLButtonElement>(null)
+  const activeTitleRef = useRef<HTMLHeadingElement>(null)
+  const chatTabRef = useRef<HTMLButtonElement>(null)
+  const notesTabRef = useRef<HTMLButtonElement>(null)
   storeRef.current = store
 
   const activeConversation = store.conversations.find(item => item.id === store.activeConversationId) || store.conversations[0]
@@ -76,6 +84,51 @@ export default function DevotionalPage() {
 
   useEffect(() => () => requestAbortRef.current?.abort(), [])
 
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 767px)')
+    const updateLayout = () => {
+      setMobileLayout(media.matches)
+      if (!media.matches) setMobileView('chat')
+    }
+    updateLayout()
+    media.addEventListener('change', updateLayout)
+    return () => media.removeEventListener('change', updateLayout)
+  }, [])
+
+  useEffect(() => {
+    if (!mobileLayout || mobileView !== 'history') return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const focusFrame = window.requestAnimationFrame(() => historyCloseRef.current?.focus())
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setMobileView('chat')
+        window.requestAnimationFrame(() => historyTriggerRef.current?.focus())
+        return
+      }
+      if (event.key !== 'Tab') return
+      const drawer = historyCloseRef.current?.closest('[role="dialog"]')
+      const focusable = drawer ? [...drawer.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])')] : []
+      if (!focusable.length) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.cancelAnimationFrame(focusFrame)
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = previousOverflow
+    }
+  }, [mobileLayout, mobileView])
+
   useEffect(() => () => {
     saveDevotionalStore(storageKey, storeRef.current)
   }, [storageKey])
@@ -89,14 +142,25 @@ export default function DevotionalPage() {
   }, [storageKey, store])
 
   useEffect(() => {
-    if (panel === 'chat') messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    if (panel !== 'chat') return
+    const log = messageLogRef.current
+    if (!log) return
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    log.scrollTo({ top: log.scrollHeight, behavior: reducedMotion ? 'auto' : 'smooth' })
   }, [activeConversation?.messages.length, panel])
+
+  const closeHistory = (restoreFocus = true) => {
+    setMobileView('chat')
+    if (restoreFocus) window.requestAnimationFrame(() => historyTriggerRef.current?.focus())
+  }
 
   const selectConversation = (id: string) => {
     setStore(current => ({ ...current, activeConversationId: id }))
     setQuestion('')
     setError('')
     setPanel('chat')
+    setMobileView('chat')
+    if (mobileLayout) window.requestAnimationFrame(() => activeTitleRef.current?.focus())
   }
 
   const addConversation = () => {
@@ -107,6 +171,7 @@ export default function DevotionalPage() {
       activeConversationId: conversation.id,
     }))
     setPanel('chat')
+    setMobileView('chat')
     setQuestion('')
     setError('')
     window.requestAnimationFrame(() => questionRef.current?.focus())
@@ -187,8 +252,23 @@ export default function DevotionalPage() {
     setStore(current => updateConversation(current, activeConversation.id, item => ({ ...item, notes, updatedAt: new Date().toISOString() })))
   }
 
+  const selectPanel = (nextPanel: 'chat' | 'notes', focus = false) => {
+    setPanel(nextPanel)
+    if (focus) window.requestAnimationFrame(() => (nextPanel === 'chat' ? chatTabRef : notesTabRef).current?.focus())
+  }
+
+  const handleTabKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>, currentPanel: 'chat' | 'notes') => {
+    let nextPanel: 'chat' | 'notes' | null = null
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') nextPanel = currentPanel === 'chat' ? 'notes' : 'chat'
+    else if (event.key === 'Home') nextPanel = 'chat'
+    else if (event.key === 'End') nextPanel = 'notes'
+    if (!nextPanel) return
+    event.preventDefault()
+    selectPanel(nextPanel, true)
+  }
+
   return (
-    <article className="pb-6 pt-4">
+    <article className="devotional-page pb-6 pt-4">
       <motion.header initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-5 text-center">
         <div className="text-5xl" aria-hidden="true">{playerAvatar}</div>
         <p className="mt-2 text-xs font-black uppercase tracking-widest" style={{ color: '#8A5A00' }}>Um momento com Jesus</p>
@@ -198,8 +278,25 @@ export default function DevotionalPage() {
         </p>
       </motion.header>
 
-      <div className="grid gap-4 md:grid-cols-[230px_minmax(0,1fr)]">
-        <aside className="glass-card p-3" aria-label="Conversas do devocional">
+      <div className="devotional-layout grid gap-4 md:grid-cols-[230px_minmax(0,1fr)]">
+        {(!mobileLayout || mobileView === 'history') && (
+        <div
+          className={mobileLayout ? 'fixed inset-0 z-[100] flex items-stretch bg-slate-950/50 p-3 pt-[max(0.75rem,env(safe-area-inset-top))]' : ''}
+          onMouseDown={event => { if (mobileLayout && event.target === event.currentTarget) closeHistory() }}
+        >
+        <aside
+          className={`glass-card p-3 ${mobileLayout ? 'ml-auto flex h-full w-[min(92vw,360px)] flex-col overflow-hidden bg-white' : ''}`}
+          aria-label="Conversas do devocional"
+          role={mobileLayout ? 'dialog' : undefined}
+          aria-modal={mobileLayout ? 'true' : undefined}
+          aria-labelledby={mobileLayout ? 'devotional-history-title' : undefined}
+        >
+          {mobileLayout && (
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h2 id="devotional-history-title" className="font-title text-xl" style={{ color: '#5B3A8A' }}>Minhas conversas</h2>
+              <button ref={historyCloseRef} type="button" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-purple-50 text-xl font-black" style={{ color: '#5B3A8A' }} aria-label="Fechar histórico de conversas" onClick={() => closeHistory()}>×</button>
+            </div>
+          )}
           <button type="button" className="btn-primary w-full text-sm" style={{ minHeight: 44 }} onClick={addConversation}>
             <Plus size={18} aria-hidden="true" /> Nova conversa
           </button>
@@ -215,41 +312,44 @@ export default function DevotionalPage() {
               <option value="name">Nome</option>
             </select>
           </label>
-          <nav className="mt-3 max-h-64 space-y-2 overflow-y-auto md:max-h-[620px]" aria-label="Histórico de conversas">
+          <nav className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto md:max-h-[620px] md:flex-none" aria-label="Histórico de conversas">
             {visibleConversations.map(item => {
               const preview = item.messages[item.messages.length - 1]?.content || 'Comece uma nova descoberta…'
               return (
                 <button key={item.id} type="button" onClick={() => selectConversation(item.id)} aria-current={item.id === activeConversation?.id ? 'page' : undefined} className="min-h-16 w-full rounded-2xl border p-3 text-left transition-colors" style={{ background: item.id === activeConversation?.id ? '#F3E8FF' : 'rgba(255,255,255,.8)', borderColor: item.id === activeConversation?.id ? '#C4B5FD' : '#EDE9FE' }}>
                   <span className="block truncate text-sm font-black" style={{ color: '#5B3A8A' }}>{item.title}</span>
                   <span className="mt-1 block truncate text-xs" style={{ color: '#4B5563' }}>{preview}</span>
-                  <span className="mt-1 block text-[11px] font-bold" style={{ color: '#6B7280' }}>{item.title === 'Histórico anterior' ? 'Importado' : conversationDateLabel(item.updatedAt)}</span>
+                  <span className="mt-1 block text-xs font-bold" style={{ color: '#6B7280' }}>{item.title === 'Histórico anterior' ? 'Importado' : conversationDateLabel(item.updatedAt)}</span>
                 </button>
               )
             })}
             {!visibleConversations.length && <p className="p-3 text-center text-sm" style={{ color: '#6B7280' }}>Nenhuma conversa encontrada.</p>}
           </nav>
         </aside>
+        </div>
+        )}
 
         {activeConversation && (
-          <section className="glass-card min-w-0 overflow-hidden" aria-labelledby="active-conversation-title">
+          <section className="devotional-workspace glass-card min-w-0 overflow-clip" aria-labelledby="active-conversation-title">
             <header className="flex flex-wrap items-center justify-between gap-2 border-b border-purple-100 p-3 sm:p-4">
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-xs font-bold" style={{ color: '#2563A6' }}>{conversationDateLabel(activeConversation.updatedAt)}</p>
-                <h2 id="active-conversation-title" className="truncate font-black" style={{ color: '#5B3A8A' }}>{activeConversation.title}</h2>
+                <h2 ref={activeTitleRef} id="active-conversation-title" tabIndex={-1} className="truncate font-black" style={{ color: '#5B3A8A' }}>{activeConversation.title}</h2>
               </div>
               <div className="flex gap-1">
+                <button ref={historyTriggerRef} type="button" className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-purple-50 px-3 text-sm font-black md:hidden" style={{ color: '#5B3A8A' }} aria-haspopup="dialog" aria-expanded={mobileView === 'history'} onClick={() => setMobileView('history')}><MessagesSquare size={17} aria-hidden="true" /> Conversas</button>
                 <button type="button" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-white" aria-label="Renomear conversa" onClick={renameConversation}><Pencil size={17} /></button>
                 <button type="button" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-orange-50" style={{ color: '#92400E' }} aria-label="Excluir conversa" onClick={deleteConversation}><Trash2 size={17} /></button>
               </div>
             </header>
 
             <div className="flex border-b border-purple-100 p-2" role="tablist" aria-label="Conteúdo do devocional">
-              <button type="button" role="tab" aria-selected={panel === 'chat'} onClick={() => setPanel('chat')} className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-black" style={{ color: '#5B3A8A', background: panel === 'chat' ? '#F3E8FF' : 'transparent' }}><MessageCircleQuestion size={18} /> Conversa</button>
-              <button type="button" role="tab" aria-selected={panel === 'notes'} onClick={() => setPanel('notes')} className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-black" style={{ color: '#5B3A8A', background: panel === 'notes' ? '#FFF7D6' : 'transparent' }}><FileText size={18} /> Bloco de notas</button>
+              <button ref={chatTabRef} id="devotional-tab-chat" type="button" role="tab" aria-selected={panel === 'chat'} aria-controls="devotional-panel-chat" tabIndex={panel === 'chat' ? 0 : -1} onKeyDown={event => handleTabKeyDown(event, 'chat')} onClick={() => selectPanel('chat')} className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-black" style={{ color: '#5B3A8A', background: panel === 'chat' ? '#F3E8FF' : 'transparent' }}><MessageCircleQuestion size={18} aria-hidden="true" /> Conversa</button>
+              <button ref={notesTabRef} id="devotional-tab-notes" type="button" role="tab" aria-selected={panel === 'notes'} aria-controls="devotional-panel-notes" tabIndex={panel === 'notes' ? 0 : -1} onKeyDown={event => handleTabKeyDown(event, 'notes')} onClick={() => selectPanel('notes')} className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-black" style={{ color: '#5B3A8A', background: panel === 'notes' ? '#FFF7D6' : 'transparent' }}><FileText size={18} aria-hidden="true" /> Bloco de notas</button>
             </div>
 
             {panel === 'notes' ? (
-              <div className="p-4" role="tabpanel">
+              <div id="devotional-panel-notes" className="devotional-notes-panel p-4" role="tabpanel" aria-labelledby="devotional-tab-notes">
                 <div className="mb-3 flex items-start gap-3">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-yellow-100" style={{ color: '#8A5A00' }}><BookHeart size={23} /></div>
                   <div>
@@ -259,16 +359,17 @@ export default function DevotionalPage() {
                 </div>
                 <label htmlFor="devotional-notes" className="text-sm font-bold">Anotações desta conversa</label>
                 <textarea id="devotional-notes" value={activeConversation.notes} onChange={event => saveNotes(event.target.value)} maxLength={6000} className="mt-2 min-h-64 w-full rounded-2xl border border-yellow-200 bg-yellow-50/70 p-4 text-sm leading-relaxed" placeholder="Hoje eu aprendi que…" />
-                <div className="mt-2 flex items-center justify-between gap-3 text-xs" aria-live="polite">
+                <div className="mt-2 flex items-center justify-between gap-3 text-xs">
                   <span style={{ color: '#6B7280' }}>{activeConversation.notes.length}/6000</span>
                   <span className="flex items-center gap-1 font-bold" style={{ color: saveStatus === 'error' ? '#B91C1C' : '#047857' }}>
                     {saveStatus === 'saving' ? 'Salvando…' : saveStatus === 'error' ? 'Não foi possível salvar' : <><Check size={15} /> Salvo neste aparelho</>}
                   </span>
                 </div>
+                <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{saveStatus === 'error' ? 'Não foi possível salvar as anotações.' : ''}</p>
               </div>
             ) : (
-              <div role="tabpanel">
-                <div className="max-h-[470px] min-h-56 space-y-3 overflow-y-auto bg-gradient-to-b from-purple-50/50 to-blue-50/40 p-3 sm:p-4" aria-live="polite">
+              <div id="devotional-panel-chat" className="devotional-chat-panel" role="tabpanel" aria-labelledby="devotional-tab-chat">
+                <div ref={messageLogRef} className="devotional-message-log min-h-56 space-y-3 overflow-y-auto bg-gradient-to-b from-purple-50/50 to-blue-50/40 p-3 sm:p-4" role="log" aria-live="polite" aria-relevant="additions text" aria-atomic="false" aria-label="Mensagens do devocional">
                   {activeConversation.messages.length === 0 ? (
                     <div className="py-8 text-center">
                       <p className="text-4xl" aria-hidden="true">🌱</p>
@@ -277,22 +378,24 @@ export default function DevotionalPage() {
                     </div>
                   ) : activeConversation.messages.map(message => (
                     <article key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div className="max-w-[88%] rounded-2xl px-3 py-2 shadow-sm" style={{ background: message.role === 'user' ? '#DDEBFF' : '#FFFFFF', borderBottomRightRadius: message.role === 'user' ? 4 : 16, borderBottomLeftRadius: message.role === 'assistant' ? 4 : 16 }}>
+                      <div className="min-w-0 max-w-[88%] rounded-2xl px-3 py-2 shadow-sm" style={{ background: message.role === 'user' ? '#DDEBFF' : '#FFFFFF', borderBottomRightRadius: message.role === 'user' ? 4 : 16, borderBottomLeftRadius: message.role === 'assistant' ? 4 : 16, overflowWrap: 'anywhere' }}>
                         <p className="text-xs font-black" style={{ color: message.role === 'user' ? '#1D4E89' : '#5B3A8A' }}>{message.role === 'user' ? 'Você' : 'Devocional ✨'}</p>
                         <p className="mt-1 whitespace-pre-line text-sm leading-relaxed" style={{ color: '#374151' }}>{message.content}</p>
-                        <time className="mt-1 block text-right text-[11px]" dateTime={message.createdAt} style={{ color: '#6B7280' }}>{messageTime(message.createdAt)}</time>
+                        <time className="mt-1 block text-right text-xs" dateTime={message.createdAt} style={{ color: '#6B7280' }}>{messageTime(message.createdAt)}</time>
                       </div>
                     </article>
                   ))}
                   {loadingConversationId === activeConversation.id && <p className="rounded-2xl bg-white px-3 py-3 text-sm font-bold" style={{ color: '#5B3A8A' }}>Preparando uma resposta com carinho… ✨📖</p>}
-                  <div ref={messagesEndRef} />
                 </div>
 
-                <form className="border-t border-purple-100 bg-white/70 p-3 sm:p-4" onSubmit={askQuestion}>
-                  <p className="mb-2 text-sm font-black" style={{ color: '#5B3A8A' }}>Você também pode perguntar…</p>
-                  <div className="mb-3 flex gap-2 overflow-x-auto pb-1" aria-label="Perguntas sugeridas">
+                <form className="devotional-composer border-t border-purple-100 bg-white/95 p-3 sm:p-4" onSubmit={askQuestion}>
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <p className="text-sm font-black" style={{ color: '#5B3A8A' }}>Você também pode perguntar…</p>
+                    <span id="devotional-suggestions-help" className="text-xs font-bold sm:sr-only" style={{ color: '#2563A6' }}>Deslize para ver mais →</span>
+                  </div>
+                  <div className="devotional-suggestions mb-3 flex snap-x snap-mandatory gap-2 overflow-x-auto pb-2" aria-label="Perguntas sugeridas" aria-describedby="devotional-suggestions-help">
                     {suggestions.map(suggestion => (
-                      <button key={suggestion} type="button" onClick={() => chooseSuggestion(suggestion)} className="min-h-11 min-w-[190px] rounded-2xl border border-purple-200 bg-white px-3 py-2 text-left text-xs font-bold active:scale-95" style={{ color: '#5B3A8A' }}>{suggestion}</button>
+                      <button key={suggestion} type="button" onClick={() => chooseSuggestion(suggestion)} className="min-h-11 min-w-[calc(100%-2rem)] snap-start rounded-2xl border border-purple-200 bg-white px-3 py-2 text-left text-sm font-bold active:scale-95 sm:min-w-[190px]" style={{ color: '#5B3A8A' }}>{suggestion}</button>
                     ))}
                   </div>
                   <label className="sr-only" htmlFor="devotional-question">Minha pergunta</label>

@@ -23,6 +23,7 @@ const Pong         = lazy(() => import('./games/Pong'))
 const Devotional   = lazy(() => import('./components/Devotional/DevotionalPage'))
 const OnlineLobby  = lazy(() => import('./components/Online/OnlineLobbyPage'))
 const OnlineRoom   = lazy(() => import('./components/Online/OnlineRoomPage'))
+const GroupChat    = lazy(() => import('./components/Online/GroupChatPage'))
 
 function LoadingGame() {
   return (
@@ -50,6 +51,7 @@ function AppRoutes() {
             <Route path="/devocional" element={<Devotional />} />
             <Route path="/online" element={<OnlineLobby />} />
             <Route path="/online/sala/:roomId" element={<OnlineRoom />} />
+            <Route path="/online/grupo/:groupId" element={<GroupChat />} />
             <Route path="/memoria" element={<Memory />} />
             <Route path="/jogo-da-velha" element={<TicTacToe />} />
             <Route path="/dama" element={<Checkers />} />

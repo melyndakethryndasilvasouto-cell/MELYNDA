@@ -14,6 +14,12 @@ const avatars = [
   { icon: '🌿', label: 'Ramo verde' },
 ]
 
+const nicknameIdeas = ['Estrelinha', 'Ovelhinha Feliz', 'Leão Corajoso', 'Peixinho Azul', 'Pomba da Paz']
+
+function cleanNickname(value: string) {
+  return value.replace(/[^\p{L}\p{M} -]/gu, '').replace(/\s+/g, ' ').trim().slice(0, 16)
+}
+
 export default function PlayerSetup({ onComplete }: Props) {
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState('⭐')
@@ -21,7 +27,11 @@ export default function PlayerSetup({ onComplete }: Props) {
 
   const handleNameSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (name.trim()) setStep('avatar')
+    const nickname = cleanNickname(name)
+    if (nickname.length >= 2) {
+      setName(nickname)
+      setStep('avatar')
+    }
   }
 
   return (
@@ -45,19 +55,23 @@ export default function PlayerSetup({ onComplete }: Props) {
 
         {step === 'name' ? (
           <motion.form key="name" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} onSubmit={handleNameSubmit} className="space-y-4">
-            <label htmlFor="player-name" className="block font-bold" style={{ color: '#7B5EA7' }}>Qual é o seu nome? 😊</label>
+            <label htmlFor="player-name" className="block font-bold" style={{ color: '#7B5EA7' }}>Escolha um apelido divertido 😊</label>
+            <p className="rounded-2xl bg-blue-50 p-3 text-xs font-bold" style={{ color: '#1D4E89' }}>Não escreva nome completo, escola, telefone ou endereço.</p>
             <input
               id="player-name"
               type="text"
               value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="Digite seu nome..."
+              onChange={e => setName(cleanNickname(e.target.value))}
+              placeholder="Ex.: Estrelinha"
               maxLength={16}
               autoFocus
               className="w-full px-4 py-3 rounded-2xl text-center text-xl font-bold outline-none"
               style={{ border: '2px solid #C4B5FD', color: '#7B5EA7', background: 'white' }}
             />
-            <button type="submit" disabled={!name.trim()} className="btn-primary w-full disabled:opacity-40">
+            <div className="flex flex-wrap justify-center gap-2" aria-label="Ideias de apelido">
+              {nicknameIdeas.slice(0, 3).map(idea => <button key={idea} type="button" onClick={() => setName(idea)} className="min-h-11 rounded-2xl bg-purple-50 px-3 text-xs font-black" style={{ color: '#5B3A8A' }}>{idea}</button>)}
+            </div>
+            <button type="submit" disabled={cleanNickname(name).length < 2} className="btn-primary w-full disabled:opacity-40">
               Próximo ➡️
             </button>
           </motion.form>

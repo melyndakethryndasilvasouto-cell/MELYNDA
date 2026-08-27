@@ -130,6 +130,67 @@
   }
 }
 
+/* Devocional: conversa flexível, legível e previsível em qualquer tela. */
+.devotional-workspace {
+  display: flex;
+  min-height: 611px;
+  flex-direction: column;
+}
+
+.devotional-chat-panel,
+.devotional-notes-panel {
+  min-height: 0;
+  flex: 1;
+}
+
+.devotional-chat-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.devotional-message-log {
+  min-height: 14rem;
+  max-height: 470px;
+  flex: 1;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.devotional-composer {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+.devotional-suggestions {
+  scroll-padding-inline: 0.25rem;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #7C3AED transparent;
+}
+
+.devotional-suggestions::-webkit-scrollbar {
+  height: 6px;
+}
+
+.devotional-page .btn-primary {
+  background: linear-gradient(135deg, #2563EB, #6D28D9);
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.28);
+}
+
+@media (max-width: 767px) {
+  .devotional-workspace {
+    height: max(38rem, calc(100dvh - 5rem));
+    min-height: 0;
+  }
+
+  .devotional-message-log {
+    min-height: 0;
+    max-height: none;
+  }
+}
+
 /* Particle background */
 @keyframes float-particle {
   0% { transform: translateY(100vh) scale(0) rotate(0deg); opacity: 0; }

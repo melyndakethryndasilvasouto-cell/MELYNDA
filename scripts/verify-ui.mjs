@@ -154,6 +154,80 @@ try {
   console.log(`SCREENSHOT ${await screenshot('ui-home-desktop.png')}`)
 
   for (const width of [320, 768, 1024, 1440]) await metrics('/', width, 900)
+  for (const width of [320, 375, 720, 768, 1024, 1440]) {
+    await metrics('/devocional', width, 900)
+    const devotionalLayout = await evaluate(`(() => {
+      const visible = element => Boolean(element && element.getBoundingClientRect().width && element.getBoundingClientRect().height)
+      const history = document.querySelector('aside[aria-label="Conversas do devocional"]')
+      const trigger = [...document.querySelectorAll('button')].find(item => item.textContent?.trim() === 'Conversas')
+      const workspace = document.querySelector('.devotional-workspace')
+      const undersized = [...document.querySelectorAll('.devotional-page button, .devotional-page input, .devotional-page textarea, .devotional-page select')]
+        .filter(visible)
+        .filter(item => item.getBoundingClientRect().width < 44 || item.getBoundingClientRect().height < 44)
+        .map(item => item.getAttribute('aria-label') || item.textContent?.trim().slice(0, 30))
+      return {
+        scrollY: window.scrollY,
+        historyVisible: visible(history),
+        triggerVisible: visible(trigger),
+        workspaceVisible: visible(workspace),
+        undersized,
+        suggestionsHelp: document.body.innerText.includes('Deslize para ver mais'),
+        tabsRelated: [...document.querySelectorAll('[role="tab"]')].every(tab => Boolean(tab.id && tab.getAttribute('aria-controls'))),
+        logRole: document.querySelector('[role="log"]')?.getAttribute('aria-label') || '',
+      }
+    })()`)
+    const mobileDevotional = width < 768
+    if (devotionalLayout.scrollY !== 0
+      || !devotionalLayout.workspaceVisible
+      || devotionalLayout.historyVisible === mobileDevotional
+      || devotionalLayout.triggerVisible !== mobileDevotional
+      || devotionalLayout.undersized.length
+      || !devotionalLayout.tabsRelated
+      || !devotionalLayout.logRole
+      || (mobileDevotional && !devotionalLayout.suggestionsHelp)) {
+      throw new Error(`Layout responsivo do Devocional falhou em ${width}px: ${JSON.stringify(devotionalLayout)}`)
+    }
+    console.log(`UI_OK feature=devotional-responsive viewport=${width} history_drawer=${mobileDevotional} scrollY=${devotionalLayout.scrollY}`)
+  }
+
+  await viewport(320, 800)
+  await navigate('/devocional')
+  const drawerOpened = await evaluate(`(() => {
+    const trigger = [...document.querySelectorAll('button')].find(item => item.textContent?.trim() === 'Conversas')
+    trigger?.click()
+    return Boolean(trigger)
+  })()`)
+  await new Promise(resolveWait => setTimeout(resolveWait, 200))
+  const drawerState = await evaluate(`({
+    dialog: Boolean(document.querySelector('[role="dialog"][aria-modal="true"]')),
+    closeFocused: document.activeElement === document.querySelector('button[aria-label^="Fechar"]'),
+    bodyLocked: document.body.style.overflow === 'hidden',
+    activeLabel: document.activeElement?.getAttribute('aria-label') || '',
+    activeText: document.activeElement?.textContent?.trim() || ''
+  })`)
+  await client.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape' })
+  await client.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape' })
+  await new Promise(resolveWait => setTimeout(resolveWait, 200))
+  const drawerClosed = await evaluate(`({
+    dialog: Boolean(document.querySelector('[role="dialog"]')),
+    focusRestored: document.activeElement?.textContent?.trim() === 'Conversas',
+    bodyUnlocked: document.body.style.overflow === ''
+  })`)
+  if (!drawerOpened || !drawerState.dialog || !drawerState.closeFocused || !drawerState.bodyLocked || drawerClosed.dialog || !drawerClosed.focusRestored || !drawerClosed.bodyUnlocked) {
+    throw new Error(`Drawer acessÃ­vel do Devocional falhou: ${JSON.stringify({ drawerOpened, drawerState, drawerClosed })}`)
+  }
+  const chatTabFocused = await evaluate(`(() => { const tab = document.querySelector('#devotional-tab-chat'); tab?.focus(); return document.activeElement === tab })()`)
+  await client.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'ArrowRight', code: 'ArrowRight' })
+  await client.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'ArrowRight', code: 'ArrowRight' })
+  await new Promise(resolveWait => setTimeout(resolveWait, 100))
+  const notesTabSelected = await evaluate(`document.querySelector('#devotional-tab-notes')?.getAttribute('aria-selected') === 'true' && Boolean(document.querySelector('#devotional-panel-notes[role="tabpanel"]'))`)
+  await client.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Home', code: 'Home' })
+  await client.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Home', code: 'Home' })
+  await new Promise(resolveWait => setTimeout(resolveWait, 100))
+  const chatTabSelected = await evaluate(`document.querySelector('#devotional-tab-chat')?.getAttribute('aria-selected') === 'true' && Boolean(document.querySelector('#devotional-panel-chat[role="tabpanel"]'))`)
+  if (!chatTabFocused || !notesTabSelected || !chatTabSelected) throw new Error('Abas do Devocional nÃ£o responderam ao teclado')
+  console.log('INTERACTION_OK feature=devotional drawer_focus=true escape=true tabs_keyboard=true')
+
   const mobilePaths = ['/devocional', '/online', '/memoria', '/jogo-da-velha', '/dama', '/uno', '/colorir', '/cobra', '/simon', '/quiz', '/quebra-cabeca', '/pong']
   for (const pathname of mobilePaths) await metrics(pathname, 320, 800)
 
@@ -187,6 +261,7 @@ try {
       missingKeyHandled: document.body.innerText.includes('ainda não foi ativado'),
       privateHistorySaved: storageKeys.length === 1,
       legacyHistoryEmpty: legacyStorageKeys.length === 0,
+      messageWrapSafe: getComputedStyle(document.querySelector('[role="log"] article > div')).overflowWrap === 'anywhere',
     }
   })()`)
   if (!Object.values(devotionalState).every(Boolean)) throw new Error(`Devocional não tratou corretamente o estado sem chave: ${JSON.stringify(devotionalState)}`)

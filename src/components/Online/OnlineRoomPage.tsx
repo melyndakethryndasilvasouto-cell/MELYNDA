@@ -1,27 +1,25 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { RealtimeChannel } from '@supabase/supabase-js'
-import { LoaderCircle, MessageCircle, Mic, MicOff, PhoneOff, RotateCcw, Send, Volume2 } from 'lucide-react'
+import { AlertTriangle, Ban, LoaderCircle, MessageCircle, Mic, MicOff, PhoneOff, RotateCcw, Send, Volume2 } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useOnline } from '../../contexts/OnlineContext'
 import { usePlayer } from '../../contexts/PlayerContext'
-import { cleanRoomMessage, OnlinePlayer, OnlineRoom } from '../../online/types'
+import { cleanRoomMessage, OnlineChatMessage, OnlinePlayer, OnlineRoom } from '../../online/types'
+import type { EphemeralAudioBroadcastPayload } from '../../online/useEphemeralAudioMessage'
 import { useRoomVoice } from '../../online/useRoomVoice'
 import { supabase } from '../../services/supabase'
+import AudioMessageComposer from './AudioMessageComposer'
 
-interface RoomMessage {
-  id: string
-  senderId: string
-  text: string
-  createdAt: number
-}
-
-const EMPTY_ROOM_MESSAGES: RoomMessage[] = []
+const EMPTY_ROOM_MESSAGES: OnlineChatMessage[] = []
 
 function roomError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error || '')
   if (message.includes('NOT_YOUR_TURN')) return 'Agora é a vez do outro jogador.'
   if (message.includes('CELL_OCCUPIED')) return 'Essa casa já está ocupada.'
   if (message.includes('ROOM_NOT_ACTIVE')) return 'A partida ainda não está pronta ou já terminou.'
+  if (message.includes('MESSAGE_PERSONAL_DATA')) return 'Essa mensagem pode mostrar informação pessoal. Escreva de outro jeito.'
+  if (message.includes('MESSAGE_UNSAFE')) return 'Essa mensagem não parece segura para um chat infantil.'
+  if (message.includes('MESSAGE_RATE_LIMIT')) return 'Espere um pouquinho antes de enviar outra mensagem.'
   return 'Não foi possível atualizar a partida. Tente novamente.'
 }
 
@@ -29,12 +27,12 @@ export default function OnlineRoomPage() {
   const { roomId = '' } = useParams()
   const navigate = useNavigate()
   const { playerName, playerAvatar } = usePlayer()
-  const { status: onlineStatus, userId, connect } = useOnline()
+  const { status: onlineStatus, userId, connect, blockPlayer, reportPlayer } = useOnline()
   const [room, setRoom] = useState<OnlineRoom | null>(null)
   const [profiles, setProfiles] = useState<Record<string, OnlinePlayer>>({})
   const [channel, setChannel] = useState<RealtimeChannel | null>(null)
   const [roomConnected, setRoomConnected] = useState(false)
-  const [messages, setMessages] = useState<RoomMessage[]>(EMPTY_ROOM_MESSAGES)
+  const [messages, setMessages] = useState<OnlineChatMessage[]>(EMPTY_ROOM_MESSAGES)
   const [draft, setDraft] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
@@ -67,9 +65,19 @@ export default function OnlineRoomPage() {
       const profileResult = await supabase.from('online_profiles').select('user_id,display_name,avatar').in('user_id', ids)
       if (active && !profileResult.error) {
         const next: Record<string, OnlinePlayer> = {}
-        for (const profile of profileResult.data || []) next[profile.user_id] = { userId: profile.user_id, name: profile.display_name, avatar: profile.avatar }
+        for (const profile of profileResult.data || []) next[profile.user_id] = {
+          userId: profile.user_id,
+          name: profile.display_name,
+          avatar: profile.avatar,
+          activity: 'playing',
+          gameKey: 'tic-tac-toe',
+          updatedAt: new Date().toISOString(),
+        }
         setProfiles(next)
       }
+      const messageResult = await supabase.from('online_room_messages').select('*').eq('room_id', roomId)
+        .gt('expires_at', new Date().toISOString()).order('created_at').limit(100)
+      if (active && !messageResult.error) setMessages((messageResult.data || []) as OnlineChatMessage[])
       setLoading(false)
     }
     void load()
@@ -78,15 +86,9 @@ export default function OnlineRoomPage() {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'online_rooms', filter: `id=eq.${roomId}` }, ({ new: next }) => {
         if (active) setRoom(next as unknown as OnlineRoom)
       })
-      .on('broadcast', { event: 'room-chat' }, ({ payload }) => {
-        const value = payload as { id?: string; text?: string; createdAt?: number }
-        const text = cleanRoomMessage(value.text || '')
-        if (!value.id || !text || !Number.isFinite(value.createdAt)) return
-        const currentRoom = roomRef.current
-        if (!currentRoom) return
-        const remoteParticipantId = currentRoom.host_id === userId ? currentRoom.guest_id : currentRoom.host_id
-        if (!remoteParticipantId) return
-        setMessages(previous => [...previous.slice(-49), { id: value.id!, senderId: remoteParticipantId, text, createdAt: value.createdAt! }])
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'online_room_messages', filter: `room_id=eq.${roomId}` }, ({ new: next }) => {
+        const message = next as unknown as OnlineChatMessage
+        if (active && message.id) setMessages(previous => previous.some(item => item.id === message.id) ? previous : [...previous.slice(-99), message])
       })
       .on('broadcast', { event: 'voice-signal' }, ({ payload }) => {
         const currentRoom = roomRef.current
@@ -121,7 +123,10 @@ export default function OnlineRoomPage() {
     if (!supabase || !room?.guest_id || profiles[room.guest_id]) return
     void supabase.from('online_profiles').select('user_id,display_name,avatar').eq('user_id', room.guest_id).single()
       .then(({ data }) => {
-        if (data) setProfiles(previous => ({ ...previous, [data.user_id]: { userId: data.user_id, name: data.display_name, avatar: data.avatar } }))
+        if (data) setProfiles(previous => ({
+          ...previous,
+          [data.user_id]: { userId: data.user_id, name: data.display_name, avatar: data.avatar, activity: 'playing', gameKey: 'tic-tac-toe', updatedAt: new Date().toISOString() },
+        }))
       })
   }, [profiles, room?.guest_id])
 
@@ -166,11 +171,39 @@ export default function OnlineRoomPage() {
   const sendMessage = async (event: FormEvent) => {
     event.preventDefault()
     const text = cleanRoomMessage(draft)
-    if (!channel || !text || !userId) return
-    const message = { id: crypto.randomUUID(), senderId: userId, text, createdAt: Date.now() }
-    await channel.send({ type: 'broadcast', event: 'room-chat', payload: message })
-    setMessages(previous => [...previous.slice(-49), message])
-    setDraft('')
+    if (!supabase || !text || !userId) return
+    const response = await supabase.rpc('send_online_room_message', { target_room: roomId, message_text: text })
+    if (response.error) setError(roomError(response.error))
+    else {
+      const message = response.data as OnlineChatMessage
+      setMessages(previous => previous.some(item => item.id === message.id) ? previous : [...previous.slice(-99), message])
+      setDraft('')
+    }
+  }
+
+  const sendAudio = useCallback(async (payload: EphemeralAudioBroadcastPayload) => {
+    if (!supabase) throw new Error('NOT_CONFIGURED')
+    const response = await supabase.rpc('send_online_room_audio', {
+      target_room: roomId,
+      audio_value: `data:${payload.mimeType};base64,${payload.dataBase64}`,
+      mime_value: payload.mimeType,
+      duration_value: payload.durationMs,
+    })
+    if (response.error) throw new Error(roomError(response.error))
+    const message = response.data as OnlineChatMessage
+    setMessages(previous => previous.some(item => item.id === message.id) ? previous : [...previous.slice(-99), message])
+  }, [roomId])
+
+  const protectFromOpponent = async (report = false) => {
+    if (!opponentId) return
+    try {
+      if (report) await reportPlayer(opponentId, 'other', 'room')
+      await blockPlayer(opponentId)
+      setError(report ? 'Denúncia recebida. O jogador foi bloqueado.' : 'Jogador bloqueado.')
+      await leave()
+    } catch (protectError) {
+      setError(protectError instanceof Error ? protectError.message : 'Não foi possível concluir essa proteção.')
+    }
   }
 
   if (loading || onlineStatus === 'connecting') {
@@ -235,12 +268,12 @@ export default function OnlineRoomPage() {
         </div>
         <p className="mt-2 flex items-center gap-1 text-xs font-bold" style={{ color: voice.status === 'connected' ? '#166534' : '#6B7280' }}>
           <Volume2 size={14} aria-hidden="true" />
-          {voice.status === 'off' ? 'Microfone desligado' : voice.status === 'requesting' ? 'Aguardando permissão do microfone…' : voice.status === 'connected' ? 'Voz conectada e criptografada' : voice.status === 'connecting' ? 'Conectando a voz…' : voice.status === 'ready' ? 'Aguardando o outro jogador ativar a voz…' : 'Voz indisponível'}
+          {voice.status === 'off' ? 'Chamada ao vivo desligada' : voice.status === 'requesting' ? 'Aguardando permissão do microfone…' : voice.status === 'connected' ? 'Voz ao vivo conectada' : voice.status === 'connecting' ? 'Conectando a voz…' : voice.status === 'ready' ? 'Aguardando o outro jogador ativar a voz…' : 'Voz indisponível'}
         </p>
         {voice.error && <p role="alert" className="mt-2 text-xs font-bold" style={{ color: '#92400E' }}>{voice.error}</p>}
         {voiceConsentOpen && (voice.status === 'off' || voice.status === 'error') && (
           <div className="mt-3 rounded-2xl border border-blue-200 bg-blue-50 p-3" role="group" aria-label="Confirmação para ativar o microfone">
-            <p className="text-sm font-bold" style={{ color: '#1D4E89' }}>O navegador pedirá acesso ao microfone. Ative somente com um amigo conhecido e, se você for criança, com um adulto responsável por perto.</p>
+            <p className="text-sm font-bold" style={{ color: '#1D4E89' }}>O navegador pedirá acesso ao microfone para uma chamada direta. Ative somente com um amigo conhecido e um adulto responsável por perto. Para mais privacidade, prefira a mensagem de áudio curta.</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <button type="button" className="btn-primary text-xs" onClick={() => { setVoiceConsentOpen(false); void voice.start() }}><Mic size={16} /> Entendi, ligar microfone</button>
               <button type="button" className="btn-secondary text-xs" onClick={() => setVoiceConsentOpen(false)}>Agora não</button>
@@ -249,10 +282,10 @@ export default function OnlineRoomPage() {
         )}
 
         <div className="mt-3 max-h-48 min-h-24 space-y-2 overflow-y-auto rounded-2xl bg-slate-50 p-3" aria-live="polite">
-          {messages.length === 0 ? <p className="text-center text-xs" style={{ color: '#6B7280' }}>Escreva uma mensagem gentil para seu amigo.</p> : messages.map(message => {
-            const mine = message.senderId === userId
+          {messages.length === 0 ? <p className="text-center text-xs" style={{ color: '#6B7280' }}>Escreva ou grave uma mensagem gentil para seu amigo.</p> : messages.map(message => {
+            const mine = message.sender_id === userId
             const sender = mine ? { name: playerName, avatar: playerAvatar } : opponent || { name: 'Amigo', avatar: '👤' }
-            return <div key={message.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}><p className="max-w-[85%] rounded-2xl px-3 py-2 text-sm" style={{ background: mine ? '#DBEAFE' : '#F3E8FF' }}><strong>{sender.avatar} {sender.name}:</strong> {message.text}</p></div>
+            return <div key={message.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}><div className="max-w-[85%] rounded-2xl px-3 py-2 text-sm" style={{ background: mine ? '#DBEAFE' : '#F3E8FF', overflowWrap: 'anywhere' }}><strong className="block">{sender.avatar} {sender.name}</strong>{message.kind === 'text' ? <p>{message.body}</p> : <audio controls preload="none" src={message.audio_data || ''} className="mt-2 max-w-full" aria-label={`Áudio de ${sender.name}`} />}</div></div>
           })}
         </div>
         <form className="mt-3 flex gap-2" onSubmit={sendMessage}>
@@ -261,7 +294,9 @@ export default function OnlineRoomPage() {
             placeholder="Escreva com carinho…" className="min-w-0 flex-1 rounded-2xl border border-purple-200 bg-white px-3 text-sm" />
           <button type="submit" className="btn-primary h-11 w-11 p-0" aria-label="Enviar mensagem" disabled={!roomConnected || !cleanRoomMessage(draft) || !opponent}><Send size={18} /></button>
         </form>
-        <p className="mt-2 text-xs font-bold" style={{ color: '#4B5563' }}>Converse somente com alguém que você conhece. Não compartilhe nome completo, endereço, escola, telefone ou senha. O site não grava o áudio e as mensagens da sala não ficam salvas. Se algo incomodar, saia da sala e conte a um adulto responsável.</p>
+        <AudioMessageComposer disabled={!roomConnected || !opponent} onSend={sendAudio} />
+        {opponentId && <div className="mt-3 grid grid-cols-2 gap-2"><button type="button" className="min-h-11 rounded-2xl bg-slate-100 px-3 text-sm font-bold" onClick={() => void protectFromOpponent()}><Ban className="inline" size={16} /> Bloquear</button><button type="button" className="min-h-11 rounded-2xl bg-orange-50 px-3 text-sm font-bold" style={{ color: '#9A3412' }} onClick={() => void protectFromOpponent(true)}><AlertTriangle className="inline" size={16} /> Denunciar</button></div>}
+        <p className="mt-2 text-xs font-bold" style={{ color: '#4B5563' }}>Converse somente com alguém conhecido. Não compartilhe nome completo, endereço, escola, telefone, senha ou fotos. Texto e áudio curto deixam de ficar disponíveis após 24 horas; a outra pessoa ainda pode gravar por fora do site. Se algo incomodar, bloqueie, saia e conte a um adulto responsável.</p>
       </aside>
     </section>
   )
