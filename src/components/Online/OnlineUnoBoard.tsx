@@ -107,7 +107,7 @@ const INIT_GS: GS = {
 
 type Props = {
   isHost: boolean
-  roomStatus: 'waiting' | 'active'
+  roomStatus: 'waiting' | 'active' | 'finished' | 'cancelled'
   opponent: OnlinePlayer | null
   broadcastGameState: any
   guestMove: any

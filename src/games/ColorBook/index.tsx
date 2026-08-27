@@ -370,18 +370,7 @@ function random(seed: number) {
   return ((t ^ t >>> 14) >>> 0) / 4294967296;
 }
 
-export function getMandalaRegions(seed: number): string[] {
-  const rings = 4 + Math.floor(random(seed) * 3);
-  const segments = 6 + Math.floor(random(seed * 2) * 6) * 2;
-  const regions = [`md-${seed}-bg`, `md-${seed}-0`];
-  let idx = 1;
-  for (let r = 1; r <= rings; r++) {
-    for (let s = 0; s < segments; s++) {
-      regions.push(`md-${seed}-${idx++}`);
-    }
-  }
-  return regions;
-}
+
 
 const MandalaSVG: React.FC<{ seed: number; fills: FillMap; onClickRegion: (id: string) => void }> = ({ seed, fills, onClickRegion }) => {
   const rings = 4 + Math.floor(random(seed) * 3);
@@ -442,6 +431,100 @@ const MandalaSVG: React.FC<{ seed: number; fills: FillMap; onClickRegion: (id: s
   );
 };
 
+
+
+
+
+
+const DanielSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> = ({ fills, onClickRegion }) => (
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="coloring-svg" width="100%" height="100%">
+    <rect x="5" y="5" width="190" height="190" rx="16" {...rp('dn-bg', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <path d="M 5 150 Q 100 130 195 150 L 195 195 L 5 195 Z" {...rp('dn-ground', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <rect x="90" y="80" width="20" height="40" rx="5" {...rp('dn-daniel', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="100" cy="65" r="10" {...rp('dn-daniel', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <ellipse cx="40" cy="130" rx="20" ry="15" {...rp('dn-lion1-body', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="55" cy="115" r="15" {...rp('dn-lion1-mane', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="55" cy="115" r="10" {...rp('dn-lion1-head', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <ellipse cx="160" cy="130" rx="20" ry="15" {...rp('dn-lion2-body', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="145" cy="115" r="15" {...rp('dn-lion2-mane', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="145" cy="115" r="10" {...rp('dn-lion2-head', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+  </svg>
+)
+
+const GoliathSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> = ({ fills, onClickRegion }) => (
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="coloring-svg" width="100%" height="100%">
+    <rect x="5" y="5" width="190" height="190" rx="16" {...rp('gl-bg', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <path d="M 5 160 Q 100 150 195 160 L 195 195 L 5 195 Z" {...rp('gl-ground', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <rect x="40" y="110" width="15" height="30" rx="4" {...rp('gl-david', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="47.5" cy="95" r="8" {...rp('gl-david', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <path d="M 55 115 Q 70 100 85 110" fill="none" {...rp('gl-sling', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="85" cy="110" r="4" {...rp('gl-stone', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <rect x="130" y="60" width="30" height="80" rx="6" {...rp('gl-goliath', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="145" cy="40" r="12" {...rp('gl-goliath', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <line x1="120" y1="20" x2="120" y2="140" {...rp('gl-spear', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <polygon points="115,20 125,20 120,5" {...rp('gl-spear', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+  </svg>
+)
+
+const MangerSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> = ({ fills, onClickRegion }) => (
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="coloring-svg" width="100%" height="100%">
+    <rect x="5" y="5" width="190" height="190" rx="16" {...rp('mg-bg', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <polygon points="100,20 105,35 120,35 108,45 112,60 100,50 88,60 92,45 80,35 95,35" {...rp('mg-star', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <path d="M 70 140 L 130 140 L 120 170 L 80 170 Z" {...rp('mg-manger', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <polygon points="75,170 65,190 70,190 80,170" {...rp('mg-manger', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <polygon points="125,170 135,190 130,190 120,170" {...rp('mg-manger', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <ellipse cx="100" cy="130" rx="15" ry="10" {...rp('mg-baby', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="85" cy="125" r="8" {...rp('mg-baby', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <path d="M 30 140 Q 50 100 60 140" {...rp('mg-mary', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="45" cy="100" r="10" {...rp('mg-mary', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <path d="M 170 140 Q 150 80 140 140" {...rp('mg-joseph', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="155" cy="80" r="10" {...rp('mg-joseph', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+  </svg>
+)
+
+const ZacchaeusSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> = ({ fills, onClickRegion }) => (
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="coloring-svg" width="100%" height="100%">
+    <rect x="5" y="5" width="190" height="190" rx="16" {...rp('zc-bg', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <path d="M 140 190 Q 150 120 130 90 L 160 90 Q 170 120 180 190 Z" {...rp('zc-tree-trunk', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="145" cy="60" r="35" {...rp('zc-tree-leaves1', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="115" cy="80" r="30" {...rp('zc-tree-leaves2', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="175" cy="80" r="30" {...rp('zc-tree-leaves2', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <rect x="130" y="50" width="15" height="25" rx="4" {...rp('zc-zacchaeus', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="137.5" cy="35" r="8" {...rp('zc-zacchaeus', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <rect x="40" y="140" width="20" height="40" rx="5" {...rp('zc-jesus', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="50" cy="125" r="10" {...rp('zc-jesus', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+  </svg>
+)
+
+const ShepherdSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> = ({ fills, onClickRegion }) => (
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="coloring-svg" width="100%" height="100%">
+    <rect x="5" y="5" width="190" height="190" rx="16" {...rp('sh-bg', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="160" cy="40" r="20" {...rp('sh-sun', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <path d="M 5 130 Q 100 100 195 140 L 195 195 L 5 195 Z" {...rp('sh-hill', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <rect x="50" y="80" width="25" height="60" rx="8" {...rp('sh-shepherd', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="62.5" cy="60" r="12" {...rp('sh-shepherd', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <path d="M 90 140 L 90 60 Q 90 40 100 40 Q 110 40 110 50" fill="none" {...rp('sh-staff', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <ellipse cx="140" cy="150" rx="20" ry="12" {...rp('sh-sheep', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <circle cx="120" cy="140" r="8" {...rp('sh-sheep', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <rect x="125" y="155" width="4" height="10" rx="2" {...rp('sh-sheep', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+    <rect x="145" y="155" width="4" height="10" rx="2" {...rp('sh-sheep', fills, onClickRegion, { strokeWidth: 3, stroke: '#1F2937' })} />
+  </svg>
+)
+
+function getMandalaRegions(seed: number): string[] {
+  const rings = 4 + Math.floor(random(seed) * 3);
+  const segments = 6 + Math.floor(random(seed * 2) * 6) * 2;
+  const regions = [`md-${seed}-bg`];
+  let idx = 0;
+  regions.push(`md-${seed}-${idx++}`);
+  for (let r = 1; r <= rings; r++) {
+    for (let s = 0; s < segments; s++) {
+      regions.push(`md-${seed}-${idx++}`);
+    }
+  }
+  return regions;
+}
+
 const MANDALA_DRAWINGS: DrawingDef[] = Array.from({ length: 100 }).map((_, i) => ({
   id: `mandala-${i}`,
   name: `Vitral ${i + 1}`,
@@ -453,6 +536,51 @@ const MANDALA_DRAWINGS: DrawingDef[] = Array.from({ length: 100 }).map((_, i) =>
 }));
 
 const DRAWINGS: DrawingDef[] = [
+  {
+    id: 'daniel',
+    name: 'Daniel na Cova',
+    emoji: '🦁',
+    verseRef: 'Daniel 6:22',
+    verseText: 'O meu Deus enviou o seu anjo, e fechou a boca dos leões.',
+    regions: ['dn-bg', 'dn-lion1-body', 'dn-lion1-mane', 'dn-lion1-head', 'dn-lion2-body', 'dn-lion2-mane', 'dn-lion2-head', 'dn-daniel', 'dn-ground'],
+    Component: DanielSVG
+  },
+  {
+    id: 'goliath',
+    name: 'Davi e Golias',
+    emoji: '⚔️',
+    verseRef: '1 Samuel 17:45',
+    verseText: 'Eu vou contra ti em nome do Senhor dos Exércitos.',
+    regions: ['gl-bg', 'gl-david', 'gl-sling', 'gl-goliath', 'gl-spear', 'gl-stone', 'gl-ground'],
+    Component: GoliathSVG
+  },
+  {
+    id: 'manger',
+    name: 'Manjedoura',
+    emoji: '🌟',
+    verseRef: 'Lucas 2:12',
+    verseText: 'Encontrareis um menino envolto em faixas, e deitado numa manjedoura.',
+    regions: ['mg-bg', 'mg-star', 'mg-manger', 'mg-baby', 'mg-mary', 'mg-joseph'],
+    Component: MangerSVG
+  },
+  {
+    id: 'zacchaeus',
+    name: 'Zaqueu',
+    emoji: '🌳',
+    verseRef: 'Lucas 19:5',
+    verseText: 'Zaqueu, desce depressa, porque hoje me convém pousar em tua casa.',
+    regions: ['zc-bg', 'zc-tree-trunk', 'zc-tree-leaves1', 'zc-tree-leaves2', 'zc-zacchaeus', 'zc-jesus'],
+    Component: ZacchaeusSVG
+  },
+  {
+    id: 'shepherd',
+    name: 'A Ovelha Perdida',
+    emoji: '🐑',
+    verseRef: 'Lucas 15:6',
+    verseText: 'Alegrai-vos comigo, porque já achei a minha ovelha perdida.',
+    regions: ['sh-bg', 'sh-shepherd', 'sh-staff', 'sh-sheep', 'sh-sun', 'sh-hill'],
+    Component: ShepherdSVG
+  },
   { ...lesson('ark'), regions: ['ark-sky', 'ark-sun', 'ark-c1', 'ark-c2', 'ark-hull', 'ark-cb-base', 'ark-cb-up', 'ark-roof', 'ark-door', 'ark-w1', 'ark-w2', 'ark-wa1'], Component: ArkSVG },
   { ...lesson('new-life'), regions: ['bf-ant-l-t', 'bf-ant-r-t', 'bf-w-tl', 'bf-w-tr', 'bf-w-bl', 'bf-w-br', 'bf-wtl-p1', 'bf-wtl-p2', 'bf-wtl-p3', 'bf-wtr-p1', 'bf-wtr-p2', 'bf-wtr-p3', 'bf-wbl-p1', 'bf-wbl-p2', 'bf-wbl-p3', 'bf-wbr-p1', 'bf-wbr-p2', 'bf-wbr-p3', 'bf-ab', 'bf-th', 'bf-hd'], Component: ButterflySVG },
   { ...lesson('creation'), regions: ['fl-stem','fl-leaf-l','fl-leaf-r','fl-petal-t','fl-petal-b','fl-petal-l','fl-petal-r','fl-petal-tl','fl-petal-tr','fl-center'], Component: FlowerSVG },

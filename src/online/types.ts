@@ -95,7 +95,7 @@ export interface OnlineRoomStateGeneric {
 
 export type OnlineRoomState = OnlineRoomStateTTT | OnlineRoomStateGeneric
 
-export type OnlineGameType = 'tic-tac-toe' | 'memory' | 'checkers' | 'quiz' | 'pong'
+export type OnlineGameType = 'tic-tac-toe' | 'memory' | 'checkers' | 'quiz' | 'pong' | 'uno'
 
 export interface OnlineRoom {
   id: string
