@@ -5,7 +5,7 @@ import { useSound } from '../../contexts/SoundContext'
 import { usePlayer } from '../../contexts/PlayerContext'
 import coloringLessons from '../../data/coloringLessons.json'
 
-// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Types ────────────────────────────────────────────────────────────────────
 type FillMap = Record<string, string>
 type UndoEntry = { id: string; prev: string }
 
@@ -19,7 +19,7 @@ interface DrawingDef {
   Component: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }>
 }
 
-// â”€â”€â”€ Palette â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Palette ──────────────────────────────────────────────────────────────────
 const PALETTE: { label: string; color: string }[] = [
   { label: 'Branco',         color: '#FFFFFF' },
   { label: 'Preto',          color: '#111111' },
@@ -30,9 +30,9 @@ const PALETTE: { label: string; color: string }[] = [
   { label: 'Verde',          color: '#22C55E' },
   { label: 'Verde-Azulado',  color: '#14B8A6' },
   { label: 'Ciano',          color: '#06B6D4' },
-  { label: 'Azul CÃ©u',       color: '#38BDF8' },
+  { label: 'Azul Céu',       color: '#38BDF8' },
   { label: 'Azul',           color: '#3B82F6' },
-  { label: 'Ãndigo',         color: '#6366F1' },
+  { label: 'Índigo',         color: '#6366F1' },
   { label: 'Violeta',        color: '#8B5CF6' },
   { label: 'Roxo',           color: '#A855F8' },
   { label: 'Rosa',           color: '#EC4899' },
@@ -40,16 +40,16 @@ const PALETTE: { label: string; color: string }[] = [
   { label: 'Marrom',         color: '#92400E' },
   { label: 'Cinza',          color: '#9CA3AF' },
   { label: 'Azul Mel',       color: '#6BB8FF' },
-  { label: 'LilÃ¡s Mel',      color: '#A78BFA' },
+  { label: 'Lilás Mel',      color: '#A78BFA' },
   { label: 'Dourado',        color: '#F59E0B' },
   { label: 'Prata',          color: '#CBD5E1' },
-  { label: 'PÃªssego',        color: '#FDBA74' },
-  { label: 'HortelÃ£',        color: '#6EE7B7' },
+  { label: 'Pêssego',        color: '#FDBA74' },
+  { label: 'Hortelã',        color: '#6EE7B7' },
 ]
 
 const UNCOLORED = '#E5E7EB'
 
-// â”€â”€â”€ Helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Helper ───────────────────────────────────────────────────────────────────
 function rp(
   id: string,
   fills: FillMap,
@@ -68,7 +68,7 @@ function rp(
     },
     tabIndex: 0,
     role: 'button',
-    'aria-label': `Colorir regiÃ£o ${id.replace(/-/g, ' ')}`,
+    'aria-label': `Colorir região ${id.replace(/-/g, ' ')}`,
     style: { cursor: 'pointer' },
     stroke: '#9CA3AF',
     strokeWidth: 1,
@@ -76,7 +76,7 @@ function rp(
   }
 }
 
-// â”€â”€â”€ SVG Drawings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── SVG Drawings ─────────────────────────────────────────────────────────────
 
 const ArkSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> = ({ fills, onClickRegion }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" id="coloring-svg" width="100%" height="100%">
@@ -270,7 +270,7 @@ const CastleSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void 
   </svg>
 )
 
-// â”€â”€â”€ Drawing Registry â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Drawing Registry ──────────────────────────────────────────────────────────
 const lesson = (id: string) => coloringLessons.find(item => item.id === id)!
 
 const CrossSVG: React.FC<{ fills: FillMap; onClickRegion: (id: string) => void }> = ({ fills, onClickRegion }) => (
@@ -622,7 +622,7 @@ function serializeDrawingWithVerse(svgElement: SVGSVGElement, drawing: DrawingDe
   reference.setAttribute('font-size', '9')
   reference.setAttribute('font-weight', '800')
   reference.setAttribute('fill', '#7B5EA7')
-  reference.textContent = `${drawing.name} â€” ${drawing.verseRef}`
+  reference.textContent = `${drawing.name} — ${drawing.verseRef}`
   svg.appendChild(reference)
 
   const words = drawing.verseText.split(' ')
@@ -652,7 +652,7 @@ function serializeDrawingWithVerse(svgElement: SVGSVGElement, drawing: DrawingDe
   return new XMLSerializer().serializeToString(svg)
 }
 
-// â”€â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Main Component ────────────────────────────────────────────────────────────
 const ALL_DRAWINGS = [...DRAWINGS, ...MANDALA_DRAWINGS];
 
 export default function ColorBook() {
@@ -694,7 +694,7 @@ export default function ColorBook() {
     completedRef.current.add(drawing.id)
     addAchievement(`colorbook-${drawing.id}`)
     if (completedRef.current.size === DRAWINGS.length) addAchievement('colorbook-master')
-    // ðŸŽ‰ Celebration!
+    // 🎉 Celebration!
     playSound('win')
     confetti({ particleCount: 120, spread: 90, origin: { y: 0.6 }, colors: ['#6BB8FF','#A78BFA','#FCD34D','#34D399','#ffffff'] })
     setTimeout(() => confetti({ particleCount: 80, spread: 120, origin: { y: 0.4, x: 0.3 }, colors: ['#FCA5A5','#A78BFA','#FCD34D'] }), 350)
@@ -977,12 +977,12 @@ export default function ColorBook() {
               </h2>
               <ul className="text-sm space-y-2" style={{ color: '#4B5563' }}>
                 <li>Escolha uma cor na paleta colorida na parte de baixo.</li>
-                <li>Clique em uma regiÃ£o do desenho â€” ou use Tab e Enter â€” para colorir.</li>
-                <li>Escolha uma cena bÃ­blica na fila no topo da tela.</li>
-                <li>Desfazer remove a Ãºltima pincelada.</li>
+                <li>Clique em uma região do desenho — ou use Tab e Enter — para colorir.</li>
+                <li>Escolha uma cena bíblica na fila no topo da tela.</li>
+                <li>Desfazer remove a última pincelada.</li>
                 <li>Limpar apaga todas as cores do desenho atual.</li>
-                <li>Salvar baixa o SVG com a mensagem e a referÃªncia bÃ­blica.</li>
-                <li>Complete todas as regiÃµes para ganhar um selo!</li>
+                <li>Salvar baixa o SVG com a mensagem e a referência bíblica.</li>
+                <li>Complete todas as regiões para ganhar um selo!</li>
               </ul>
               <button className="btn-primary w-full mt-4"
                 onClick={() => { playSound('click'); setShowHelp(false) }}>
@@ -1001,7 +1001,7 @@ export default function ColorBook() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <motion.div className="glass-card p-6 max-w-xs w-full text-center"
               initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}>
-              <div className="text-4xl mb-2">ðŸ–¼</div>
+              <div className="text-4xl mb-2">🖼️</div>
               <h2 className="text-lg font-bold mb-1"
                 style={{ fontFamily: 'Fredoka One, cursive', color: '#7B5EA7' }}>
                 Trocar de Desenho
@@ -1027,7 +1027,7 @@ export default function ColorBook() {
         )}
       </AnimatePresence>
 
-      {/* ðŸŽ‰ Drawing Completion Celebration Overlay */}
+      {/* 🎉 Drawing Completion Celebration Overlay */}
       <AnimatePresence>
         {showCelebration && (
           <motion.div
@@ -1053,7 +1053,7 @@ export default function ColorBook() {
                 className="text-6xl mb-3"
               >{drawing.emoji}</motion.div>
               <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: '#A78BFA' }}>
-                ðŸŽ‰ Desenho Completo!
+                🎉 Desenho Completo!
               </p>
               <h2 className="text-xl font-black mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#5B3A8A' }}>
                 {drawing.name}
@@ -1067,7 +1067,7 @@ export default function ColorBook() {
                 className="btn-primary w-full"
                 onClick={() => { playSound('click'); setShowCelebration(false) }}
               >
-                Continuar Colorindo! ðŸŽ¨
+                Continuar Colorindo! 🎨
               </button>
             </motion.div>
           </motion.div>

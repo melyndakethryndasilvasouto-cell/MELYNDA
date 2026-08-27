@@ -26,7 +26,7 @@ interface OnlineContextValue {
   lobbyMessages: OnlineLobbyMessage[]
   error: string
   acceptSafety: () => void
-  goOffline: () => Promise<void>
+  goOffline: () => void
   connect: () => Promise<void>
   refreshOnline: () => Promise<void>
   sendLobbyMessage: (messageIndex: number) => Promise<void>
@@ -278,13 +278,16 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
 
     // Notify server asynchronously
     if (supabase && lastUser) {
-      supabase.rpc('go_offline').then(result => {
-        if (result.error) {
-          window.setTimeout(() => supabase.rpc('go_offline'), 500)
+      (async () => {
+        try {
+          const result = await supabase.rpc('go_offline')
+          if (result.error) {
+            window.setTimeout(() => supabase.rpc('go_offline'), 500)
+          }
+        } catch (err) {
+          console.error('Background offline rpc failed', err)
         }
-      }).catch(err => {
-        console.error('Background offline rpc failed', err)
-      })
+      })()
     }
   }, [clearHeartbeat, disconnect])
 
