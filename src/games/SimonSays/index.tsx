@@ -449,10 +449,7 @@ export default function SimonSays() {
               aria-label={color.label}
               disabled={!pressable}
               onClick={() => pressable && handleButtonInteraction(color.id)}
-              onTouchStart={(e) => {
-                e.preventDefault()
-                if (pressable) handleButtonInteraction(color.id)
-              }}
+              
               animate={lit ? { scale: 1.05 } : { scale: 1 }}
               whileTap={pressable ? { scale: 0.92 } : {}}
               transition={{ type: 'spring', stiffness: 420, damping: 22 }}
