@@ -10,6 +10,9 @@ import { useRoomVoice } from '../../online/useRoomVoice'
 import { supabase } from '../../services/supabase'
 import AudioMessageComposer from './AudioMessageComposer'
 import OnlineSafetyGate from './OnlineSafetyGate'
+import OnlineMemoryBoard from './OnlineMemoryBoard'
+import OnlineCheckersBoard from './OnlineCheckersBoard'
+import OnlineQuizBoard from './OnlineQuizBoard'
 
 const EMPTY_ROOM_MESSAGES: OnlineChatMessage[] = []
 
@@ -39,12 +42,16 @@ export default function OnlineRoomPage() {
   const [loading, setLoading] = useState(true)
   const [moving, setMoving] = useState(false)
   const [voiceConsentOpen, setVoiceConsentOpen] = useState(false)
+  // Multi-game broadcast state
+  const [broadcastGameState, setBroadcastGameState] = useState<unknown>(null)
+  const [guestMove, setGuestMove] = useState<unknown>(null)
   const roomRef = useRef<OnlineRoom | null>(null)
   const voiceHandlerRef = useRef<(payload: unknown) => Promise<void>>(async () => {})
   const messageLogRef = useRef<HTMLDivElement>(null)
   const keepAtBottomRef = useRef(true)
   const [newMessages, setNewMessages] = useState(false)
   const hostId = room?.host_id || ''
+  const isHost = hostId === userId && hostId !== ''
   const voice = useRoomVoice(channel, userId, hostId)
   roomRef.current = room
   voiceHandlerRef.current = voice.handleSignal as (payload: unknown) => Promise<void>
@@ -102,6 +109,27 @@ export default function OnlineRoomPage() {
         const signal = typeof payload === 'object' && payload ? payload as Record<string, unknown> : {}
         void voiceHandlerRef.current({ ...signal, senderId: remoteParticipantId })
       })
+      .on('broadcast', { event: 'game-state' }, ({ payload }) => {
+        if (!active) return
+        const currentRoom = roomRef.current
+        // Only the guest applies the host's broadcast state
+        if (currentRoom && currentRoom.host_id !== userId) {
+          setBroadcastGameState((payload as Record<string, unknown>).gameState ?? null)
+        }
+      })
+      .on('broadcast', { event: 'game-move' }, ({ payload }) => {
+        if (!active) return
+        const currentRoom = roomRef.current
+        // Only the host processes guest move requests
+        if (currentRoom && currentRoom.host_id === userId) {
+          setGuestMove((payload as Record<string, unknown>).move ?? null)
+        }
+      })
+      .on('broadcast', { event: 'game-restart' }, () => {
+        if (!active) return
+        setBroadcastGameState(null)
+        setGuestMove(null)
+      })
       .subscribe(subscriptionStatus => {
         if (subscriptionStatus === 'SUBSCRIBED') setRoomConnected(true)
         if (subscriptionStatus === 'CHANNEL_ERROR' || subscriptionStatus === 'TIMED_OUT') {
@@ -137,9 +165,11 @@ export default function OnlineRoomPage() {
   const mySymbol = room?.host_id === userId ? 'X' : 'O'
   const opponentId = room ? (room.host_id === userId ? room.guest_id : room.host_id) : null
   const opponent = opponentId ? profiles[opponentId] : null
-  const board = room?.state?.board || Array(9).fill(null)
-  const result = room?.state?.result || 'playing'
-  const myTurn = room?.status === 'active' && room.state.turn === mySymbol
+  // TTT-specific state — cast safely since non-TTT games don't use these
+  const tttState = room?.state as { board?: (string | null)[]; turn?: string; result?: string } | undefined
+  const board = (tttState?.board || Array(9).fill(null)) as (string | null)[]
+  const result = (tttState?.result || 'playing') as string
+  const myTurn = room?.status === 'active' && tttState?.turn === mySymbol
   const statusText = useMemo(() => {
     if (!room) return 'Abrindo sala…'
     if (room.status === 'waiting') return 'Aguardando o outro jogador aceitar o convite…'
@@ -174,10 +204,31 @@ export default function OnlineRoomPage() {
 
   const restart = async () => {
     if (!supabase) return
-    const response = await supabase.rpc('restart_online_ttt', { room: roomId })
-    if (response.error) setError(roomError(response.error))
-    else setRoom(response.data as OnlineRoom)
+    if (room?.game === 'tic-tac-toe' || !room?.game) {
+      const response = await supabase.rpc('restart_online_ttt', { room: roomId })
+      if (response.error) setError(roomError(response.error))
+      else setRoom(response.data as OnlineRoom)
+    } else {
+      channel?.send({ type: 'broadcast', event: 'game-restart', payload: {} })
+      const response = await supabase.rpc('restart_online_room', { room: roomId })
+      if (response.error) setError(roomError(response.error))
+      else { setBroadcastGameState(null); setGuestMove(null); setRoom(response.data as OnlineRoom) }
+    }
   }
+
+  // Broadcast helpers used by non-TTT game components
+  const broadcastState = useCallback((gameState: unknown) => {
+    channel?.send({ type: 'broadcast', event: 'game-state', payload: { gameState } })
+  }, [channel])
+
+  const broadcastMove = useCallback((move: unknown) => {
+    channel?.send({ type: 'broadcast', event: 'game-move', payload: { move } })
+  }, [channel])
+
+  const finishRoom = useCallback(async (winner: 'host' | 'guest' | 'draw') => {
+    if (!supabase) return
+    await supabase.rpc('finish_online_room', { room: roomId, winner })
+  }, [roomId])
 
   const leave = async (confirmed = false) => {
     if (!confirmed && !window.confirm('Sair desta partida e voltar para a lista Online?')) return
@@ -240,29 +291,84 @@ export default function OnlineRoomPage() {
     <section className="pb-6 pt-3">
       <header className="text-center">
         <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#1D4E89' }}>Sala privada • Jogo online</p>
-        <h1 className="mt-1 font-title text-3xl" style={{ color: '#5B3A8A' }}>Jogo da Velha</h1>
-        <p className="mt-2 font-black" aria-live="polite" style={{ color: myTurn ? '#166534' : '#6B7280' }}>{statusText}</p>
+        <h1 className="mt-1 font-title text-3xl" style={{ color: '#5B3A8A' }}>
+          {room.game === 'memory' ? '🕊️ Memória da Bíblia'
+            : room.game === 'checkers' ? '🛡️ Dama'
+            : room.game === 'quiz' ? '📖 Quiz da Bíblia'
+            : room.game === 'pong' ? '🎯 Ping Pong'
+            : '🛤️ Jogo da Velha'}
+        </h1>
+        {room.game === 'tic-tac-toe' && (
+          <p className="mt-2 font-black" aria-live="polite" style={{ color: myTurn ? '#166534' : '#6B7280' }}>{statusText}</p>
+        )}
       </header>
 
       <div className="glass-card mt-4 grid grid-cols-2 gap-3 p-3 text-center">
-        <div className={mySymbol === 'X' ? 'rounded-2xl bg-blue-50 p-2' : 'p-2'}>
+        <div className={isHost ? 'rounded-2xl bg-blue-50 p-2' : 'p-2'}>
           <p className="text-2xl" aria-hidden="true">{playerAvatar}</p>
-          <p className="truncate text-sm font-black">{playerName} ({mySymbol})</p>
+          <p className="truncate text-sm font-black">{playerName} {room.game === 'tic-tac-toe' ? `(${mySymbol})` : isHost ? '👑' : ''}</p>
         </div>
-        <div className={mySymbol === 'O' ? 'rounded-2xl bg-purple-50 p-2' : 'p-2'}>
+        <div className={!isHost ? 'rounded-2xl bg-purple-50 p-2' : 'p-2'}>
           <p className="text-2xl" aria-hidden="true">{opponent?.avatar || '⏳'}</p>
-          <p className="truncate text-sm font-black">{opponent ? `${opponent.name} (${mySymbol === 'X' ? 'O' : 'X'})` : 'Aguardando…'}</p>
+          <p className="truncate text-sm font-black">
+            {opponent ? `${opponent.name} ${room.game === 'tic-tac-toe' ? `(${mySymbol === 'X' ? 'O' : 'X'})` : ''}` : 'Aguardando…'}
+          </p>
         </div>
       </div>
 
-      <div className="mx-auto mt-5 grid w-full max-w-[340px] grid-cols-3 gap-3" aria-label="Tabuleiro do Jogo da Velha">
-        {board.map((cell, index) => (
-          <button key={index} type="button" onClick={() => void play(index)} disabled={!myTurn || moving || cell !== null}
-            aria-label={cell ? `Casa ${index + 1}, marcada com ${cell}` : `Casa ${index + 1}, vazia`}
-            className="flex aspect-square items-center justify-center rounded-3xl bg-white text-5xl font-black shadow-md transition-transform enabled:active:scale-90 disabled:cursor-default"
-            style={{ color: cell === 'X' ? '#4A90D9' : '#7B5EA7', border: '2px solid rgba(196,181,253,.55)' }}>{cell}</button>
-        ))}
-      </div>
+      {/* ── TicTacToe board ── */}
+      {(room.game === 'tic-tac-toe' || !room.game) && (
+        <div className="mx-auto mt-5 grid w-full max-w-[340px] grid-cols-3 gap-3" aria-label="Tabuleiro do Jogo da Velha">
+          {board.map((cell, index) => (
+            <button key={index} type="button" onClick={() => void play(index)} disabled={!myTurn || moving || cell !== null}
+              aria-label={cell ? `Casa ${index + 1}, marcada com ${cell}` : `Casa ${index + 1}, vazia`}
+              className="flex aspect-square items-center justify-center rounded-3xl bg-white text-5xl font-black shadow-md transition-transform enabled:active:scale-90 disabled:cursor-default"
+              style={{ color: cell === 'X' ? '#4A90D9' : '#7B5EA7', border: '2px solid rgba(196,181,253,.55)' }}>{cell}</button>
+          ))}
+        </div>
+      )}
+
+      {/* ── Memory online board ── */}
+      {room.game === 'memory' && (
+        <OnlineMemoryBoard
+          isHost={isHost}
+          roomStatus={room.status}
+          opponent={opponent}
+          broadcastGameState={broadcastGameState}
+          guestMove={guestMove}
+          onBroadcastState={broadcastState}
+          onBroadcastMove={broadcastMove}
+          onFinish={finishRoom}
+        />
+      )}
+
+      {/* ── Checkers online board ── */}
+      {room.game === 'checkers' && (
+        <OnlineCheckersBoard
+          isHost={isHost}
+          roomStatus={room.status}
+          opponent={opponent}
+          broadcastGameState={broadcastGameState}
+          guestMove={guestMove}
+          onBroadcastState={broadcastState}
+          onBroadcastMove={broadcastMove}
+          onFinish={finishRoom}
+        />
+      )}
+
+      {/* ── Quiz online board ── */}
+      {room.game === 'quiz' && (
+        <OnlineQuizBoard
+          isHost={isHost}
+          roomStatus={room.status}
+          opponent={opponent}
+          broadcastGameState={broadcastGameState}
+          guestMove={guestMove}
+          onBroadcastState={broadcastState}
+          onBroadcastMove={broadcastMove}
+          onFinish={finishRoom}
+        />
+      )}
 
       {error && <p role="alert" className="mt-3 rounded-2xl bg-amber-50 p-3 text-center text-sm font-bold" style={{ color: '#92400E' }}>{error}</p>}
 

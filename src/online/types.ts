@@ -78,22 +78,49 @@ export interface OnlineLobbyMessage {
   text: string
 }
 
-export interface OnlineRoomState {
+export interface OnlineRoomStateTTT {
   board: TicTacToeCell[]
   turn: 'X' | 'O'
   result: 'playing' | 'X' | 'O' | 'draw'
   round: number
 }
 
+// Generic state for broadcast-based games (Memory, Checkers, Quiz, Pong)
+export interface OnlineRoomStateGeneric {
+  result: 'playing' | 'host' | 'guest' | 'draw' | 'finished'
+  round: number
+  winner?: string | null
+  [key: string]: unknown
+}
+
+export type OnlineRoomState = OnlineRoomStateTTT | OnlineRoomStateGeneric
+
+export type OnlineGameType = 'tic-tac-toe' | 'memory' | 'checkers' | 'quiz' | 'pong'
+
 export interface OnlineRoom {
   id: string
-  game: 'tic-tac-toe'
+  game: OnlineGameType
   host_id: string
   guest_id: string | null
   status: RoomStatus
   state: OnlineRoomState
   version: number
 }
+
+// Broadcast message types for non-TTT games
+export interface OnlineBroadcastGameState {
+  type: 'full-state'
+  gameState: unknown
+  hostScore?: number
+  guestScore?: number
+}
+
+export interface OnlineBroadcastMove {
+  type: 'move'
+  move: unknown
+}
+
+export type OnlineBroadcastPayload = OnlineBroadcastGameState | OnlineBroadcastMove
 
 export const LOBBY_QUICK_MESSAGES = [
   'Oi! Vamos jogar?',

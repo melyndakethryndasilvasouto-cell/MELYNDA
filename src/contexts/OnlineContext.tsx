@@ -30,7 +30,7 @@ interface OnlineContextValue {
   connect: () => Promise<void>
   refreshOnline: () => Promise<void>
   sendLobbyMessage: (messageIndex: number) => Promise<void>
-  invitePlayer: (guestId: string) => Promise<string>
+  invitePlayer: (guestId: string, gameType?: string) => Promise<string>
   respondInvite: (inviteId: string, accept: boolean) => Promise<string>
   createGroup: (name: string) => Promise<string>
   inviteToGroup: (groupId: string, guestId: string) => Promise<void>
@@ -290,10 +290,13 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
     await loadMessages()
   }, [loadMessages])
 
-  const invitePlayer = useCallback(async (guestId: string) => {
+  const invitePlayer = useCallback(async (guestId: string, gameType?: string) => {
     if (!supabase) throw new Error('NOT_CONFIGURED')
     setError('')
-    const result = await supabase.rpc('create_online_invite', { guest: guestId })
+    const result = await supabase.rpc('create_online_invite', {
+      guest: guestId,
+      game_type: gameType ?? 'tic-tac-toe',
+    })
     if (result.error) {
       const translated = friendlyError(result.error)
       setError(translated)

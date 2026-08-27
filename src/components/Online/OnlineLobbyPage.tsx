@@ -1,5 +1,5 @@
 import { FormEvent, useCallback, useMemo, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   AlertTriangle,
   Ban,
@@ -30,12 +30,13 @@ export default function OnlineLobbyPage() {
   const [busy, setBusy] = useState('')
   const [chatOpen, setChatOpen] = useState(false)
   const [selectedPlayer, setSelectedPlayer] = useState<OnlinePlayer | null>(null)
+  const [pickingGameFor, setPickingGameFor] = useState<OnlinePlayer | null>(null)
   const [groupName, setGroupName] = useState('Turma da Bíblia')
   const [creatingGroup, setCreatingGroup] = useState(false)
   const [notice, setNotice] = useState('')
   const playerDialogFirstRef = useRef<HTMLButtonElement>(null)
-  const closePlayerDialog = useCallback(() => setSelectedPlayer(null), [])
-  useAccessibleDialog(Boolean(selectedPlayer), closePlayerDialog, playerDialogFirstRef)
+  const closePlayerDialog = useCallback(() => { setSelectedPlayer(null); setPickingGameFor(null) }, [])
+  useAccessibleDialog(Boolean(selectedPlayer) || Boolean(pickingGameFor), closePlayerDialog, playerDialogFirstRef)
 
   const ownedGroups = useMemo(() => groups.filter(group => group.owner_id === userId), [groups, userId])
 
@@ -44,11 +45,13 @@ export default function OnlineLobbyPage() {
     void connect()
   }
 
-  const invite = async (player: OnlinePlayer) => {
+  const invite = async (player: OnlinePlayer, gameType = 'tic-tac-toe') => {
     setBusy(player.userId)
     setNotice('')
     try {
-      const roomId = await invitePlayer(player.userId)
+      const roomId = await invitePlayer(player.userId, gameType)
+      setPickingGameFor(null)
+      setSelectedPlayer(null)
       navigate(`/online/sala/${roomId}`)
     } catch (inviteError) {
       setNotice(inviteError instanceof Error ? inviteError.message : 'Não foi possível enviar o convite.')
@@ -195,16 +198,61 @@ export default function OnlineLobbyPage() {
         <div className="mt-3 grid gap-2">{LOBBY_QUICK_MESSAGES.map((message, index) => <button key={message} type="button" className="flex min-h-11 items-center justify-between rounded-2xl bg-blue-50 px-3 text-left text-xs font-bold" style={{ color: '#1D4ED8' }} disabled={status !== 'connected'} onClick={() => void sendLobbyMessage(index).catch(sendError => setNotice(sendError instanceof Error ? sendError.message : 'Não foi possível enviar.'))}>{message}<Send size={14} /></button>)}</div>
       </aside>}
 
-      {selectedPlayer && <div className="fixed inset-0 z-[90] flex items-end bg-slate-950/55 p-3 sm:items-center sm:justify-center" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) closePlayerDialog() }}><section role="dialog" aria-modal="true" aria-labelledby="player-actions-title" aria-busy={Boolean(busy)} className="w-full max-w-md rounded-3xl bg-white p-5 shadow-2xl">
+      {selectedPlayer && !pickingGameFor && <div className="fixed inset-0 z-[90] flex items-end bg-slate-950/55 p-3 sm:items-center sm:justify-center" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) closePlayerDialog() }}><section role="dialog" aria-modal="true" aria-labelledby="player-actions-title" aria-busy={Boolean(busy)} className="w-full max-w-md rounded-3xl bg-white p-5 shadow-2xl">
         <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 id="player-actions-title" className="break-words font-title text-2xl" style={{ color: '#5B3A8A' }}>{selectedPlayer.avatar} {selectedPlayer.name}</h2><p className="mt-1 text-sm font-bold" style={{ color: '#1D4E89' }}>{activityLabel(selectedPlayer)}</p></div><button ref={playerDialogFirstRef} type="button" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-purple-50" aria-label="Fechar opções" onClick={closePlayerDialog}><X /></button></div>
-        <p className="mt-3 rounded-2xl bg-blue-50 p-3 text-xs font-bold" style={{ color: '#1D4E89' }}>Hoje, somente o Jogo da Velha tem partida online. Para escolher outro jogo juntos, crie um grupo privado abaixo.</p>
         {notice && <p role="status" className="mt-3 rounded-2xl bg-amber-50 p-3 text-sm font-bold" style={{ color: '#92400E' }}>{notice}</p>}
         {busy && <p role="status" className="mt-2 text-center text-sm font-bold" style={{ color: '#5B3A8A' }}>Aguarde um pouquinho…</p>}
-        <button type="button" className="btn-primary mt-4 w-full" disabled={Boolean(busy)} onClick={() => void invite(selectedPlayer)}><Gamepad2 size={18} /> Convidar para Jogo da Velha online</button>
+        <button type="button" className="btn-primary mt-4 w-full" disabled={Boolean(busy)} onClick={() => { setPickingGameFor(selectedPlayer); setSelectedPlayer(null) }}><Gamepad2 size={18} /> Escolher jogo e convidar</button>
         {ownedGroups.length > 0 && <div className="mt-3"><p className="text-sm font-black" style={{ color: '#5B3A8A' }}>Convidar para um grupo seu</p><div className="mt-2 grid gap-2">{ownedGroups.map(group => <button key={group.id} type="button" className="btn-secondary min-h-11 w-full text-sm" disabled={Boolean(busy)} onClick={() => void inviteGroup(group.id, selectedPlayer)}>{group.name}</button>)}</div></div>}
         <form onSubmit={event => void makeGroup(event, selectedPlayer)} className="mt-3 rounded-2xl bg-purple-50 p-3"><label className="text-sm font-bold">Ou crie um grupo privado<input value={groupName} onChange={event => setGroupName(event.target.value.slice(0, 32))} maxLength={32} className="mt-1 min-h-11 w-full rounded-xl border border-purple-200 px-3" /></label><button type="submit" className="btn-secondary mt-2 w-full text-sm" disabled={Boolean(busy)}><Users size={17} /> Conversar e escolher um jogo</button></form>
         <div className="mt-4 grid grid-cols-2 gap-2"><button type="button" className="min-h-11 rounded-2xl bg-slate-100 px-3 text-sm font-black" onClick={() => void protectFromPlayer(selectedPlayer)}><Ban className="inline" size={16} /> Bloquear</button><button type="button" className="min-h-11 rounded-2xl bg-orange-50 px-3 text-sm font-black" style={{ color: '#9A3412' }} onClick={() => void protectFromPlayer(selectedPlayer, true)}><AlertTriangle className="inline" size={16} /> Denunciar</button></div>
       </section></div>}
+
+      {/* 🎮 Game Picker Modal */}
+      <AnimatePresence>
+        {pickingGameFor && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-4"
+            onMouseDown={e => { if (e.target === e.currentTarget) setPickingGameFor(null) }}
+          >
+            <motion.div
+              initial={{ scale: 0.92, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.92, y: 16 }}
+              className="glass-card w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl"
+            >
+              <h3 className="mb-1 text-center font-title text-xl" style={{ color: '#5B3A8A' }}>
+                Qual jogo você quer jogar?
+              </h3>
+              <p className="mb-4 text-center text-xs font-bold" style={{ color: '#6B7280' }}>
+                com {pickingGameFor.avatar} {pickingGameFor.name}
+              </p>
+              <div className="flex flex-col gap-2">
+                {[
+                  { key: 'tic-tac-toe', emoji: '🛤️', label: 'Jogo da Velha' },
+                  { key: 'memory',      emoji: '🕊️', label: 'Memória da Bíblia' },
+                  { key: 'checkers',    emoji: '🛡️', label: 'Dama' },
+                  { key: 'quiz',        emoji: '📖', label: 'Quiz da Bíblia' },
+                ].map(g => (
+                  <button key={g.key} type="button"
+                    className="flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-black transition-all active:scale-95"
+                    style={{ background: 'linear-gradient(135deg,#EDE9FE,#DBEAFE)', color: '#5B3A8A', border: '2px solid #C4B5FD' }}
+                    disabled={Boolean(busy)}
+                    onClick={() => void invite(pickingGameFor, g.key)}
+                  >
+                    <span className="text-2xl">{g.emoji}</span>
+                    <span>{g.label}</span>
+                    {busy === pickingGameFor.userId && <span className="ml-auto text-xs">Enviando…</span>}
+                  </button>
+                ))}
+              </div>
+              <button type="button" onClick={() => setPickingGameFor(null)}
+                className="mt-4 w-full rounded-xl bg-slate-100 p-3 text-sm font-bold text-slate-600">
+                Cancelar
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   )
 }
