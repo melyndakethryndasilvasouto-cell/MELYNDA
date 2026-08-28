@@ -1,6 +1,6 @@
 # Mel — Aventuras da Bíblia
 
-Portal infantil com dez jogos bíblicos, modos locais contra o computador, progresso salvo no navegador, Guia Bíblico nos jogos e um Devocional personalizado por IA.
+Portal infantil com onze jogos bíblicos, modos locais contra o computador, progresso salvo no navegador, Guia Bíblico nos jogos e um Devocional personalizado por IA.
 
 ## Site online
 
@@ -35,6 +35,8 @@ O diretório `functions/` publica o endpoint `/api/bible-guide`. A Cloudflare fo
 O modo online usa Supabase com autenticação anônima, presença por atividade, convites privados, grupos de até oito pessoas e regras RLS. Somente um apelido validado e o avatar escolhido são enviados ao Supabase depois da confirmação para entrar no Online. A confirmação vale apenas para a aba atual, links diretos de sala/grupo também passam pela orientação de segurança e o botão **Ficar offline** remove a presença imediatamente. Os outros jogadores veem esse apelido e se a pessoa está no saguão, em um grupo ou em um jogo.
 
 O chat geral aceita apenas frases prontas aprovadas. Texto livre e áudio de até dez segundos existem somente em uma partida entre dois jogadores ou em um grupo fechado por convite. Essas mensagens deixam de ficar disponíveis após 24 horas e são limpas do banco durante a atividade online seguinte. Áudio não toca automaticamente. Bloqueio e denúncia estão disponíveis nas salas e nos grupos; convites de grupo só podem ser enviados pelo dono. Pontuações, preferências e o histórico do Devocional permanecem no `localStorage` do próprio navegador.
+
+Os convites online oferecem as onze modalidades do portal. Jogo da Velha, Memória, Dama, UNO e Quiz usam seus tabuleiros online próprios; Colorir, Cobrinha, Sequência de Cores, Quebra-Cabeça, Ping Pong e Forca usam uma sala compartilhada com controles adaptados para dois jogadores. Nessas seis modalidades, o Supabase valida a identidade do participante, a sala ativa e o formato de cada ação antes que ela seja retransmitida.
 
 Configure no build de produção as variáveis públicas `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY`. O microfone começa desligado e exige confirmação explícita. A chamada ao vivo usa WebRTC direto; redes que bloqueiam conexões diretas podem exigir um serviço TURN para cobertura completa. A mensagem curta de áudio é a opção mais previsível e privada do produto atual.
 

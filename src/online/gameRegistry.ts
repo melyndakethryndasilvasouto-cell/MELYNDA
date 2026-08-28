@@ -11,6 +11,7 @@ export const ONLINE_GAME_LABELS: Record<OnlineGameKey, string> = {
   quiz: 'Quiz da Bíblia',
   puzzle: 'Quebra-Cabeça',
   pong: 'Ping Pong',
+  hangman: 'Forca Bíblica',
 }
 
 export const ONLINE_GAME_OPTIONS = [
@@ -19,6 +20,12 @@ export const ONLINE_GAME_OPTIONS = [
   { key: 'memory', emoji: '🎴', label: ONLINE_GAME_LABELS.memory },
   { key: 'checkers', emoji: '🏁', label: ONLINE_GAME_LABELS.checkers },
   { key: 'quiz', emoji: '❓', label: ONLINE_GAME_LABELS.quiz },
+  { key: 'coloring', emoji: '🎨', label: ONLINE_GAME_LABELS.coloring },
+  { key: 'snake', emoji: '🐍', label: ONLINE_GAME_LABELS.snake },
+  { key: 'simon', emoji: '🔴', label: ONLINE_GAME_LABELS.simon },
+  { key: 'puzzle', emoji: '🧩', label: ONLINE_GAME_LABELS.puzzle },
+  { key: 'pong', emoji: '🏓', label: ONLINE_GAME_LABELS.pong },
+  { key: 'hangman', emoji: '🔤', label: ONLINE_GAME_LABELS.hangman },
 ] as const
 
 const PATH_GAMES: Record<string, OnlineGameKey> = {
@@ -32,6 +39,7 @@ const PATH_GAMES: Record<string, OnlineGameKey> = {
   '/quiz': 'quiz',
   '/quebra-cabeca': 'puzzle',
   '/pong': 'pong',
+  '/forca': 'hangman',
 }
 
 export interface RouteActivity {

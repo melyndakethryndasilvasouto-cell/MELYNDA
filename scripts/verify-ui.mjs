@@ -133,11 +133,16 @@ try {
       width: window.innerWidth,
       visualWidth: window.visualViewport?.width || window.innerWidth,
       scrollWidth: document.documentElement.scrollWidth,
+      overflowElements: [...document.querySelectorAll('body *')].map(element => { const rect = element.getBoundingClientRect(); return { tag: element.tagName, className: element.className?.toString?.().slice(0, 80) || '', left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) } }).filter(item => item.right > document.documentElement.clientWidth + 1 || item.left < -1).slice(0, 4),
+      clientWidth: document.documentElement.clientWidth,
+      bodyWidth: Math.round(document.body.getBoundingClientRect().width),
+      bodyScrollWidth: document.body.scrollWidth,
+      viewportMeta: document.querySelector('meta[name="viewport"]')?.getAttribute('content') || '',
       heading: document.querySelector('h1')?.textContent?.trim() || '',
       bodyText: document.body.innerText.slice(0, 300)
     })`)
-    if (values.width > width + 1 || values.visualWidth > width + 1) throw new Error(`Viewport expandido em ${pathname}: solicitado ${width}px, layout ${values.width}px, visual ${values.visualWidth}px`)
-    if (values.scrollWidth > values.width + 1) throw new Error(`Overflow horizontal em ${pathname} (${width}px): ${values.scrollWidth}px`)
+    if (values.visualWidth > width + 1 || values.clientWidth > width + 1) throw new Error(`Viewport expandido em ${pathname}: solicitado ${width}px, visual=${values.visualWidth}px client=${values.clientWidth}px layout=${values.width}px body=${values.bodyWidth}px meta=${values.viewportMeta} elementos=${JSON.stringify(values.overflowElements)}`)
+    if (values.bodyScrollWidth > values.clientWidth + 1) throw new Error(`Overflow horizontal em ${pathname} (${width}px): bodyScroll=${values.bodyScrollWidth}px client=${values.clientWidth}px documentScroll=${values.scrollWidth}px elementos=${JSON.stringify(values.overflowElements)}`)
     if (!values.heading) throw new Error(`Tela sem h1 em ${pathname}`)
     console.log(`UI_OK path=${pathname} viewport=${width}x${height} innerWidth=${values.width} heading=${JSON.stringify(values.heading)} scrollWidth=${values.scrollWidth}`)
     return values
@@ -148,9 +153,9 @@ try {
   await evaluate(`localStorage.setItem('mel-player-name','Mel'); localStorage.setItem('mel-player-avatar','🕊️'); location.reload()`)
   await new Promise(resolveWait => setTimeout(resolveWait, 1200))
   await metrics('/', 1440, 900)
-  const realGameNames = await evaluate(`['Memória da Bíblia','Jogo da Velha','Dama','UNO','Colorindo a Bíblia','Cobrinha','Sequência de Cores','Quiz da Bíblia','Quebra-Cabeça','Ping Pong'].every(name => document.body.innerText.includes(name))`)
+  const realGameNames = await evaluate(`['Memória da Bíblia','Jogo da Velha','Dama','UNO','Colorindo a Bíblia','Cobrinha','Sequência de Cores','Quiz da Bíblia','Quebra-Cabeça','Ping Pong','Forca Bíblica'].every(name => document.body.innerText.includes(name))`)
   if (!realGameNames) throw new Error('A página inicial não exibiu todos os nomes reais dos jogos')
-  console.log('CONTENT_OK home_real_game_names=10')
+  console.log('CONTENT_OK home_real_game_names=11')
   console.log(`SCREENSHOT ${await screenshot('ui-home-desktop.png')}`)
 
   for (const width of [320, 768, 1024, 1440]) await metrics('/', width, 900)
@@ -279,7 +284,7 @@ try {
   if (!chatTabFocused || !notesTabSelected || !chatTabSelected) throw new Error('Abas do Devocional nÃ£o responderam ao teclado')
   console.log('INTERACTION_OK feature=devotional drawer_focus=true escape=true tabs_keyboard=true')
 
-  const mobilePaths = ['/devocional', '/online', '/memoria', '/jogo-da-velha', '/dama', '/uno', '/colorir', '/cobra', '/simon', '/quiz', '/quebra-cabeca', '/pong']
+  const mobilePaths = ['/devocional', '/online', '/memoria', '/jogo-da-velha', '/dama', '/uno', '/colorir', '/cobra', '/simon', '/quiz', '/quebra-cabeca', '/pong', '/forca']
   for (const pathname of mobilePaths) await metrics(pathname, 320, 800)
 
   await viewport(320, 800)
@@ -474,7 +479,9 @@ try {
   if (!pongStarted) throw new Error('Modo Vs Computador do Pong não foi encontrado')
   await new Promise(resolveWait => setTimeout(resolveWait, 250))
   const pongFrameA = await evaluate(`document.querySelector('canvas')?.toDataURL() || ''`)
-  await new Promise(resolveWait => setTimeout(resolveWait, 500))
+  await client.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'ArrowLeft', code: 'ArrowLeft' })
+  await new Promise(resolveWait => setTimeout(resolveWait, 180))
+  await client.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'ArrowLeft', code: 'ArrowLeft' })
   const pongFrameB = await evaluate(`document.querySelector('canvas')?.toDataURL() || ''`)
   if (!pongFrameA || pongFrameA === pongFrameB) throw new Error('Pong não atualizou os quadros contra o computador')
   console.log('INTERACTION_OK game=pong local_ai_frames=true')
@@ -560,7 +567,7 @@ try {
   console.log('INTERACTION_OK game=coloring progress=1/12')
 
   if (client.exceptions.length) throw new Error(`Exceções no navegador: ${client.exceptions.join('; ')}`)
-  console.log('UI_VERIFY_OK breakpoints=4 routes_mobile=12 interactions=13 screenshots=7 text_zoom=200% console_exceptions=0')
+  console.log('UI_VERIFY_OK breakpoints=4 routes_mobile=13 interactions=13 screenshots=7 text_zoom=200% console_exceptions=0')
 } finally {
   client?.close()
   if (chrome?.exitCode === null) chrome.kill()

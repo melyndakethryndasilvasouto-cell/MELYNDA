@@ -153,6 +153,15 @@ export default function SlidingPuzzle() {
   elapsedRef.current = elapsed
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const delayedTimersRef = useRef<ReturnType<typeof setTimeout>[]>([])
+
+  const defer = useCallback((callback: () => void, delay: number) => {
+    const timer = setTimeout(() => {
+      delayedTimersRef.current = delayedTimersRef.current.filter(item => item !== timer)
+      callback()
+    }, delay)
+    delayedTimersRef.current.push(timer)
+  }, [])
 
   const stopTimer = useCallback(() => {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
@@ -163,16 +172,20 @@ export default function SlidingPuzzle() {
     timerRef.current = setInterval(() => setElapsed(e => e + 1), 1000)
   }, [stopTimer])
 
-  useEffect(() => () => stopTimer(), [stopTimer])
+  useEffect(() => () => {
+    stopTimer()
+    delayedTimersRef.current.forEach(timer => clearTimeout(timer))
+    delayedTimersRef.current = []
+  }, [stopTimer])
 
   const checkWin = useCallback((newTiles: number[], newMoves: number, time: number, currentSize: GridSize) => {
     if (!isSolved(newTiles, currentSize)) return
     stopTimer()
     setSolvedCells(true)
-    setTimeout(() => {
+    defer(() => {
       playSound('win')
       confetti({ particleCount: 140, spread: 80, origin: { y: 0.55 }, colors: ['#6BB8FF','#A78BFA','#ffffff','#FCD34D','#86EFAC'] })
-      setTimeout(() => confetti({ particleCount: 80, spread: 60, origin: { y: 0.4, x: 0.3 }, colors: ['#6BB8FF','#A78BFA','#FCD34D'] }), 400)
+      defer(() => confetti({ particleCount: 80, spread: 60, origin: { y: 0.4, x: 0.3 }, colors: ['#6BB8FF','#A78BFA','#FCD34D'] }), 400)
       setBestScores(prev => {
         const key = String(currentSize) as '3' | '4'
         const current = prev[key]
@@ -188,7 +201,7 @@ export default function SlidingPuzzle() {
       })
       setPhase('solved')
     }, 600)
-  }, [stopTimer, playSound, updateScore])
+  }, [defer, stopTimer, playSound, updateScore])
 
   const moveTileAt = useCallback((tileIdx: number) => {
     const current = tilesRef.current
@@ -225,8 +238,8 @@ export default function SlidingPuzzle() {
     setSolvedCells(false)
     setNewRecord(false)
     setPhase('playing')
-    setTimeout(startTimer, 80)
-  }, [playSound, stopTimer, startTimer])
+    defer(startTimer, 80)
+  }, [defer, playSound, stopTimer, startTimer])
 
   const reshuffleGame = useCallback(() => {
     playSound('click')
@@ -238,15 +251,15 @@ export default function SlidingPuzzle() {
     setHintIdx(null)
     setSolvedCells(false)
     setNewRecord(false)
-    setTimeout(startTimer, 80)
-  }, [playSound, stopTimer, startTimer])
+    defer(startTimer, 80)
+  }, [defer, playSound, stopTimer, startTimer])
 
   const showHint = useCallback(() => {
     playSound('click')
     const idx = findHintTile(tilesRef.current, sizeRef.current)
     setHintIdx(idx)
-    setTimeout(() => setHintIdx(null), 3000)
-  }, [playSound])
+    defer(() => setHintIdx(null), 3000)
+  }, [defer, playSound])
 
   const handlePointerDown = useCallback((e: React.PointerEvent, tileIdx: number) => {
     dragOriginRef.current = { x: e.clientX, y: e.clientY, tileIdx }

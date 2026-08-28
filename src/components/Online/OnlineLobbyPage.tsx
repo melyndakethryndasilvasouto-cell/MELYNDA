@@ -14,10 +14,11 @@ import {
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useOnline } from '../../contexts/OnlineContext'
-import { activityLabel, ONLINE_GAME_OPTIONS } from '../../online/gameRegistry'
+import { activityLabel, ONLINE_GAME_LABELS, ONLINE_GAME_OPTIONS } from '../../online/gameRegistry'
 import { LOBBY_QUICK_MESSAGES, OnlinePlayer } from '../../online/types'
 import OnlineSafetyGate from './OnlineSafetyGate'
 import { useAccessibleDialog } from '../../online/useAccessibleDialog'
+import OnlineConfirmDialog from './OnlineConfirmDialog'
 
 export default function OnlineLobbyPage() {
   const navigate = useNavigate()
@@ -34,6 +35,7 @@ export default function OnlineLobbyPage() {
   const [groupName, setGroupName] = useState('Turma da Bíblia')
   const [creatingGroup, setCreatingGroup] = useState(false)
   const [notice, setNotice] = useState('')
+  const [confirmPlayer, setConfirmPlayer] = useState<{ player: OnlinePlayer; report: boolean } | null>(null)
   const playerDialogFirstRef = useRef<HTMLButtonElement>(null)
   const closePlayerDialog = useCallback(() => { setSelectedPlayer(null); setPickingGameFor(null) }, [])
   useAccessibleDialog(Boolean(selectedPlayer) || Boolean(pickingGameFor), closePlayerDialog, playerDialogFirstRef)
@@ -115,8 +117,12 @@ export default function OnlineLobbyPage() {
   }
 
   const protectFromPlayer = async (player: OnlinePlayer, report = false) => {
-    const action = report ? 'denunciar e bloquear' : 'bloquear'
-    if (!window.confirm(`Deseja mesmo ${action} ${player.name}? Você poderá cancelar agora.`)) return
+    setConfirmPlayer({ player, report })
+  }
+
+  const confirmProtection = async () => {
+    if (!confirmPlayer) return
+    const { player, report } = confirmPlayer
     setBusy(`safe-${player.userId}`)
     try {
       if (report) await reportPlayer(player.userId, 'other', 'lobby')
@@ -127,6 +133,7 @@ export default function OnlineLobbyPage() {
       setNotice(safeError instanceof Error ? safeError.message : 'Não foi possível concluir essa proteção.')
     } finally {
       setBusy('')
+      setConfirmPlayer(null)
     }
   }
 
@@ -161,7 +168,7 @@ export default function OnlineLobbyPage() {
           <h2 id="invites-title" className="font-black" style={{ color: '#5B3A8A' }}>Convites recebidos</h2>
           {invites.map(invite => (
             <article key={invite.id} className="glass-card p-4">
-              <p className="font-black"><span aria-hidden="true">{invite.from_avatar}</span> {invite.from_name} quer jogar com você.</p>
+              <p className="font-black"><span aria-hidden="true">{invite.from_avatar}</span> {invite.from_name} quer jogar {invite.game ? ` ${ONLINE_GAME_LABELS[invite.game]}` : ''} com você.</p>
               <p className="mt-2 rounded-xl bg-yellow-50 p-2 text-xs font-bold" style={{ color: '#854D0E' }}>Aceite somente se você conhece essa pessoa. Se estiver em outro jogo, ele será encerrado somente depois da sua confirmação.</p>
               <div className="mt-3 grid grid-cols-2 gap-2"><button type="button" className="btn-primary text-sm" disabled={busy === invite.id} onClick={() => void answer(invite.id, true)}>Jogar agora</button><button type="button" className="btn-secondary text-sm" disabled={busy === invite.id} onClick={() => void answer(invite.id, false)}>Continuar aqui</button></div>
             </article>
@@ -248,6 +255,16 @@ export default function OnlineLobbyPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <OnlineConfirmDialog
+        open={Boolean(confirmPlayer)}
+        title={confirmPlayer?.report ? 'Denunciar jogador?' : 'Bloquear jogador?'}
+        message={confirmPlayer ? `Deseja ${confirmPlayer.report ? 'denunciar e bloquear' : 'bloquear'} ${confirmPlayer.player.name}? Ele não aparecerá mais para você.` : ''}
+        confirmLabel={confirmPlayer?.report ? 'Denunciar' : 'Bloquear'}
+        danger
+        onCancel={() => setConfirmPlayer(null)}
+        onConfirm={confirmProtection}
+      />
     </section>
   )
 }

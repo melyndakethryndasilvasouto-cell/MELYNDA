@@ -12,6 +12,7 @@ import {
   OnlinePlayer,
   OnlineStatus,
 } from '../online/types'
+import type { OnlineGameKey } from '../online/types'
 import { usePlayer } from './PlayerContext'
 
 interface OnlineContextValue {
@@ -37,6 +38,7 @@ interface OnlineContextValue {
   respondGroupInvite: (inviteId: string, accept: boolean) => Promise<string>
   blockPlayer: (targetId: string) => Promise<void>
   reportPlayer: (targetId: string, reason: string, context: 'lobby' | 'room' | 'group', evidence?: string) => Promise<void>
+  setPlayingGame: (gameKey: OnlineGameKey | null) => void
 }
 
 const OnlineContext = createContext<OnlineContextValue | null>(null)
@@ -128,6 +130,15 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
     })) as OnlinePlayer[])
   }, [])
 
+  const setPlayingGame = useCallback((gameKey: OnlineGameKey | null) => {
+    activityRef.current = gameKey
+      ? { activity: 'playing', gameKey }
+      : activityForPath(pathname)
+    if (connectedUserRef.current) {
+      void heartbeat().then(loadPlayers).catch(activityError => setError(friendlyError(activityError)))
+    }
+  }, [heartbeat, loadPlayers, pathname])
+
   const loadGroups = useCallback(async () => {
     if (!supabase) return
     const result = await supabase.from('online_groups').select('*').eq('status', 'active').order('updated_at', { ascending: false })
@@ -152,14 +163,17 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
   const loadInvites = useCallback(async (currentUserId: string) => {
     if (!supabase) return
     const [playResult, groupResult] = await Promise.all([
-      supabase.from('online_invites').select('*').eq('to_user', currentUserId).eq('status', 'pending')
+      supabase.from('online_invites').select('*, online_rooms!inner(game)').eq('to_user', currentUserId).eq('status', 'pending')
         .gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false }).limit(5),
       supabase.from('online_group_invites').select('*').eq('to_user', currentUserId).eq('status', 'pending')
         .gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false }).limit(10),
     ])
     if (playResult.error) throw playResult.error
     if (groupResult.error) throw groupResult.error
-    setInvites((playResult.data || []) as OnlineInvite[])
+    setInvites((playResult.data || []).map(row => ({
+      ...row,
+      game: row.online_rooms?.game,
+    })) as OnlineInvite[])
     setGroupInvites((groupResult.data || []) as OnlineGroupInvite[])
   }, [])
 
@@ -393,6 +407,7 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
       respondGroupInvite,
       blockPlayer,
       reportPlayer,
+      setPlayingGame,
     }}>
       {children}
     </OnlineContext.Provider>

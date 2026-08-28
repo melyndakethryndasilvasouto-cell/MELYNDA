@@ -2,7 +2,7 @@ export type OnlineStatus = 'idle' | 'connecting' | 'connected' | 'error'
 export type RoomStatus = 'waiting' | 'active' | 'finished' | 'cancelled'
 export type TicTacToeCell = 'X' | 'O' | null
 export type OnlineActivity = 'lobby' | 'playing' | 'group' | 'away'
-export type OnlineGameKey = 'memory' | 'tic-tac-toe' | 'checkers' | 'uno' | 'coloring' | 'snake' | 'simon' | 'quiz' | 'puzzle' | 'pong'
+export type OnlineGameKey = 'memory' | 'tic-tac-toe' | 'checkers' | 'uno' | 'coloring' | 'snake' | 'simon' | 'quiz' | 'puzzle' | 'pong' | 'hangman'
 
 export interface OnlinePlayer {
   userId: string
@@ -20,6 +20,7 @@ export interface OnlineInvite {
   to_user: string
   from_name: string
   from_avatar: string
+  game?: OnlineGameType
   status: 'pending' | 'accepted' | 'declined' | 'expired'
   expires_at: string
 }
@@ -95,7 +96,7 @@ export interface OnlineRoomStateGeneric {
 
 export type OnlineRoomState = OnlineRoomStateTTT | OnlineRoomStateGeneric
 
-export type OnlineGameType = 'tic-tac-toe' | 'memory' | 'checkers' | 'quiz' | 'pong' | 'uno'
+export type OnlineGameType = OnlineGameKey
 
 export interface OnlineRoom {
   id: string

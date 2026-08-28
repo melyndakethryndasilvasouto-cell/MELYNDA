@@ -9,6 +9,7 @@ import AudioMessageComposer from './AudioMessageComposer'
 import OnlineSafetyGate from './OnlineSafetyGate'
 import { useAccessibleDialog } from '../../online/useAccessibleDialog'
 import { activityLabel } from '../../online/gameRegistry'
+import OnlineConfirmDialog from './OnlineConfirmDialog'
 
 function groupMessageError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error || '')
@@ -30,6 +31,7 @@ export default function GroupChatPage() {
   const [error, setError] = useState('')
   const [inviteOpen, setInviteOpen] = useState(false)
   const [busy, setBusy] = useState('')
+  const [pendingConfirm, setPendingConfirm] = useState<{ kind: 'leave' | 'remove' | 'protect'; memberId?: string; report?: boolean } | null>(null)
   const messageLogRef = useRef<HTMLDivElement>(null)
   const keepAtBottomRef = useRef(true)
   const [newMessages, setNewMessages] = useState(false)
@@ -124,37 +126,43 @@ export default function GroupChatPage() {
 
   const leaveOrClose = async () => {
     if (!supabase || !group) return
-    const prompt = owner ? 'Encerrar este grupo para todos? Esta ação não pode ser desfeita.' : 'Sair deste grupo privado?'
-    if (!window.confirm(prompt)) return
-    const functionName = owner ? 'close_online_group' : 'leave_online_group'
-    const args = { target_group: group.id }
-    const result = await supabase.rpc(functionName, args)
-    if (result.error) setError('Não foi possível sair do grupo agora.')
-    else navigate('/online')
+    setPendingConfirm({ kind: 'leave' })
+  }
+
+  const confirmPendingAction = async () => {
+    if (!supabase || !group || !pendingConfirm) return
+    const pending = pendingConfirm
+    setPendingConfirm(null)
+    setBusy(pending.memberId || pending.kind)
+    try {
+      if (pending.kind === 'leave') {
+        const functionName = owner ? 'close_online_group' : 'leave_online_group'
+        const result = await supabase.rpc(functionName, { target_group: group.id })
+        if (result.error) setError('Não foi possível sair do grupo agora.')
+        else navigate('/online')
+      } else if (pending.kind === 'remove' && pending.memberId) {
+        const result = await supabase.rpc('remove_online_group_member', { target_group: groupId, target: pending.memberId })
+        if (result.error) setError('Não foi possível remover esse participante.')
+        else await load()
+      } else if (pending.memberId) {
+        if (pending.report) await reportPlayer(pending.memberId, 'other', 'group')
+        await blockPlayer(pending.memberId)
+        setError(pending.report ? 'Denúncia recebida e jogador bloqueado.' : 'Jogador bloqueado.')
+      }
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : 'Não foi possível concluir a ação.')
+    } finally {
+      setBusy('')
+    }
   }
 
   const removeMember = async (memberId: string) => {
     if (!supabase) return
-    const member = members.find(item => item.user_id === memberId)
-    if (!window.confirm(`Remover ${member?.display_name || 'este participante'} do grupo?`)) return
-    setBusy(memberId)
-    const result = await supabase.rpc('remove_online_group_member', { target_group: groupId, target: memberId })
-    if (result.error) setError('Não foi possível remover esse participante.')
-    else await load()
-    setBusy('')
+    setPendingConfirm({ kind: 'remove', memberId })
   }
 
   const protect = async (member: OnlineGroupMember, report = false) => {
-    const action = report ? 'denunciar e bloquear' : 'bloquear'
-    if (!window.confirm(`Deseja mesmo ${action} ${member.display_name}?`)) return
-    setBusy(member.user_id)
-    try {
-      if (report) await reportPlayer(member.user_id, 'other', 'group')
-      await blockPlayer(member.user_id)
-      setError(report ? 'Denúncia recebida e jogador bloqueado.' : 'Jogador bloqueado.')
-    } catch (protectError) {
-      setError(protectError instanceof Error ? protectError.message : 'Não foi possível concluir.')
-    } finally { setBusy('') }
+    setPendingConfirm({ kind: 'protect', memberId: member.user_id, report })
   }
 
   if (!safetyAccepted) return <OnlineSafetyGate onAccept={() => { acceptSafety(); void connect() }} notice={error} />
@@ -182,6 +190,15 @@ export default function GroupChatPage() {
       </div>
 
       {inviteOpen && <div className="fixed inset-0 z-[100] flex items-end bg-slate-950/55 p-3 sm:items-center sm:justify-center" onMouseDown={event => { if (event.target === event.currentTarget) closeInviteDialog() }}><section role="dialog" aria-modal="true" aria-labelledby="group-invite-title" aria-busy={Boolean(busy)} className="max-h-[80dvh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-5"><div className="flex justify-between gap-3"><div><h2 id="group-invite-title" className="font-title text-2xl" style={{ color: '#5B3A8A' }}>Convidar para o grupo</h2><p className="text-sm">Somente você, como dono, pode enviar estes convites.</p></div><button ref={inviteDialogFirstRef} type="button" className="h-11 w-11 shrink-0 rounded-2xl bg-purple-50" aria-label="Fechar" onClick={closeInviteDialog}><X className="mx-auto" /></button></div>{error && <p role="status" className="mt-3 rounded-2xl bg-amber-50 p-3 text-sm font-bold" style={{ color: '#92400E' }}>{error}</p>}<div className="mt-4 space-y-2">{possibleInvites.length ? possibleInvites.map(player => <button key={player.userId} type="button" className="flex min-h-14 w-full items-center gap-3 rounded-2xl bg-slate-50 p-3 text-left" disabled={Boolean(busy)} onClick={() => void invite(player.userId)}><span className="text-2xl">{player.avatar}</span><span className="min-w-0 flex-1"><strong className="block truncate">{player.name}</strong><span className="block text-xs font-bold" style={{ color: '#1D4E89' }}>{activityLabel(player)}</span></span><span className="text-xs font-bold" style={{ color: '#2563A6' }}>{busy === player.userId ? 'Enviando…' : 'Convidar'}</span></button>) : <p className="py-6 text-center text-sm">Não há outro amigo disponível agora.</p>}</div></section></div>}
+      <OnlineConfirmDialog
+        open={Boolean(pendingConfirm)}
+        title={pendingConfirm?.kind === 'leave' ? (owner ? 'Encerrar grupo?' : 'Sair do grupo?') : pendingConfirm?.kind === 'remove' ? 'Remover participante?' : pendingConfirm?.report ? 'Denunciar jogador?' : 'Bloquear jogador?'}
+        message={pendingConfirm?.kind === 'leave' ? (owner ? 'O grupo será encerrado para todos e esta ação não pode ser desfeita.' : 'Você sairá deste grupo privado.') : pendingConfirm?.kind === 'remove' ? `Remover ${members.find(member => member.user_id === pendingConfirm.memberId)?.display_name || 'este participante'} do grupo?` : `Deseja ${pendingConfirm?.report ? 'denunciar e bloquear' : 'bloquear'} ${members.find(member => member.user_id === pendingConfirm?.memberId)?.display_name || 'este jogador'}?`}
+        confirmLabel={pendingConfirm?.kind === 'leave' ? (owner ? 'Encerrar' : 'Sair') : pendingConfirm?.kind === 'remove' ? 'Remover' : pendingConfirm?.report ? 'Denunciar' : 'Bloquear'}
+        danger={pendingConfirm?.kind !== 'leave'}
+        onCancel={() => setPendingConfirm(null)}
+        onConfirm={confirmPendingAction}
+      />
     </section>
   )
 }

@@ -103,7 +103,7 @@ export default function ForcaBiblica() {
       {/* Visuals */}
       <div className="glass-card p-4 mb-4 flex flex-col items-center">
         <h2 className="text-sm font-bold uppercase text-gray-500 mb-2">🎈 Salve os Balões 🎈</h2>
-        <div className="flex gap-2 justify-center mb-4 min-h-[60px]">
+        <div className="flex max-w-full flex-wrap justify-center gap-2 mb-4 min-h-[60px]">
           <AnimatePresence>
             {Array.from({ length: MAX_MISTAKES }).map((_, i) => (
               <motion.div

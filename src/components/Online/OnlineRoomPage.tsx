@@ -4,7 +4,7 @@ import { AlertTriangle, Ban, LoaderCircle, MessageCircle, Mic, MicOff, PhoneOff,
 import { useNavigate, useParams } from 'react-router-dom'
 import { useOnline } from '../../contexts/OnlineContext'
 import { usePlayer } from '../../contexts/PlayerContext'
-import { cleanRoomMessage, OnlineChatMessage, OnlinePlayer, OnlineRoom } from '../../online/types'
+import { cleanRoomMessage, OnlineChatMessage, OnlineGameKey, OnlinePlayer, OnlineRoom } from '../../online/types'
 import type { EphemeralAudioBroadcastPayload } from '../../online/useEphemeralAudioMessage'
 import { useRoomVoice } from '../../online/useRoomVoice'
 import { supabase } from '../../services/supabase'
@@ -15,6 +15,9 @@ import OnlineMemoryBoard from './OnlineMemoryBoard'
 import OnlineCheckersBoard from './OnlineCheckersBoard'
 import OnlineQuizBoard from './OnlineQuizBoard'
 import OnlineUnoBoard from './OnlineUnoBoard'
+import OnlineArcadeBoard from './OnlineArcadeBoard'
+import OnlineConfirmDialog from './OnlineConfirmDialog'
+import { ONLINE_GAME_LABELS } from '../../online/gameRegistry'
 
 const EMPTY_ROOM_MESSAGES: OnlineChatMessage[] = []
 
@@ -33,7 +36,7 @@ export default function OnlineRoomPage() {
   const { roomId = '' } = useParams()
   const navigate = useNavigate()
   const { playerName, playerAvatar } = usePlayer()
-  const { safetyAccepted, status: onlineStatus, userId, acceptSafety, connect, blockPlayer, reportPlayer } = useOnline()
+  const { safetyAccepted, status: onlineStatus, userId, acceptSafety, connect, blockPlayer, reportPlayer, setPlayingGame } = useOnline()
   const [room, setRoom] = useState<OnlineRoom | null>(null)
   const [profiles, setProfiles] = useState<Record<string, OnlinePlayer>>({})
   const [channel, setChannel] = useState<RealtimeChannel | null>(null)
@@ -52,6 +55,7 @@ export default function OnlineRoomPage() {
   const messageLogRef = useRef<HTMLDivElement>(null)
   const keepAtBottomRef = useRef(true)
   const [newMessages, setNewMessages] = useState(false)
+  const [confirmAction, setConfirmAction] = useState<'leave' | 'block' | 'report' | null>(null)
   const hostId = room?.host_id || ''
   const isHost = hostId === userId && hostId !== ''
   const voice = useRoomVoice(channel, userId, hostId)
@@ -150,6 +154,10 @@ export default function OnlineRoomPage() {
   }, [onlineStatus, roomId, userId])
 
   useEffect(() => {
+    if (room?.game) setPlayingGame(room.game)
+  }, [room?.game, setPlayingGame])
+
+  useEffect(() => {
     if (room?.status === 'cancelled') voice.stop()
   }, [room?.status, voice.stop])
 
@@ -201,8 +209,26 @@ export default function OnlineRoomPage() {
   }, [channel])
 
   const broadcastMove = useCallback((move: unknown) => {
-    channel?.send({ type: 'broadcast', event: 'game-move', payload: { move } })
-  }, [channel])
+    const genericGames = ['coloring', 'snake', 'simon', 'puzzle', 'pong', 'hangman']
+    if (room?.game && genericGames.includes(room.game)) {
+      void supabase?.rpc('record_online_game_action', { room: roomId, action: move }).then(response => {
+        if (response?.error) {
+          setError(roomError(response.error))
+          return
+        }
+        void channel?.send({ type: 'broadcast', event: 'game-move', payload: { move } })
+      })
+      return
+    }
+    void channel?.send({ type: 'broadcast', event: 'game-move', payload: { move } })
+  }, [channel, room?.game, roomId])
+
+  const validateArcadeAction = useCallback(async (move: unknown) => {
+    if (!supabase || !room?.game || !['coloring', 'snake', 'simon', 'puzzle', 'pong', 'hangman'].includes(room.game)) return false
+    const response = await supabase.rpc('record_online_game_action', { room: roomId, action: move })
+    if (response.error) { setError(roomError(response.error)); return false }
+    return true
+  }, [room?.game, roomId])
 
   const finishRoom = useCallback(async (winner: 'host' | 'guest' | 'draw') => {
     if (!supabase) return
@@ -210,7 +236,7 @@ export default function OnlineRoomPage() {
   }, [roomId])
 
   const leave = async (confirmed = false) => {
-    if (!confirmed && !window.confirm('Sair desta partida e voltar para a lista Online?')) return
+    if (!confirmed) { setConfirmAction('leave'); return }
     voice.stop()
     if (supabase) await supabase.rpc('leave_online_room', { room: roomId })
     navigate('/online')
@@ -244,8 +270,11 @@ export default function OnlineRoomPage() {
 
   const protectFromOpponent = async (report = false) => {
     if (!opponentId) return
-    const action = report ? 'denunciar e bloquear' : 'bloquear'
-    if (!window.confirm(`Deseja mesmo ${action} ${opponent?.name || 'este jogador'} e sair da sala?`)) return
+    setConfirmAction(report ? 'report' : 'block')
+  }
+
+  const confirmProtection = async (report: boolean) => {
+    if (!opponentId) return
     try {
       if (report) await reportPlayer(opponentId, 'other', 'room')
       await blockPlayer(opponentId)
@@ -253,6 +282,8 @@ export default function OnlineRoomPage() {
       await leave(true)
     } catch (protectError) {
       setError(protectError instanceof Error ? protectError.message : 'Não foi possível concluir essa proteção.')
+    } finally {
+      setConfirmAction(null)
     }
   }
 
@@ -270,14 +301,7 @@ export default function OnlineRoomPage() {
     <section className="pb-6 pt-3">
       <header className="text-center">
         <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#1D4E89' }}>Sala privada • Jogo online</p>
-        <h1 className="mt-1 font-title text-3xl" style={{ color: '#5B3A8A' }}>
-          {room.game === 'memory' ? '🕊️ Memória da Bíblia'
-            : room.game === 'checkers' ? '🛡️ Dama'
-            : room.game === 'quiz' ? '📖 Quiz da Bíblia'
-            : room.game === 'uno' ? '🃏 UNO'
-            : room.game === 'pong' ? '🎯 Ping Pong'
-            : '🕹️ Jogo da Velha'}
-        </h1>
+        <h1 className="mt-1 font-title text-3xl" style={{ color: '#5B3A8A' }}>🎮 {ONLINE_GAME_LABELS[room.game]}</h1>
         
       </header>
 
@@ -364,6 +388,21 @@ export default function OnlineRoomPage() {
         />
       )}
 
+      {(['coloring', 'snake', 'simon', 'puzzle', 'pong', 'hangman'] as OnlineGameKey[]).includes(room.game) && (
+        <OnlineArcadeBoard
+          game={room.game}
+          isHost={isHost}
+          roomStatus={room.status}
+          opponent={opponent}
+          broadcastGameState={broadcastGameState}
+          guestMove={guestMove}
+          onBroadcastState={broadcastState}
+          onBroadcastMove={broadcastMove}
+          onValidateAction={validateArcadeAction}
+          onFinish={finishRoom}
+        />
+      )}
+
       {error && <p role="alert" className="mt-3 rounded-2xl bg-amber-50 p-3 text-center text-sm font-bold" style={{ color: '#92400E' }}>{error}</p>}
 
       <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -403,14 +442,6 @@ export default function OnlineRoomPage() {
           </div>
         )}
 
-      {room.game === 'pong' && (
-        <div className="glass-card mt-5 p-5 text-center">
-          <p className="text-4xl" aria-hidden="true">🎯</p>
-          <p className="mt-2 font-black" style={{ color: '#5B3A8A' }}>Ping Pong online está em preparação.</p>
-          <p className="mt-1 text-sm" style={{ color: '#4B5563' }}>Esta sala foi preservada, mas ainda não há tabuleiro online para ela.</p>
-        </div>
-      )}
-
         <div ref={messageLogRef} onScroll={event => { const log = event.currentTarget; keepAtBottomRef.current = log.scrollHeight - log.scrollTop - log.clientHeight < 80; if (keepAtBottomRef.current) setNewMessages(false) }} className="mt-3 max-h-48 min-h-24 space-y-2 overflow-y-auto rounded-2xl bg-slate-50 p-3" role="log" aria-live="polite" aria-label="Mensagens privadas da partida">
           {messages.length === 0 ? <p className="text-center text-xs" style={{ color: '#6B7280' }}>Escreva ou grave uma mensagem gentil para seu amigo.</p> : messages.map(message => {
             const mine = message.sender_id === userId
@@ -429,6 +460,15 @@ export default function OnlineRoomPage() {
         {opponentId && <div className="mt-3 grid grid-cols-2 gap-2"><button type="button" className="min-h-11 rounded-2xl bg-slate-100 px-3 text-sm font-bold" onClick={() => void protectFromOpponent()}><Ban className="inline" size={16} /> Bloquear</button><button type="button" className="min-h-11 rounded-2xl bg-orange-50 px-3 text-sm font-bold" style={{ color: '#9A3412' }} onClick={() => void protectFromOpponent(true)}><AlertTriangle className="inline" size={16} /> Denunciar</button></div>}
         <p className="mt-2 text-xs font-bold" style={{ color: '#4B5563' }}>Converse somente com alguém conhecido. Não compartilhe nome completo, endereço, escola, telefone, senha ou fotos. Texto e áudio curto deixam de ficar disponíveis após 24 horas; a outra pessoa ainda pode gravar por fora do site. Se algo incomodar, bloqueie, saia e conte a um adulto responsável.</p>
       </aside>
+      <OnlineConfirmDialog
+        open={confirmAction !== null}
+        title={confirmAction === 'leave' ? 'Sair da partida?' : confirmAction === 'report' ? 'Denunciar jogador?' : 'Bloquear jogador?'}
+        message={confirmAction === 'leave' ? 'Você voltará para a lista Online e sairá desta sala.' : `Deseja ${confirmAction === 'report' ? 'denunciar e bloquear' : 'bloquear'} ${opponent?.name || 'este jogador'} e sair da sala?`}
+        confirmLabel={confirmAction === 'leave' ? 'Sair da sala' : confirmAction === 'report' ? 'Denunciar' : 'Bloquear'}
+        danger={confirmAction !== 'leave'}
+        onCancel={() => setConfirmAction(null)}
+        onConfirm={() => confirmAction === 'leave' ? leave(true) : confirmProtection(confirmAction === 'report')}
+      />
     </section>
   )
 }

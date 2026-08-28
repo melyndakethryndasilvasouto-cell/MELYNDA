@@ -57,6 +57,7 @@ let roomId = ''
 let competingRoomId = ''
 let raceRoomId = ''
 let pendingBlockRoomId = ''
+let arcadeRoomId = ''
 let groupId = ''
 
 try {
@@ -157,6 +158,16 @@ try {
   if (!signalReceived) throw new Error('A sinalização privada do microfone não chegou.')
 
   await new Promise(resolve => setTimeout(resolve, 8_200))
+  arcadeRoomId = String(await requireOk(first.rpc('create_online_invite', { guest: secondId, game_type: 'coloring' }), 'convite Colorir online'))
+  const arcadeInvite = await requireOk(second.from('online_invites').select('id').eq('room_id', arcadeRoomId).single(), 'convite Colorir online recebido')
+  await requireOk(second.rpc('respond_online_invite', { invite: arcadeInvite.id, accept_invite: true }), 'aceite Colorir online')
+  await requireOk(first.rpc('record_online_game_action', { room: arcadeRoomId, action: { type: 'color', index: 0, color: '#EF4444' } }), 'ação Colorir validada')
+  const arcadeRoom = await requireOk(first.from('online_rooms').select('status,state').eq('id', arcadeRoomId).single(), 'estado Colorir online')
+  if (arcadeRoom.status !== 'active' || arcadeRoom.state.last_action?.type !== 'color') throw new Error('A ação do jogo online compartilhado não foi registrada.')
+  const invalidArcadeAction = await second.rpc('record_online_game_action', { room: arcadeRoomId, action: { type: 'invalid' } })
+  if (!invalidArcadeAction.error) throw new Error('Servidor aceitou ação inválida do jogo online compartilhado.')
+  await requireOk(first.rpc('leave_online_room', { room: arcadeRoomId }), 'limpeza da sala Colorir online')
+
   raceRoomId = String(await requireOk(third.rpc('create_online_invite', { guest: secondId }), 'convite para teste concorrente'))
   const raceInvite = await requireOk(second.from('online_invites').select('id').eq('room_id', raceRoomId).single(), 'convite concorrente para bloqueio')
   const [raceBlock, raceAccept] = await Promise.all([
@@ -175,6 +186,7 @@ try {
     throw new Error('Bloqueio simultaneo ao aceite nao encerrou a sala com seguranca.')
   }
 
+  await new Promise(resolve => setTimeout(resolve, 8_200))
   pendingBlockRoomId = String(await requireOk(first.rpc('create_online_invite', { guest: secondId }), 'convite pendente antes do bloqueio'))
   await requireOk(first.rpc('report_online_player', { target: secondId, report_reason: 'other', report_context: 'room', report_evidence: 'teste automatizado' }), 'denúncia')
   await requireOk(first.rpc('block_online_player', { target: secondId }), 'bloqueio')
@@ -197,12 +209,13 @@ try {
   const presenceAfterOffline = await requireOk(first.from('online_presence').select('user_id').eq('user_id', thirdId), 'presenca apos ficar offline')
   if (presenceAfterOffline.length !== 0) throw new Error('Jogador continuou visivel depois de ficar offline.')
 
-  console.log('ONLINE_VERIFY_OK anonymous_users=3 server_presence=ok lobby_presets=ok groups_owner_only=ok group_rls=ok text_filter=ok short_audio=ok competing_invite=closed invite_race=serialized room_rls=ok server_moves=5 invalid_move=blocked voice_signal=private pending_block=ok block_report=ok shared_group_removed=ok go_offline=ok')
+  console.log('ONLINE_VERIFY_OK anonymous_users=3 server_presence=ok lobby_presets=ok groups_owner_only=ok group_rls=ok text_filter=ok short_audio=ok competing_invite=closed invite_race=serialized room_rls=ok server_moves=5 invalid_move=blocked shared_game=coloring_action_validated voice_signal=private pending_block=ok block_report=ok shared_group_removed=ok go_offline=ok')
 } finally {
   if (roomId) await Promise.resolve(first.rpc('leave_online_room', { room: roomId })).catch(() => {})
   if (competingRoomId) await Promise.resolve(third.rpc('leave_online_room', { room: competingRoomId })).catch(() => {})
   if (raceRoomId) await Promise.resolve(third.rpc('leave_online_room', { room: raceRoomId })).catch(() => {})
   if (pendingBlockRoomId) await Promise.resolve(first.rpc('leave_online_room', { room: pendingBlockRoomId })).catch(() => {})
+  if (arcadeRoomId) await Promise.resolve(first.rpc('leave_online_room', { room: arcadeRoomId })).catch(() => {})
   if (groupId) await Promise.resolve(first.rpc('close_online_group', { target_group: groupId })).catch(() => {})
   for (const [owner, channel] of channels) await Promise.resolve(owner.removeChannel(channel)).catch(() => {})
   await Promise.allSettled(participants.map(owner => owner.auth.signOut()))

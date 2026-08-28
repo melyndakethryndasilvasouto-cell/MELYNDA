@@ -675,10 +675,13 @@ export default function ColorBook() {
   const [showCelebration, setShowCelebration] = useState(false)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const celebrationTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const confettiTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const completedRef = useRef<Set<string>>(new Set())
 
   useEffect(() => () => {
     if (toastTimer.current) clearTimeout(toastTimer.current)
+    if (celebrationTimer.current) clearTimeout(celebrationTimer.current)
+    if (confettiTimer.current) clearTimeout(confettiTimer.current)
   }, [])
 
   const drawing = ALL_DRAWINGS[drawingIdx]
@@ -697,7 +700,8 @@ export default function ColorBook() {
     // 🎉 Celebration!
     playSound('win')
     confetti({ particleCount: 120, spread: 90, origin: { y: 0.6 }, colors: ['#6BB8FF','#A78BFA','#FCD34D','#34D399','#ffffff'] })
-    setTimeout(() => confetti({ particleCount: 80, spread: 120, origin: { y: 0.4, x: 0.3 }, colors: ['#FCA5A5','#A78BFA','#FCD34D'] }), 350)
+    if (confettiTimer.current) clearTimeout(confettiTimer.current)
+    confettiTimer.current = setTimeout(() => confetti({ particleCount: 80, spread: 120, origin: { y: 0.4, x: 0.3 }, colors: ['#FCA5A5','#A78BFA','#FCD34D'] }), 350)
     setShowCelebration(true)
     if (celebrationTimer.current) clearTimeout(celebrationTimer.current)
     celebrationTimer.current = setTimeout(() => setShowCelebration(false), 3500)

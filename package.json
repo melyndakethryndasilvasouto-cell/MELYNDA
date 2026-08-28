@@ -2,7 +2,7 @@
   "name": "mel-aventuras-da-biblia",
   "private": true,
   "version": "1.0.0",
-  "description": "Dez jogos bíblicos infantis com progresso local e Guia Bíblico opcional.",
+  "description": "Onze jogos bíblicos infantis com progresso local e Guia Bíblico opcional.",
   "type": "module",
   "engines": {
     "node": "^20.19.0 || >=22.12.0"

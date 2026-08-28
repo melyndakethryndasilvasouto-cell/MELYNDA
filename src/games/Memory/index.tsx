@@ -107,6 +107,20 @@ export default function MemoryGame() {
   const modeRef         = useRef<GameMode>('solo')
   const diffRef         = useRef<Difficulty>('easy')
   const lessonTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const gameTimersRef   = useRef<ReturnType<typeof setTimeout>[]>([])
+
+  const schedule = (callback: () => void, delay: number) => {
+    const timer = setTimeout(() => {
+      gameTimersRef.current = gameTimersRef.current.filter(item => item !== timer)
+      callback()
+    }, delay)
+    gameTimersRef.current.push(timer)
+  }
+
+  useEffect(() => () => {
+    gameTimersRef.current.forEach(timer => clearTimeout(timer))
+    gameTimersRef.current = []
+  }, [])
 
   useEffect(() => { cardsRef.current = cards },       [cards])
   useEffect(() => { currentPRef.current = currentPlayer }, [currentPlayer])
@@ -145,7 +159,7 @@ export default function MemoryGame() {
     if (timerRef.current) clearInterval(timerRef.current)
     playSound('win')
     confetti({ particleCount: 120, spread: 80, origin: { y: 0.55 }, colors: ['#6BB8FF','#A78BFA','#ffffff','#FCD34D','#86EFAC'] })
-    setTimeout(() => confetti({ particleCount: 60, spread: 120, origin: { y: 0.4 }, colors: ['#FCA5A5','#FCD34D','#A78BFA'] }), 400)
+    schedule(() => confetti({ particleCount: 60, spread: 120, origin: { y: 0.4 }, colors: ['#FCA5A5','#FCD34D','#A78BFA'] }), 400)
 
     const gm = modeRef.current
     const diff = diffRef.current
@@ -190,7 +204,7 @@ export default function MemoryGame() {
         const next = player === 1 ? { ...s, p1: s.p1 + 1 } : { ...s, p2: s.p2 + 1 }
         scoresRef.current = next
         if (matchedPairs >= totalPairs) {
-          setTimeout(() => triggerVictory(next), 200)
+          schedule(() => triggerVictory(next), 200)
         }
         return next
       })
@@ -204,7 +218,7 @@ export default function MemoryGame() {
       playSound('error')
       lockedRef.current = true
       setLocked(true)
-      setTimeout(() => {
+      schedule(() => {
         const updated = cardsRef.current.map(c =>
           (c.id === id1 || c.id === id2) && !c.isMatched ? { ...c, isFlipped: false } : c
         )
@@ -276,12 +290,12 @@ export default function MemoryGame() {
     setCards(c => c.map(x => x.id === fId ? { ...x, isFlipped: true } : x))
     cardsRef.current = cardsRef.current.map(x => x.id === fId ? { ...x, isFlipped: true } : x)
 
-    setTimeout(() => {
+    schedule(() => {
       playSound('flip')
       setCards(c => c.map(x => x.id === sId ? { ...x, isFlipped: true } : x))
       cardsRef.current = cardsRef.current.map(x => x.id === sId ? { ...x, isFlipped: true } : x)
       setSelected([fId, sId])
-      setTimeout(() => evaluateMatch(fId, sId), 400)
+      schedule(() => evaluateMatch(fId, sId), 400)
     }, 700)
   }, [playSound, evaluateMatch])
 
@@ -297,6 +311,8 @@ export default function MemoryGame() {
     playSound('click')
     if (aiTimer.current)  clearTimeout(aiTimer.current)
     if (timerRef.current) clearInterval(timerRef.current)
+    gameTimersRef.current.forEach(timer => clearTimeout(timer))
+    gameTimersRef.current = []
     const deck = buildDeck(DIFFICULTY_CONFIG[difficulty].pairs)
     cardsRef.current = deck
     currentPRef.current = 1
@@ -339,7 +355,7 @@ export default function MemoryGame() {
       if (prev.length === 1) {
         const pair: [number,number] = [prev[0], cardId]
         setVictimCards(pair)
-        setTimeout(() => evaluateMatch(pair[0], pair[1]), 100)
+        schedule(() => evaluateMatch(pair[0], pair[1]), 100)
         return pair
       }
       return prev
@@ -350,11 +366,15 @@ export default function MemoryGame() {
     playSound('click')
     if (aiTimer.current)  clearTimeout(aiTimer.current)
     if (timerRef.current) clearInterval(timerRef.current)
+    gameTimersRef.current.forEach(timer => clearTimeout(timer))
+    gameTimersRef.current = []
     setPhase('menu')
   }
   const restart = () => {
     if (aiTimer.current)  clearTimeout(aiTimer.current)
     if (timerRef.current) clearInterval(timerRef.current)
+    gameTimersRef.current.forEach(timer => clearTimeout(timer))
+    gameTimersRef.current = []
     startGame()
   }
 

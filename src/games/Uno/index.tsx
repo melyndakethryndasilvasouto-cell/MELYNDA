@@ -133,16 +133,33 @@ export default function Uno() {
   const [unoCalled, setUnoCalled] = useState<Set<string>>(new Set())
   const [pendingColorCard, setPendingColorCard] = useState<Card | null>(null)
   const [msg, setMsg] = useState('')
+  const deferredTimersRef = useRef<ReturnType<typeof setTimeout>[]>([])
+
+  const clearDeferredTimers = useCallback(() => {
+    deferredTimersRef.current.forEach(timer => clearTimeout(timer))
+    deferredTimersRef.current = []
+  }, [])
+
+  const defer = useCallback((callback: () => void, delay: number) => {
+    const timer = setTimeout(() => {
+      deferredTimersRef.current = deferredTimersRef.current.filter(item => item !== timer)
+      callback()
+    }, delay)
+    deferredTimersRef.current.push(timer)
+  }, [])
+
+  useEffect(() => clearDeferredTimers, [clearDeferredTimers])
 
   const stateRef = useRef({ players, drawPile, discardPile, currentIdx, direction, activeColor, pendingDraw, hasDrawnThisTurn })
   useEffect(() => {
     stateRef.current = { players, drawPile, discardPile, currentIdx, direction, activeColor, pendingDraw, hasDrawnThisTurn }
   })
 
-  const showMsg = (text: string) => { setMsg(text); setTimeout(() => setMsg(''), 1800) }
+  const showMsg = (text: string) => { setMsg(text); defer(() => setMsg(''), 1800) }
 
   // ── Initialize game ──────────────────────────────────────────────────────────
   const startGame = useCallback(() => {
+    clearDeferredTimers()
     const deck = shuffle(buildDeck())
     const allPlayers: PlayerState[] = [
       { id: 'human', name: playerName, isHuman: true, hand: deck.splice(0, 7) },
@@ -167,7 +184,7 @@ export default function Uno() {
     setUnoCalled(new Set())
     setShowUnoBtn(false)
     setPhase('playing')
-  }, [playerName, aiCount])
+  }, [clearDeferredTimers, playerName, aiCount])
 
   // ── Next player helper ───────────────────────────────────────────────────────
   const nextPlayer = useCallback((
@@ -293,13 +310,13 @@ export default function Uno() {
     // If drawn card is not playable, auto-end turn
     const top = s.discardPile[s.discardPile.length - 1]
     if (!isPlayable(card, top, s.activeColor)) {
-      setTimeout(() => {
+      defer(() => {
         setCurrentIdx(nextPlayer(newPls, s.currentIdx, s.direction))
         setHasDrawnThisTurn(false)
         setDrawnCard(null)
       }, 800)
     }
-  }, [hasDrawnThisTurn, drawFromPile, playSound, nextPlayer])
+  }, [defer, hasDrawnThisTurn, drawFromPile, playSound, nextPlayer])
 
   // ── AI turn ──────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -332,7 +349,7 @@ export default function Uno() {
           setDiscardPile(dc)
           // Try to play drawn card
           if (isPlayable(drawnCard, top, s.activeColor)) {
-            setTimeout(() => {
+            defer(() => {
               const col = drawnCard.color === 'wild' ? aiChooseColor() : undefined
               playCard(currentIdx, drawnCard.id, col)
             }, 400)
@@ -346,7 +363,7 @@ export default function Uno() {
       setAiThinking(false)
     }, 850 + Math.random() * 300)
     return () => clearTimeout(t)
-  }, [currentIdx, players, phase, playCard, humanDraw, drawFromPile, nextPlayer])
+  }, [currentIdx, players, phase, playCard, humanDraw, drawFromPile, nextPlayer, defer])
 
   // ── Human plays card ─────────────────────────────────────────────────────────
   const handleHumanPlay = (card: Card) => {
