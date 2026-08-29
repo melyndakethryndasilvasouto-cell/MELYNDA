@@ -170,7 +170,10 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
   const loadInvites = useCallback(async (currentUserId: string) => {
     if (!supabase) return
     const [playResult, groupResult] = await Promise.all([
-      supabase.from('online_invites').select('*, online_rooms!inner(game)').eq('to_user', currentUserId).eq('status', 'pending')
+      // Do not join online_rooms here: a pending room has no guest_id yet,
+      // so the room participant RLS intentionally hides it from this query.
+      // The invite itself is readable by its recipient and is enough to accept.
+      supabase.from('online_invites').select('*').eq('to_user', currentUserId).eq('status', 'pending')
         .gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false }).limit(5),
       supabase.from('online_group_invites').select('*').eq('to_user', currentUserId).eq('status', 'pending')
         .gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false }).limit(10),
@@ -179,7 +182,6 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
     if (groupResult.error) throw groupResult.error
     setInvites((playResult.data || []).map(row => ({
       ...row,
-      game: row.online_rooms?.game,
     })) as OnlineInvite[])
     setGroupInvites((groupResult.data || []) as OnlineGroupInvite[])
   }, [])

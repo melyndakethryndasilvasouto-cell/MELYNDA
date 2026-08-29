@@ -29,5 +29,7 @@ test('convites não dependem exclusivamente do Realtime', async () => {
   assert.match(context, /invitesRefreshRef/)
   assert.match(context, /setInterval\(\(\) => \{[\s\S]*loadInvites\(currentUser\)/)
   assert.match(context, /visibilitychange/)
+  assert.match(context, /from\('online_invites'\)\.select\('\*'\)/)
+  assert.doesNotMatch(context, /from\('online_invites'\)\.select\('\*, online_rooms!inner\(game\)'\)/)
   assert.doesNotMatch(context, /await new Promise<void>\(\(resolve, reject\) => \{[\s\S]*channel\.subscribe/)
 })
