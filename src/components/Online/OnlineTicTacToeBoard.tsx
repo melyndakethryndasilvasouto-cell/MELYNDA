@@ -9,6 +9,7 @@ interface Props {
   opponent: OnlinePlayer | null
   broadcastGameState: unknown
   guestMove: unknown
+  stateRequest: number
   onBroadcastState: (state: unknown) => void
   onBroadcastMove: (move: unknown) => void
   onFinish: (winner: 'host' | 'guest' | 'draw') => void
@@ -53,10 +54,12 @@ function checkWin(b: (string | null)[]) {
   return null
 }
 
-export default function OnlineTicTacToeBoard({ isHost, roomStatus, opponent, broadcastGameState, guestMove, onBroadcastState, onBroadcastMove, onFinish }: Props) {
+export default function OnlineTicTacToeBoard({ isHost, roomStatus, opponent, broadcastGameState, guestMove, stateRequest, onBroadcastState, onBroadcastMove, onFinish }: Props) {
   const { playSound } = useSound()
   const [gs, setGs] = useState<GS>(INIT_GS)
   const initRef = useRef(false)
+  const stateRef = useRef(gs)
+  stateRef.current = gs
 
   // Host initializes
   useEffect(() => {
@@ -72,6 +75,10 @@ export default function OnlineTicTacToeBoard({ isHost, roomStatus, opponent, bro
       setGs(broadcastGameState as GS)
     }
   }, [isHost, broadcastGameState])
+
+  useEffect(() => {
+    if (isHost && stateRequest > 0 && initRef.current) onBroadcastState(stateRef.current)
+  }, [isHost, onBroadcastState, stateRequest])
 
   // Host handles guest moves
   useEffect(() => {

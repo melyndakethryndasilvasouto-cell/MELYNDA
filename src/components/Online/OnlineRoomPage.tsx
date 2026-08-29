@@ -50,6 +50,7 @@ export default function OnlineRoomPage() {
   // Multi-game broadcast state
   const [broadcastGameState, setBroadcastGameState] = useState<unknown>(null)
   const [guestMove, setGuestMove] = useState<unknown>(null)
+  const [stateRequest, setStateRequest] = useState(0)
   const roomRef = useRef<OnlineRoom | null>(null)
   const voiceHandlerRef = useRef<(payload: unknown) => Promise<void>>(async () => {})
   const messageLogRef = useRef<HTMLDivElement>(null)
@@ -77,6 +78,7 @@ export default function OnlineRoomPage() {
         return
       }
       const loadedRoom = result.data as OnlineRoom
+      roomRef.current = loadedRoom
       setRoom(loadedRoom)
       const ids = [loadedRoom.host_id, loadedRoom.guest_id].filter(Boolean) as string[]
       const profileResult = await supabase.from('online_profiles').select('user_id,display_name,avatar').in('user_id', ids)
@@ -101,7 +103,10 @@ export default function OnlineRoomPage() {
 
     const roomChannel = supabase.channel(`online:room:${roomId}`, { config: { private: true, broadcast: { ack: true } } })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'online_rooms', filter: `id=eq.${roomId}` }, ({ new: next }) => {
-        if (active) setRoom(next as unknown as OnlineRoom)
+        if (active) {
+          roomRef.current = next as unknown as OnlineRoom
+          setRoom(next as unknown as OnlineRoom)
+        }
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'online_room_messages', filter: `room_id=eq.${roomId}` }, ({ new: next }) => {
         const message = next as unknown as OnlineChatMessage
@@ -121,6 +126,14 @@ export default function OnlineRoomPage() {
         // Only the guest applies the host's broadcast state
         if (currentRoom && currentRoom.host_id !== userId) {
           setBroadcastGameState((payload as Record<string, unknown>).gameState ?? null)
+        }
+      })
+      .on('broadcast', { event: 'game-state-request' }, () => {
+        if (!active) return
+        const currentRoom = roomRef.current
+        // The host owns the authoritative client-side state for these games.
+        if (currentRoom && currentRoom.host_id === userId) {
+          setStateRequest(previous => previous + 1)
         }
       })
       .on('broadcast', { event: 'game-move' }, ({ payload }) => {
@@ -152,6 +165,22 @@ export default function OnlineRoomPage() {
       void supabase.removeChannel(roomChannel)
     }
   }, [onlineStatus, roomId, userId])
+
+  useEffect(() => {
+    if (!channel || !roomConnected || isHost) return
+    let active = true
+    const requestState = () => {
+      if (active) void channel.send({ type: 'broadcast', event: 'game-state-request', payload: {} })
+    }
+    requestState()
+    const retry = window.setTimeout(requestState, 700)
+    const retryAgain = window.setTimeout(requestState, 1_800)
+    return () => {
+      active = false
+      window.clearTimeout(retry)
+      window.clearTimeout(retryAgain)
+    }
+  }, [channel, isHost, roomConnected])
 
   useEffect(() => {
     if (room?.game) setPlayingGame(room.game)
@@ -320,17 +349,18 @@ export default function OnlineRoomPage() {
 
       {/* ── TicTacToe board ── */}
       {(room.game === 'tic-tac-toe' || !room.game) && (
-          <OnlineTicTacToeBoard
-            isHost={isHost}
-            roomStatus={room.status}
-            opponent={opponent}
-            broadcastGameState={broadcastGameState}
-            guestMove={guestMove}
-            onBroadcastState={broadcastState}
-            onBroadcastMove={broadcastMove}
-            onFinish={finishRoom}
-          />
-        )}
+        <OnlineTicTacToeBoard
+          isHost={isHost}
+          roomStatus={room.status}
+          opponent={opponent}
+          broadcastGameState={broadcastGameState}
+          guestMove={guestMove}
+          stateRequest={stateRequest}
+          onBroadcastState={broadcastState}
+          onBroadcastMove={broadcastMove}
+          onFinish={finishRoom}
+        />
+      )}
 
       {/* ── Memory online board ── */}
       {room.game === 'memory' && (
@@ -340,6 +370,7 @@ export default function OnlineRoomPage() {
           opponent={opponent}
           broadcastGameState={broadcastGameState}
           guestMove={guestMove}
+          stateRequest={stateRequest}
           onBroadcastState={broadcastState}
           onBroadcastMove={broadcastMove}
           onFinish={finishRoom}
@@ -354,6 +385,7 @@ export default function OnlineRoomPage() {
           opponent={opponent}
           broadcastGameState={broadcastGameState}
           guestMove={guestMove}
+          stateRequest={stateRequest}
           onBroadcastState={broadcastState}
           onBroadcastMove={broadcastMove}
           onFinish={finishRoom}
@@ -368,6 +400,7 @@ export default function OnlineRoomPage() {
           opponent={opponent}
           broadcastGameState={broadcastGameState}
           guestMove={guestMove}
+          stateRequest={stateRequest}
           onBroadcastState={broadcastState}
           onBroadcastMove={broadcastMove}
           onFinish={finishRoom}
@@ -382,6 +415,7 @@ export default function OnlineRoomPage() {
           opponent={opponent}
           broadcastGameState={broadcastGameState}
           guestMove={guestMove}
+          stateRequest={stateRequest}
           onBroadcastState={broadcastState}
           onBroadcastMove={broadcastMove}
           onFinish={finishRoom}
@@ -396,6 +430,7 @@ export default function OnlineRoomPage() {
           opponent={opponent}
           broadcastGameState={broadcastGameState}
           guestMove={guestMove}
+          stateRequest={stateRequest}
           onBroadcastState={broadcastState}
           onBroadcastMove={broadcastMove}
           onValidateAction={validateArcadeAction}

@@ -111,15 +111,18 @@ type Props = {
   opponent: OnlinePlayer | null
   broadcastGameState: any
   guestMove: any
+  stateRequest: number
   onBroadcastState: (s: any) => void
   onBroadcastMove: (m: any) => void
   onFinish: (winner: string) => void
 }
 
-export default function OnlineUnoBoard({ isHost, roomStatus, opponent, broadcastGameState, guestMove, onBroadcastState, onBroadcastMove, onFinish }: Props) {
+export default function OnlineUnoBoard({ isHost, roomStatus, opponent, broadcastGameState, guestMove, stateRequest, onBroadcastState, onBroadcastMove, onFinish }: Props) {
   const { playSound } = useSound()
   const [gs, setGs] = useState<GS>(INIT_GS)
   const initRef = useRef(false)
+  const stateRef = useRef(gs)
+  stateRef.current = gs
 
   useEffect(() => {
     if (!isHost || roomStatus !== 'active' || initRef.current) return
@@ -133,6 +136,10 @@ export default function OnlineUnoBoard({ isHost, roomStatus, opponent, broadcast
       setGs(broadcastGameState as GS)
     }
   }, [isHost, broadcastGameState])
+
+  useEffect(() => {
+    if (isHost && stateRequest > 0 && initRef.current) onBroadcastState(stateRef.current)
+  }, [isHost, onBroadcastState, stateRequest])
 
   const drawCards = (deck: Card[], discard: Card[], count: number): { drawn: Card[], newDeck: Card[], newDiscard: Card[] } => {
     let currentDeck = [...deck]

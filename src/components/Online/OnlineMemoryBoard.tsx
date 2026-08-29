@@ -8,6 +8,7 @@ interface OnlineMemoryBoardProps {
   opponent: OnlinePlayer | null
   broadcastGameState: unknown
   guestMove: unknown
+  stateRequest: number
   onBroadcastState: (state: unknown) => void
   onBroadcastMove: (move: unknown) => void
   onFinish: (winner: 'host' | 'guest' | 'draw') => Promise<void>
@@ -50,10 +51,12 @@ function buildDeck(): CardState[] {
 
 const INIT: GameState = { cards: [], hostScore: 0, guestScore: 0, turn: 'host', flipped: [], phase: 'playing', winner: null }
 
-export default function OnlineMemoryBoard({ isHost, roomStatus, opponent, broadcastGameState, guestMove, onBroadcastState, onBroadcastMove, onFinish }: OnlineMemoryBoardProps) {
+export default function OnlineMemoryBoard({ isHost, roomStatus, opponent, broadcastGameState, guestMove, stateRequest, onBroadcastState, onBroadcastMove, onFinish }: OnlineMemoryBoardProps) {
   const [gs, setGs] = useState<GameState>(INIT)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const initRef = useRef(false)
+  const stateRef = useRef(gs)
+  stateRef.current = gs
 
   useEffect(() => {
     if (!isHost || roomStatus !== 'active' || initRef.current) return
@@ -67,6 +70,10 @@ export default function OnlineMemoryBoard({ isHost, roomStatus, opponent, broadc
     if (isHost || !broadcastGameState) return
     setGs(broadcastGameState as GameState)
   }, [isHost, broadcastGameState])
+
+  useEffect(() => {
+    if (isHost && stateRequest > 0 && initRef.current) onBroadcastState(stateRef.current)
+  }, [isHost, onBroadcastState, stateRequest])
 
   const flipCard = useCallback((cardId: string) => {
     setGs(prev => {

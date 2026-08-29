@@ -7,6 +7,7 @@ interface Props {
   opponent: OnlinePlayer | null
   broadcastGameState: unknown
   guestMove: unknown
+  stateRequest: number
   onBroadcastState: (s: unknown) => void
   onBroadcastMove: (m: unknown) => void
   onFinish: (winner: 'host' | 'guest' | 'draw') => Promise<void>
@@ -75,10 +76,12 @@ function applyMove(gs: GS, from: Pos, to: Pos): GS {
   return { board, turn: nextTurn, hostCaptures: hc, guestCaptures: gc, phase, winner }
 }
 
-export default function OnlineCheckersBoard({ isHost, roomStatus, opponent, broadcastGameState, guestMove, onBroadcastState, onBroadcastMove, onFinish }: Props) {
+export default function OnlineCheckersBoard({ isHost, roomStatus, opponent, broadcastGameState, guestMove, stateRequest, onBroadcastState, onBroadcastMove, onFinish }: Props) {
   const [gs, setGs] = useState<GS>(INIT_GS)
   const [sel, setSel] = useState<Pos | null>(null)
   const initRef = useRef(false)
+  const stateRef = useRef(gs)
+  stateRef.current = gs
 
   useEffect(() => {
     if (!isHost || roomStatus !== 'active' || initRef.current) return
@@ -88,6 +91,10 @@ export default function OnlineCheckersBoard({ isHost, roomStatus, opponent, broa
   }, [isHost, roomStatus, onBroadcastState])
 
   useEffect(() => { if (!isHost && broadcastGameState) setGs(broadcastGameState as GS) }, [isHost, broadcastGameState])
+
+  useEffect(() => {
+    if (isHost && stateRequest > 0 && initRef.current) onBroadcastState(stateRef.current)
+  }, [isHost, onBroadcastState, stateRequest])
 
   const doMove = useCallback((from: Pos, to: Pos) => {
     setGs(prev => {

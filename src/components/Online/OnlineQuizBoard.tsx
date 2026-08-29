@@ -8,6 +8,7 @@ interface Props {
   opponent: OnlinePlayer | null
   broadcastGameState: unknown
   guestMove: unknown
+  stateRequest: number
   onBroadcastState: (s: unknown) => void
   onBroadcastMove: (m: unknown) => void
   onFinish: (winner: 'host' | 'guest' | 'draw') => Promise<void>
@@ -36,11 +37,13 @@ function pickQuestions(): Question[] {
   return pool.slice(0, TOTAL)
 }
 
-export default function OnlineQuizBoard({ isHost, roomStatus, opponent, broadcastGameState, guestMove, onBroadcastState, onBroadcastMove, onFinish }: Props) {
+export default function OnlineQuizBoard({ isHost, roomStatus, opponent, broadcastGameState, guestMove, stateRequest, onBroadcastState, onBroadcastMove, onFinish }: Props) {
   const [gs, setGs] = useState<GS>(INIT)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const initRef = useRef(false)
+  const stateRef = useRef(gs)
+  stateRef.current = gs
 
   const stopTimers = () => {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
@@ -94,6 +97,10 @@ export default function OnlineQuizBoard({ isHost, roomStatus, opponent, broadcas
 
   // GUEST: apply host state
   useEffect(() => { if (!isHost && broadcastGameState) setGs(broadcastGameState as GS) }, [isHost, broadcastGameState])
+
+  useEffect(() => {
+    if (isHost && stateRequest > 0 && initRef.current) onBroadcastState(stateRef.current)
+  }, [isHost, onBroadcastState, stateRequest])
 
   // HOST: apply guest answer
   useEffect(() => {

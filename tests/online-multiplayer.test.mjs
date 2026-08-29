@@ -23,6 +23,7 @@ test('migração online protege salas, convites e jogadas no servidor', async ()
   const arcade = await readFile(new URL('src/components/Online/OnlineArcadeBoard.tsx', root), 'utf8')
   const arcadeValidation = await readFile(new URL('supabase/migrations/20260827201000_validate_online_arcade_actions.sql', root), 'utf8')
   const verifyOnline = await readFile(new URL('scripts/verify-online.mjs', root), 'utf8')
+  const roomClient = await readFile(new URL('src/components/Online/OnlineRoomPage.tsx', root), 'utf8')
 
   for (const table of ['online_profiles', 'online_rooms', 'online_invites']) {
     assert.match(sql, new RegExp(`alter table public\\.${table} enable row level security`, 'i'))
@@ -82,6 +83,12 @@ test('migração online protege salas, convites e jogadas no servidor', async ()
   assert.match(arcadeValidation, /NOT_A_PARTICIPANT/)
   assert.match(arcadeValidation, /INVALID_ACTION/)
   assert.match(arcadeValidation, /revoke all on function public\.record_online_game_action/i)
+  assert.match(roomClient, /game-state-request/)
+  assert.match(roomClient, /roomConnected[\s\S]*requestState\(\)[\s\S]*1_800/)
+  for (const board of [arcade, await readFile(new URL('src/components/Online/OnlineTicTacToeBoard.tsx', root), 'utf8'), await readFile(new URL('src/components/Online/OnlineMemoryBoard.tsx', root), 'utf8'), await readFile(new URL('src/components/Online/OnlineCheckersBoard.tsx', root), 'utf8'), await readFile(new URL('src/components/Online/OnlineQuizBoard.tsx', root), 'utf8'), await readFile(new URL('src/components/Online/OnlineUnoBoard.tsx', root), 'utf8')]) {
+    assert.match(board, /stateRequest/)
+    assert.match(board, /onBroadcastState\(stateRef\.current\)/)
+  }
   assert.match(verifyOnline, /readFile\(new URL\('\.\.\/.env\.local'/i)
   assert.match(verifyOnline, /localEnv\.VITE_SUPABASE_URL/i)
   assert.match(verifyOnline, /localEnv\.VITE_SUPABASE_PUBLISHABLE_KEY/i)

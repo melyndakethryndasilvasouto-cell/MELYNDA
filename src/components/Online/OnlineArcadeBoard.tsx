@@ -24,6 +24,7 @@ type Props = {
   opponent: OnlinePlayer | null
   broadcastGameState: unknown
   guestMove: unknown
+  stateRequest: number
   onBroadcastState: (state: unknown) => void
   onBroadcastMove: (move: unknown) => void
   onValidateAction: (move: unknown) => Promise<boolean>
@@ -49,7 +50,7 @@ function initialState(game: OnlineGameKey): ArcadeState {
 
 function sideOf(isHost: boolean): PlayerSide { return isHost ? 'host' : 'guest' }
 
-export default function OnlineArcadeBoard({ game, isHost, roomStatus, opponent, broadcastGameState, guestMove, onBroadcastState, onBroadcastMove, onValidateAction, onFinish }: Props) {
+export default function OnlineArcadeBoard({ game, isHost, roomStatus, opponent, broadcastGameState, guestMove, stateRequest, onBroadcastState, onBroadcastMove, onValidateAction, onFinish }: Props) {
   const side = sideOf(isHost)
   const [state, setState] = useState<ArcadeState>(() => initialState(game))
   const initialized = useRef(false)
@@ -72,6 +73,10 @@ export default function OnlineArcadeBoard({ game, isHost, roomStatus, opponent, 
   useEffect(() => {
     if (!isHost && broadcastGameState) setState(broadcastGameState as ArcadeState)
   }, [broadcastGameState, isHost])
+
+  useEffect(() => {
+    if (isHost && stateRequest > 0 && initialized.current) onBroadcastState(stateRef.current)
+  }, [isHost, onBroadcastState, stateRequest])
 
   const applyAction = useCallback((action: any, actor: PlayerSide) => {
     const current = stateRef.current
