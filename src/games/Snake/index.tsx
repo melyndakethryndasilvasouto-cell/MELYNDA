@@ -370,7 +370,7 @@ export default function Snake() {
             className="btn-secondary px-3 py-2 text-sm"
             onClick={() => { playSound("click"); setShowHelp(true) }}
           >
-            \u2753 Ajuda
+            ❓ Ajuda
           </button>
         </div>
       </div>
@@ -394,11 +394,11 @@ export default function Snake() {
                 className="absolute inset-0 flex flex-col items-center justify-center gap-4"
                 style={{ background: "rgba(15,23,42,0.88)" }}
               >
-                <div className="text-6xl">\uD83D\uDC0D</div>
+                <div className="text-6xl">🐍</div>
                 <h1 className="text-3xl font-bold text-white" style={{ fontFamily: "'Fredoka One'" }}>Cobrinha</h1>
                 <p className="text-sm text-center px-6" style={{ color: "#93C5FD" }}>
                   Come a comida, cresça e não bata nas paredes!<br />
-                  <span style={{ color: "#C4B5FD" }}>\u2B50 Comida especial vale 5 pontos!</span>
+                  <span style={{ color: "#C4B5FD" }}>⭐ Comida especial vale 5 pontos!</span>
                 </p>
                 <button className="btn-primary px-8 py-3 text-lg" onClick={() => { playSound("click"); startGame() }}>
                   Jogar
@@ -413,10 +413,10 @@ export default function Snake() {
                 className="absolute inset-0 flex flex-col items-center justify-center gap-4"
                 style={{ background: "rgba(15,23,42,0.85)" }}
               >
-                <div className="text-5xl">\u23F8</div>
+                <div className="text-5xl">⏸</div>
                 <h2 className="text-2xl font-bold text-white" style={{ fontFamily: "'Fredoka One'" }}>Pausado</h2>
-                <button className="btn-primary px-8 py-3" onClick={togglePause}>\u25B6 Continuar</button>
-                <button className="btn-secondary px-6 py-2 text-sm" onClick={() => { playSound("click"); startGame() }}>\uD83D\uDD04 Reiniciar</button>
+                <button className="btn-primary px-8 py-3" onClick={togglePause}>▶ Continuar</button>
+                <button className="btn-secondary px-6 py-2 text-sm" onClick={() => { playSound("click"); startGame() }}>🔄 Reiniciar</button>
               </motion.div>
             )}
 
@@ -436,7 +436,7 @@ export default function Snake() {
                   <p className="text-sm" style={{ color: "#A78BFA" }}>Recorde: {best}</p>
                 </div>
                 <button className="btn-primary w-full py-3 text-lg" onClick={() => { playSound("click"); startGame() }}>
-                  \uD83D\uDD04 Jogar Novamente
+                🔄 Jogar Novamente
                 </button>
               </motion.div>
             )}
@@ -445,11 +445,11 @@ export default function Snake() {
       </div>
 
       <div className="flex flex-col items-center gap-1 mt-2" style={{ userSelect: "none" }}>
-        <DPadBtn dir="UP" label="\u2191" />
+        <DPadBtn dir="UP" label="↑" />
         <div className="flex gap-4">
-          <DPadBtn dir="LEFT" label="\u2190" />
-          <DPadBtn dir="DOWN" label="\u2193" />
-          <DPadBtn dir="RIGHT" label="\u2192" />
+          <DPadBtn dir="LEFT" label="←" />
+          <DPadBtn dir="DOWN" label="↓" />
+          <DPadBtn dir="RIGHT" label="→" />
         </div>
       </div>
 
@@ -472,15 +472,15 @@ export default function Snake() {
               onClick={e => e.stopPropagation()}
             >
               <h2 className="text-xl font-bold mb-4 text-center" style={{ fontFamily: "'Fredoka One'", color: "#7B5EA7" }}>
-                \uD83D\uDCCB Como Jogar
+                📋 Como Jogar
               </h2>
               <ul className="space-y-3 text-sm" style={{ color: "#334155" }}>
-                <li>\uD83D\uDC0D <strong>Mova a cobra</strong> usando as setas do teclado, WASD, os botões na tela ou arrastando.</li>
-                <li>\uD83C\uDF4E <strong>Coma a comida vermelha</strong> para crescer e ganhar <strong>1 ponto</strong>.</li>
-                <li>\u2B50 <strong>Comida especial roxa</strong> aparece às vezes e vale <strong>5 pontos</strong> — mas some em 8 segundos!</li>
-                <li>\uD83D\uDCA5 <strong>Não bata</strong> nas paredes nem em si mesma ou o jogo acaba!</li>
-                <li>\u26A1 A cada 5 pontos a cobra fica <strong>mais rápida</strong>.</li>
-                <li>\u23F8 Pressione <strong>Pausar</strong> ou a tecla <strong>P</strong> para pausar o jogo.</li>
+                <li>🐍 <strong>Mova a cobra</strong> usando as setas do teclado, WASD, os botões na tela ou arrastando.</li>
+                <li>🍎 <strong>Coma a comida vermelha</strong> para crescer e ganhar <strong>1 ponto</strong>.</li>
+                <li>⭐ <strong>Comida especial roxa</strong> aparece às vezes e vale <strong>5 pontos</strong> — mas some em 8 segundos!</li>
+                <li>💥 <strong>Não bata</strong> nas paredes nem em si mesma ou o jogo acaba!</li>
+                <li>⚡ A cada 5 pontos a cobra fica <strong>mais rápida</strong>.</li>
+                <li>⏸ Pressione <strong>Pausar</strong> ou a tecla <strong>P</strong> para pausar o jogo.</li>
               </ul>
               <button className="btn-primary w-full mt-5" onClick={() => { playSound("click"); setShowHelp(false) }}>
                 Entendido!

@@ -71,6 +71,8 @@ const LS_BEST = 'mel-simon-best'
 
 // ─── Audio (singleton AudioContext) ──────────────────────────────────────────
 let _simonCtx: AudioContext | null = null
+let _simonAudioReady: Promise<void> | null = null
+
 function getSimonCtx(): AudioContext {
   if (!_simonCtx || _simonCtx.state === 'closed') {
     _simonCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
@@ -78,22 +80,38 @@ function getSimonCtx(): AudioContext {
   return _simonCtx
 }
 
+function resumeSimonCtx(ctx: AudioContext) {
+  if (ctx.state === 'running') return Promise.resolve()
+  if (!_simonAudioReady) {
+    _simonAudioReady = ctx.resume().catch(() => {}).finally(() => { _simonAudioReady = null })
+  }
+  return _simonAudioReady
+}
+
+function unlockSimonAudio(isMuted: boolean) {
+  if (isMuted) return
+  try { void resumeSimonCtx(getSimonCtx()) } catch {}
+}
+
 function playSimonTone(colorIndex: number, isMuted: boolean) {
   if (isMuted) return
   try {
     const ctx = getSimonCtx()
-    if (ctx.state === 'suspended') ctx.resume()
-    const freqs = [262, 330, 392, 523]
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-    osc.type = 'sine'
-    osc.frequency.value = freqs[colorIndex]
-    gain.gain.setValueAtTime(0.45, ctx.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55)
-    osc.start(ctx.currentTime)
-    osc.stop(ctx.currentTime + 0.55)
+    void resumeSimonCtx(ctx).then(() => {
+      if (ctx.state !== 'running') return
+      const start = ctx.currentTime
+      const freqs = [262, 330, 392, 523]
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.type = 'sine'
+      osc.frequency.value = freqs[colorIndex]
+      gain.gain.setValueAtTime(0.45, start)
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.55)
+      osc.start(start)
+      osc.stop(start + 0.55)
+    }).catch(() => {})
   } catch {}
 }
 
@@ -101,17 +119,20 @@ function playErrorBuzz(isMuted: boolean) {
   if (isMuted) return
   try {
     const ctx = getSimonCtx()
-    if (ctx.state === 'suspended') ctx.resume()
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-    osc.type = 'sawtooth'
-    osc.frequency.value = 160
-    gain.gain.setValueAtTime(0.35, ctx.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6)
-    osc.start(ctx.currentTime)
-    osc.stop(ctx.currentTime + 0.6)
+    void resumeSimonCtx(ctx).then(() => {
+      if (ctx.state !== 'running') return
+      const start = ctx.currentTime
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.type = 'sawtooth'
+      osc.frequency.value = 160
+      gain.gain.setValueAtTime(0.35, start)
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.6)
+      osc.start(start)
+      osc.stop(start + 0.6)
+    }).catch(() => {})
   } catch {}
 }
 
@@ -264,6 +285,7 @@ export default function SimonSays() {
   const handleButtonPress = useCallback((colorIdx: number) => {
     if (phase !== 'input') return
 
+    unlockSimonAudio(isMutedRef.current)
     playSimonTone(colorIdx, isMutedRef.current)
     setLitButton(colorIdx)
     addTimeout(() => setLitButton(null), 200)
@@ -317,6 +339,7 @@ export default function SimonSays() {
   }, [handleButtonPress])
 
   const startGame = useCallback(() => {
+    unlockSimonAudio(isMutedRef.current)
     playSound('click')
     clearAllTimeouts()
     setScore(0)

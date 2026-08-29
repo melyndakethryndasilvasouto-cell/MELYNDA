@@ -79,6 +79,7 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
   const safetyAcceptedRef = useRef(safetyAccepted)
   const channelRef = useRef<RealtimeChannel | null>(null)
   const heartbeatRef = useRef<number | null>(null)
+  const invitesRefreshRef = useRef<number | null>(null)
   const connectionRef = useRef<Promise<void> | null>(null)
   const connectedUserRef = useRef('')
   const activityRef = useRef(activityForPath(pathname))
@@ -95,12 +96,18 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
     heartbeatRef.current = null
   }, [])
 
+  const clearInvitesRefresh = useCallback(() => {
+    if (invitesRefreshRef.current !== null) window.clearInterval(invitesRefreshRef.current)
+    invitesRefreshRef.current = null
+  }, [])
+
   const disconnect = useCallback(() => {
     clearHeartbeat()
+    clearInvitesRefresh()
     if (supabase && channelRef.current) void supabase.removeChannel(channelRef.current)
     channelRef.current = null
     connectedUserRef.current = ''
-  }, [clearHeartbeat])
+  }, [clearHeartbeat, clearInvitesRefresh])
 
   useEffect(() => disconnect, [disconnect])
 
@@ -239,18 +246,24 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
           .on('postgres_changes', { event: '*', schema: 'public', table: 'online_group_invites', filter: `to_user=eq.${currentUserId}` }, () => { void loadInvites(currentUserId) })
           .on('postgres_changes', { event: '*', schema: 'public', table: 'online_group_members', filter: `user_id=eq.${currentUserId}` }, () => { void loadGroups() })
 
-        await new Promise<void>((resolve, reject) => {
-          channel.subscribe((subscriptionStatus, subscriptionError) => {
-            if (subscriptionStatus === 'SUBSCRIBED') resolve()
-            else if (subscriptionStatus === 'CHANNEL_ERROR' || subscriptionStatus === 'TIMED_OUT') reject(subscriptionError || new Error(subscriptionStatus))
-          })
-        })
         channelRef.current = channel
+        // Realtime is an optimization here. It can be suspended or blocked on
+        // mobile networks, so it must not keep the player stuck in "connecting".
+        channel.subscribe(subscriptionStatus => {
+          if (subscriptionStatus === 'CHANNEL_ERROR' || subscriptionStatus === 'TIMED_OUT') {
+            void loadInvites(currentUserId)
+          }
+        })
         await Promise.all([loadPlayers(), loadGroups(), loadMessages(), loadInvites(currentUserId)])
         clearHeartbeat()
+        clearInvitesRefresh()
         heartbeatRef.current = window.setInterval(() => {
           void heartbeat().then(loadPlayers).catch(heartbeatError => setError(friendlyError(heartbeatError)))
         }, 25_000)
+        invitesRefreshRef.current = window.setInterval(() => {
+          const currentUser = connectedUserRef.current
+          if (currentUser) void loadInvites(currentUser).catch(refreshError => setError(friendlyError(refreshError)))
+        }, 5_000)
         setStatus('connected')
       } catch (connectionError) {
         disconnect()
@@ -260,12 +273,20 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
     })()
     connectionRef.current = task.finally(() => { connectionRef.current = null })
     return connectionRef.current
-  }, [clearHeartbeat, disconnect, heartbeat, loadGroups, loadInvites, loadMessages, loadPlayers, playerAvatar, playerName])
+  }, [clearHeartbeat, clearInvitesRefresh, disconnect, heartbeat, loadGroups, loadInvites, loadMessages, loadPlayers, playerAvatar, playerName])
 
   useEffect(() => {
     activityRef.current = activityForPath(pathname)
     if (connectedUserRef.current) void heartbeat().then(loadPlayers).catch(activityError => setError(friendlyError(activityError)))
   }, [heartbeat, loadPlayers, pathname])
+
+  useEffect(() => {
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') void refreshOnline()
+    }
+    document.addEventListener('visibilitychange', refreshWhenVisible)
+    return () => document.removeEventListener('visibilitychange', refreshWhenVisible)
+  }, [refreshOnline])
 
   useEffect(() => {
     localStorage.removeItem('mel-online-consent')

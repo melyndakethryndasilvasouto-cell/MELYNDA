@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
 
 type SoundType = 'click' | 'win' | 'lose' | 'match' | 'card' | 'error' | 'flip' | 'tick'
 
@@ -11,27 +11,59 @@ interface SoundContextType {
 const SoundContext = createContext<SoundContextType | null>(null)
 
 let _audioCtx: AudioContext | null = null
+let _audioReady: Promise<void> | null = null
+
 function getCtx(): AudioContext {
-  if (!_audioCtx) _audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+  if (!_audioCtx || _audioCtx.state === 'closed') {
+    _audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+    _audioReady = null
+  }
   return _audioCtx
+}
+
+function resumeCtx(ctx: AudioContext) {
+  if (ctx.state === 'running') return Promise.resolve()
+  if (!_audioReady) {
+    _audioReady = ctx.resume().catch(() => {}).finally(() => { _audioReady = null })
+  }
+  return _audioReady
 }
 
 function tone(freq: number, dur: number, type: OscillatorType = 'sine', vol = 0.25) {
   try {
     const ctx = getCtx()
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain); gain.connect(ctx.destination)
-    osc.type = type
-    osc.frequency.setValueAtTime(freq, ctx.currentTime)
-    gain.gain.setValueAtTime(vol, ctx.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur)
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + dur)
+    void resumeCtx(ctx).then(() => {
+      if (ctx.state !== 'running') return
+      const start = ctx.currentTime
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain); gain.connect(ctx.destination)
+      osc.type = type
+      osc.frequency.setValueAtTime(freq, start)
+      gain.gain.setValueAtTime(vol, start)
+      gain.gain.exponentialRampToValueAtTime(0.001, start + dur)
+      osc.start(start); osc.stop(start + dur)
+    }).catch(() => {})
   } catch {}
 }
 
 export function SoundProvider({ children }: { children: ReactNode }) {
   const [isMuted, setIsMuted] = useState(() => localStorage.getItem('mel-muted') === 'true')
+
+  useEffect(() => {
+    const unlock = () => {
+      if (isMuted) return
+      try { void resumeCtx(getCtx()) } catch {}
+    }
+    window.addEventListener('pointerdown', unlock, { passive: true })
+    window.addEventListener('touchstart', unlock, { passive: true })
+    window.addEventListener('keydown', unlock, { passive: true })
+    return () => {
+      window.removeEventListener('pointerdown', unlock)
+      window.removeEventListener('touchstart', unlock)
+      window.removeEventListener('keydown', unlock)
+    }
+  }, [isMuted])
 
   const toggleMute = useCallback(() => {
     setIsMuted(prev => {
