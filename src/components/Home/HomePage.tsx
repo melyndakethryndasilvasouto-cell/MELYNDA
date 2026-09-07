@@ -5,6 +5,7 @@ import GameCard from './GameCard'
 import missions from '../../data/gameMissions.json'
 
 const visualById: Record<string, { grad: string; badge?: string }> = {
+  tabuada: { grad: 'linear-gradient(135deg,#34D399,#F59E0B)', badge: 'NOVO · 2 ao 9' },
   memoria: { grad: 'linear-gradient(135deg,#6BB8FF,#4A90D9)', badge: '1-2 jogadores' },
   velha: { grad: 'linear-gradient(135deg,#A78BFA,#7B5EA7)', badge: 'vs IA' },
   dama: { grad: 'linear-gradient(135deg,#818CF8,#4A90D9)', badge: 'vs IA' },

@@ -1,6 +1,6 @@
 # Mel — Aventuras da Bíblia
 
-Portal infantil com onze jogos bíblicos, modos locais contra o computador, progresso salvo no navegador, Guia Bíblico nos jogos e um Devocional personalizado por IA.
+Portal infantil com doze jogos bíblicos, modos locais contra o computador, progresso salvo no navegador, Guia Bíblico nos jogos e um Devocional personalizado por IA.
 
 ## Site online
 

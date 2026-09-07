@@ -12,7 +12,7 @@ export default function GameCard({ game, onClick }: Props) {
     >
       {game.badge && (
         <span className="absolute top-2 right-2 text-xs font-bold px-2 py-0.5 rounded-full"
-          style={{ background: 'linear-gradient(135deg,#6BB8FF,#A78BFA)', color: 'white', fontSize: 10 }}>
+          style={{ background: 'linear-gradient(135deg,#2563EB,#7C3AED)', color: 'white', fontSize: 12 }}>
           {game.badge}
         </span>
       )}
@@ -23,7 +23,7 @@ export default function GameCard({ game, onClick }: Props) {
         {game.icon}
       </div>
       <span className="font-bold text-sm text-center leading-tight" style={{ color: '#374151' }}>{game.name}</span>
-      <span className="text-xs text-center" style={{ color: '#9CA3AF' }}>{game.desc}</span>
+      <span className="text-xs text-center" style={{ color: '#4B5563' }}>{game.desc}</span>
       {game.verseRef && <span className="verse-chip mt-auto">{game.verseRef}</span>}
     </button>
   )

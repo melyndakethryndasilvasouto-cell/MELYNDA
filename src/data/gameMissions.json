@@ -1,5 +1,16 @@
 [
   {
+    "path": "/tabuada",
+    "gameId": "tabuada",
+    "homeName": "Tesouros da Tabuada",
+    "homeDescription": "Aprenda do 2 ao 9 com truques que ficam na memória!",
+    "icon": "🧠",
+    "theme": "Crescer em sabedoria",
+    "verseRef": "Provérbios 2:6",
+    "message": "Deus nos dá sabedoria para aprender com paciência e usar o conhecimento para fazer o bem.",
+    "challenge": "Pratique com dedicação e encoraje com bondade alguém que também está aprendendo."
+  },
+  {
     "path": "/memoria",
     "gameId": "memoria",
     "homeName": "Memória da Bíblia",

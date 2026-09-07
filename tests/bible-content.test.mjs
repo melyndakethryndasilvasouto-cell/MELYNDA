@@ -8,7 +8,7 @@ const referencePattern = /^(?:[1-3] )?[A-Za-zÀ-ÿ]+(?: [A-Za-zÀ-ÿ]+)* \d+:\d+
 
 test('cada jogo possui uma missão bíblica única e completa', async () => {
   const missions = await readJson('src/data/gameMissions.json')
-  assert.equal(missions.length, 11)
+  assert.equal(missions.length, 12)
   assert.equal(new Set(missions.map(({ path }) => path)).size, missions.length)
   assert.equal(new Set(missions.map(({ gameId }) => gameId)).size, missions.length)
 
@@ -23,6 +23,7 @@ test('cada jogo possui uma missão bíblica única e completa', async () => {
   assert.deepEqual(
     Object.fromEntries(missions.map(({ gameId, homeName }) => [gameId, homeName])),
     {
+      tabuada: 'Tesouros da Tabuada',
       memoria: 'Memória da Bíblia',
       velha: 'Jogo da Velha',
       dama: 'Dama',

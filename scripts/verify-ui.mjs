@@ -153,9 +153,9 @@ try {
   await evaluate(`localStorage.setItem('mel-player-name','Mel'); localStorage.setItem('mel-player-avatar','🕊️'); location.reload()`)
   await new Promise(resolveWait => setTimeout(resolveWait, 1200))
   await metrics('/', 1440, 900)
-  const realGameNames = await evaluate(`['Memória da Bíblia','Jogo da Velha','Dama','UNO','Colorindo a Bíblia','Cobrinha','Sequência de Cores','Quiz da Bíblia','Quebra-Cabeça','Ping Pong','Forca Bíblica'].every(name => document.body.innerText.includes(name))`)
+  const realGameNames = await evaluate(`['Tesouros da Tabuada','Memória da Bíblia','Jogo da Velha','Dama','UNO','Colorindo a Bíblia','Cobrinha','Sequência de Cores','Quiz da Bíblia','Quebra-Cabeça','Ping Pong','Forca Bíblica'].every(name => document.body.innerText.includes(name))`)
   if (!realGameNames) throw new Error('A página inicial não exibiu todos os nomes reais dos jogos')
-  console.log('CONTENT_OK home_real_game_names=11')
+  console.log('CONTENT_OK home_real_game_names=12')
   console.log(`SCREENSHOT ${await screenshot('ui-home-desktop.png')}`)
 
   for (const width of [320, 768, 1024, 1440]) await metrics('/', width, 900)
@@ -284,7 +284,7 @@ try {
   if (!chatTabFocused || !notesTabSelected || !chatTabSelected) throw new Error('Abas do Devocional nÃ£o responderam ao teclado')
   console.log('INTERACTION_OK feature=devotional drawer_focus=true escape=true tabs_keyboard=true')
 
-  const mobilePaths = ['/devocional', '/online', '/memoria', '/jogo-da-velha', '/dama', '/uno', '/colorir', '/cobra', '/simon', '/quiz', '/quebra-cabeca', '/pong', '/forca']
+  const mobilePaths = ['/devocional', '/online', '/tabuada', '/memoria', '/jogo-da-velha', '/dama', '/uno', '/colorir', '/cobra', '/simon', '/quiz', '/quebra-cabeca', '/pong', '/forca']
   for (const pathname of mobilePaths) await metrics(pathname, 320, 800)
 
   await viewport(320, 800)
@@ -509,6 +509,93 @@ try {
   console.log(`SCREENSHOT ${await screenshot('ui-quiz-feedback-mobile.png')}`)
   console.log('INTERACTION_OK game=quiz feedback_with_reference=true')
 
+  await viewport(320, 800)
+  await navigate('/tabuada')
+  const multiplicationFlow = await evaluate(`(async () => {
+    const wait = ms => new Promise(resolve => setTimeout(resolve, ms))
+    const tableButtons = [...document.querySelectorAll('[data-table-choice]')]
+    const tableTwo = document.querySelector('[data-table-choice="2"]')
+    tableTwo?.click()
+    await wait(180)
+
+    const readFact = () => {
+      const area = document.querySelector('[data-table][data-multiplier]')
+      return area ? { table: Number(area.getAttribute('data-table')), multiplier: Number(area.getAttribute('data-multiplier')) } : null
+    }
+    const choose = correct => {
+      const fact = readFact()
+      if (!fact) return false
+      const answer = fact.table * fact.multiplier
+      const options = [...document.querySelectorAll('button[data-answer]')]
+      const button = options.find(item => correct ? Number(item.getAttribute('data-answer')) === answer : Number(item.getAttribute('data-answer')) !== answer)
+      button?.click()
+      return Boolean(button)
+    }
+    const next = () => [...document.querySelectorAll('button')].find(item => item.textContent?.includes('Próxima pergunta'))?.click()
+
+    const firstAnswered = choose(true)
+    await wait(150)
+    const correctFeedback = document.querySelector('[data-feedback="correct"]')?.textContent || ''
+    const liveFeedback = document.querySelector('[role="status"]')?.getAttribute('aria-live') || ''
+    next()
+    await wait(150)
+
+    const missedFact = readFact()
+    const secondAnswered = choose(false)
+    await wait(150)
+    const incorrectFeedback = document.querySelector('[data-feedback="incorrect"]')?.textContent || ''
+    next()
+    await wait(150)
+
+    const reinforcementOne = choose(true)
+    await wait(120)
+    next()
+    await wait(150)
+    const reinforcementTwo = choose(true)
+    await wait(120)
+    next()
+    await wait(150)
+
+    const reviewFact = readFact()
+    const answerTargets = [...document.querySelectorAll('button[data-answer]')].map(button => {
+      const rect = button.getBoundingClientRect()
+      return { width: rect.width, height: rect.height }
+    })
+    return {
+      tableChoices: tableButtons.length,
+      firstAnswered,
+      secondAnswered,
+      reinforcementOne,
+      reinforcementTwo,
+      correctExplained: correctFeedback.includes('Truque para lembrar') && correctFeedback.includes('Entenda:'),
+      errorExplained: incorrectFeedback.includes('Quase!') && incorrectFeedback.includes('a resposta é'),
+      reviewDelayed: Boolean(missedFact && reviewFact && missedFact.table === reviewFact.table && missedFact.multiplier === reviewFact.multiplier),
+      reviewLabel: document.body.innerText.toLowerCase().includes('revisão carinhosa'),
+      progressSaved: Boolean(localStorage.getItem('mel-multiplication-progress-v1')),
+      liveFeedback,
+      targetsLargeEnough: answerTargets.every(item => item.width >= 44 && item.height >= 44),
+    }
+  })()`)
+  if (!Object.values(multiplicationFlow).every(value => value === true || value === 8 || value === 'polite')) {
+    throw new Error(`Fluxo educativo da Tabuada falhou: ${JSON.stringify(multiplicationFlow)}`)
+  }
+  console.log(`SCREENSHOT ${await screenshot('ui-tabuada-review-mobile.png')}`)
+  console.log('INTERACTION_OK game=multiplication correct_feedback=true error_feedback=true delayed_review=true persistence=true')
+
+  await navigate('/tabuada')
+  const multiplicationReloaded = await evaluate(`(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('mel-multiplication-progress-v1') || 'null')
+      const learned = Object.values(saved?.facts || {}).filter(item => item.mastered === true && item.independentCorrect >= 2).length
+      const tableTwo = document.querySelector('[data-table-choice="2"]')
+      return { valid: saved?.version === 1, learned, label: tableTwo?.getAttribute('aria-label') || '' }
+    } catch { return { valid: false, learned: 0, label: '' } }
+  })()`)
+  if (!multiplicationReloaded.valid || multiplicationReloaded.learned < 1 || !multiplicationReloaded.label.includes('contas aprendidas')) {
+    throw new Error(`Progresso da Tabuada não foi recuperado após recarregar: ${JSON.stringify(multiplicationReloaded)}`)
+  }
+  console.log(`INTERACTION_OK game=multiplication reload_progress=true mastered=${multiplicationReloaded.learned}`)
+
   const guideState = await evaluate(`(async () => {
     const toggle = [...document.querySelectorAll('button')].find(item => item.textContent?.includes('Perguntar ao Guia Bíblico'))
     toggle?.click()
@@ -567,7 +654,7 @@ try {
   console.log('INTERACTION_OK game=coloring progress=1/12')
 
   if (client.exceptions.length) throw new Error(`Exceções no navegador: ${client.exceptions.join('; ')}`)
-  console.log('UI_VERIFY_OK breakpoints=4 routes_mobile=13 interactions=13 screenshots=7 text_zoom=200% console_exceptions=0')
+  console.log('UI_VERIFY_OK breakpoints=4 routes_mobile=14 interactions=14 screenshots=8 text_zoom=200% console_exceptions=0')
 } finally {
   client?.close()
   if (chrome?.exitCode === null) chrome.kill()
