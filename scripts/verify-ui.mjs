@@ -281,7 +281,7 @@ try {
   await client.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Home', code: 'Home' })
   await new Promise(resolveWait => setTimeout(resolveWait, 100))
   const chatTabSelected = await evaluate(`document.querySelector('#devotional-tab-chat')?.getAttribute('aria-selected') === 'true' && Boolean(document.querySelector('#devotional-panel-chat[role="tabpanel"]'))`)
-  if (!chatTabFocused || !notesTabSelected || !chatTabSelected) throw new Error('Abas do Devocional nÃ£o responderam ao teclado')
+  if (!chatTabFocused || !notesTabSelected || !chatTabSelected) throw new Error('Abas do Devocional não responderam ao teclado')
   console.log('INTERACTION_OK feature=devotional drawer_focus=true escape=true tabs_keyboard=true')
 
   const mobilePaths = ['/devocional', '/online', '/tabuada', '/memoria', '/jogo-da-velha', '/dama', '/uno', '/colorir', '/cobra', '/simon', '/quiz', '/quebra-cabeca', '/pong', '/forca']

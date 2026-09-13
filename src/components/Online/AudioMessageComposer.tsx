@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Mic, Send, Square, Trash2 } from 'lucide-react'
 import { EphemeralAudioBroadcastPayload, useEphemeralAudioMessage } from '../../online/useEphemeralAudioMessage'
 
@@ -12,6 +13,10 @@ function seconds(value: number) {
 
 export default function AudioMessageComposer({ disabled = false, onSend }: Props) {
   const audio = useEphemeralAudioMessage(onSend)
+
+  useEffect(() => {
+    if (disabled) audio.discard()
+  }, [audio.discard, disabled])
 
   return (
     <div className="mt-2 rounded-2xl border border-blue-100 bg-blue-50/70 p-3" aria-label="Enviar mensagem de áudio" aria-busy={audio.status === 'requesting' || audio.status === 'sending'}>

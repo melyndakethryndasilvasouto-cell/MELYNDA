@@ -2,7 +2,7 @@ export type OnlineStatus = 'idle' | 'connecting' | 'connected' | 'error'
 export type RoomStatus = 'waiting' | 'active' | 'finished' | 'cancelled'
 export type TicTacToeCell = 'X' | 'O' | null
 export type OnlineActivity = 'lobby' | 'playing' | 'group' | 'away'
-export type OnlineGameKey = 'memory' | 'tic-tac-toe' | 'checkers' | 'uno' | 'coloring' | 'snake' | 'simon' | 'quiz' | 'puzzle' | 'pong' | 'hangman'
+export type OnlineGameKey = 'memory' | 'tic-tac-toe' | 'checkers' | 'chess' | 'rock-paper-scissors' | 'adedonha' | 'uno' | 'coloring' | 'snake' | 'simon' | 'quiz' | 'puzzle' | 'pong' | 'hangman'
 
 export interface OnlinePlayer {
   userId: string

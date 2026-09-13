@@ -47,7 +47,7 @@ function friendlyError(error: unknown) {
   const message = error instanceof Error ? error.message : (error && typeof error === 'object' && 'message' in error) ? String((error as any).message) : JSON.stringify(error)
   if (message.includes('Anonymous sign-ins are disabled')) return 'O acesso de jogadores ainda precisa ser ativado no Supabase.'
   if (message.includes('CANNOT_INVITE_SELF')) return 'Você não pode convidar a si mesmo.'
-    if (message.includes('INVITE_RATE_LIMIT')) return 'Espere alguns segundos antes de enviar outro convite.'
+  if (message.includes('INVITE_RATE_LIMIT')) return 'Espere alguns segundos antes de enviar outro convite.'
   if (message.includes('MESSAGE_RATE_LIMIT')) return 'Espere um pouquinho antes de enviar outra mensagem.'
   if (message.includes('REPORT_RATE_LIMIT')) return 'A denúncia anterior já foi recebida. Espere um pouco antes de enviar outra.'
   if (message.includes('PLAYER_OFFLINE')) return 'Esse jogador acabou de sair do Online.'
@@ -57,8 +57,12 @@ function friendlyError(error: unknown) {
   if (message.includes('GROUP_LIMIT')) return 'Você já criou o máximo de cinco grupos.'
   if (message.includes('ALREADY_MEMBER')) return 'Esse jogador já participa do grupo.'
   if (message.includes('INVITE_EXPIRED') || message.includes('INVITE_UNAVAILABLE')) return 'Esse convite expirou ou já foi respondido.'
-  return 'ERRO_TECNICO: ' + message;
+  if (message.includes('INVALID_AVATAR')) return 'Seu avatar antigo não é mais aceito. Usamos uma estrela segura para você entrar.'
+  if (message.includes('INVALID_GAME')) return 'Esse jogo ainda não está disponível no Online.'
+  return 'Não foi possível conectar agora. Tente novamente em instantes.'
 }
+
+const ONLINE_AVATARS = new Set(['⭐', '🕊️', '🐑', '🌈', '🦁', '🐟', '📖', '🌿'])
 
 function pendingInvite<T extends { status: string; expires_at: string }>(invite: T) {
   return invite.status === 'pending' && new Date(invite.expires_at).getTime() > Date.now()
@@ -180,8 +184,16 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
     ])
     if (playResult.error) throw playResult.error
     if (groupResult.error) throw groupResult.error
-    setInvites((playResult.data || []).map(row => ({
+    const playRows = playResult.data || []
+    const roomIds = playRows.map(row => row.room_id).filter(Boolean)
+    const roomResult = roomIds.length
+      ? await supabase.from('online_rooms').select('id,game').in('id', roomIds)
+      : { data: [], error: null }
+    if (roomResult.error) throw roomResult.error
+    const gamesByRoom = new Map((roomResult.data || []).map(row => [row.id, row.game]))
+    setInvites(playRows.map(row => ({
       ...row,
+      game: gamesByRoom.get(row.room_id),
     })) as OnlineInvite[])
     setGroupInvites((groupResult.data || []) as OnlineGroupInvite[])
   }, [])
@@ -190,6 +202,7 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
     if (!connectedUserRef.current) return
     try {
       await Promise.all([loadPlayers(), loadGroups(), loadMessages(), loadInvites(connectedUserRef.current)])
+      setError('')
     } catch (refreshError) {
       setError(friendlyError(refreshError))
     }
@@ -223,15 +236,16 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
         if (!session) throw new Error('AUTH_REQUIRED')
 
         const currentUserId = session.user.id
+        const safeAvatar = ONLINE_AVATARS.has(playerAvatar) ? playerAvatar : '⭐'
         let profileResult = await supabase.rpc('upsert_online_profile', {
           next_display_name: playerName.slice(0, 16),
-          next_avatar: playerAvatar.slice(0, 12),
+          next_avatar: safeAvatar,
         })
         if (profileResult.error?.code === 'PGRST303') {
           await new Promise(resolve => window.setTimeout(resolve, 3_000))
           profileResult = await supabase.rpc('upsert_online_profile', {
             next_display_name: playerName.slice(0, 16),
-            next_avatar: playerAvatar.slice(0, 12),
+            next_avatar: safeAvatar,
           })
         }
         if (profileResult.error) throw profileResult.error
@@ -267,6 +281,7 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
           if (currentUser) void loadInvites(currentUser).catch(refreshError => setError(friendlyError(refreshError)))
         }, 5_000)
         setStatus('connected')
+        setError('')
       } catch (connectionError) {
         disconnect()
         setStatus('error')
@@ -295,9 +310,9 @@ export function OnlineProvider({ children }: { children: ReactNode }) {
     if (safetyAccepted) void connect()
   }, [connect, safetyAccepted])
 
-    const goOffline = useCallback(() => {
+  const goOffline = useCallback(() => {
     clearHeartbeat()
-    const lastUser = connectedUserRef.current;
+    const lastUser = connectedUserRef.current
     
     // Disconnect locally IMMEDIATELY for snappy UX
     disconnect()

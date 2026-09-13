@@ -109,6 +109,7 @@ export default function OnlineArcadeBoard({ game, isHost, roomStatus, opponent, 
     if (game === 'puzzle' && next.puzzle.join(',') === '1,2,3,4,5,6,7,8,0') next.winner = actor
     if (game === 'pong' && next.paddles[actor] <= 10) next.winner = actor === 'host' ? 'guest' : 'host'
     if (game === 'hangman' && next.word.split('').every(letter => next.guessed.includes(letter))) next.winner = actor
+    if (game === 'hangman' && next.strikes >= 3) next.winner = actor === 'host' ? 'guest' : 'host'
     if (next.winner) next.result = 'finished'
     publish(next)
     if (next.result === 'finished') void onFinish(next.winner || null)

@@ -1,9 +1,63 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { readFile } from 'node:fs/promises'
+import { readFile, readdir } from 'node:fs/promises'
 import { cleanRoomMessage } from '../src/online/messageRules.mjs'
 
 const root = new URL('../', import.meta.url)
+
+async function latestFunctionDefinition(functionName) {
+  const migrationsUrl = new URL('supabase/migrations/', root)
+  const files = (await readdir(migrationsUrl))
+    .filter(file => file.endsWith('.sql'))
+    .sort()
+  const declaration = new RegExp(`create\\s+or\\s+replace\\s+function\\s+public\\.${functionName}\\s*\\(`, 'ig')
+  let latest = null
+
+  for (const file of files) {
+    const sql = await readFile(new URL(file, migrationsUrl), 'utf8')
+    declaration.lastIndex = 0
+    let match
+    while ((match = declaration.exec(sql)) !== null) {
+      const bodyStart = sql.indexOf('$$', match.index)
+      const bodyEnd = bodyStart >= 0 ? sql.indexOf('$$', bodyStart + 2) : -1
+      assert.ok(bodyStart >= 0 && bodyEnd > bodyStart, `corpo SQL inválido para ${functionName} em ${file}`)
+      latest = { file, definition: sql.slice(match.index, bodyEnd + 2) }
+    }
+  }
+
+  assert.ok(latest, `função ${functionName} não encontrada nas migrações`)
+  return latest
+}
+
+test('estado final das funções Online preserva jogos, expira salas e serializa bloqueios de grupo', async () => {
+  const heartbeat = await latestFunctionDefinition('heartbeat_online_presence')
+  const createInvite = await latestFunctionDefinition('create_online_invite')
+  const respondGroupInvite = await latestFunctionDefinition('respond_online_group_invite')
+
+  for (const game of ['memory', 'tic-tac-toe', 'checkers', 'chess', 'rock-paper-scissors', 'adedonha', 'uno', 'coloring', 'snake', 'simon', 'quiz', 'puzzle', 'pong', 'hangman']) {
+    assert.match(heartbeat.definition, new RegExp(`'${game}'`), `heartbeat final rejeita ${game} (${heartbeat.file})`)
+    assert.match(createInvite.definition, new RegExp(`'${game}'`), `convite final rejeita ${game} (${createInvite.file})`)
+  }
+
+  const expireInviteAt = createInvite.definition.indexOf("set status = 'expired'")
+  const cancelRoomAt = createInvite.definition.indexOf("set status = 'cancelled'")
+  const busyCheckAt = createInvite.definition.indexOf("raise exception 'PLAYER_BUSY'")
+  assert.ok(expireInviteAt >= 0, `convite final não expira convites vencidos (${createInvite.file})`)
+  assert.ok(cancelRoomAt > expireInviteAt, `convite final não encerra a sala vencida (${createInvite.file})`)
+  assert.ok(busyCheckAt > cancelRoomAt, `limpeza precisa ocorrer antes do PLAYER_BUSY (${createInvite.file})`)
+  assert.match(createInvite.definition, /invite\.room_id = room\.id[\s\S]*invite\.status = 'expired'/i)
+
+  const groupDefinition = respondGroupInvite.definition
+  const pairLocks = groupDefinition.match(/pg_advisory_xact_lock/g) || []
+  const firstLockAt = groupDefinition.indexOf('pg_advisory_xact_lock')
+  const inviteRowLockAt = groupDefinition.indexOf('for update')
+  const blockedCheckAt = groupDefinition.indexOf('private.online_users_blocked')
+  const memberInsertAt = groupDefinition.indexOf('insert into public.online_group_members')
+  assert.equal(pairLocks.length, 2, `aceite de grupo final precisa adquirir os dois locks (${respondGroupInvite.file})`)
+  assert.ok(firstLockAt >= 0 && inviteRowLockAt > firstLockAt, 'lock do par deve anteceder o lock da linha do convite')
+  assert.ok(blockedCheckAt > inviteRowLockAt, 'bloqueio deve ser revalidado depois da serialização')
+  assert.ok(memberInsertAt > blockedCheckAt, 'membro só pode ser inserido depois da revalidação de bloqueio')
+})
 
 test('chat privado remove controles, normaliza espaços e limita mensagens', () => {
   assert.equal(cleanRoomMessage('  Olá\n\t amigo!  '), 'Olá amigo!')
@@ -94,8 +148,8 @@ test('migração online protege salas, convites e jogadas no servidor', async ()
   assert.match(verifyOnline, /localEnv\.VITE_SUPABASE_PUBLISHABLE_KEY/i)
 })
 
-test('cliente usa identidade server-side, grupos privados, proteção infantil e voz sob consentimento', async () => {
-  const [context, safetyGate, dialogHook, lobby, group, notifications, room, voice, headers] = await Promise.all([
+test('cliente usa identidade server-side, descoberta privada, proteção infantil e voz sob consentimento', async () => {
+  const [context, safetyGate, dialogHook, lobby, group, notifications, room, voice, headers, privateDiscovery] = await Promise.all([
     readFile(new URL('src/contexts/OnlineContext.tsx', root), 'utf8'),
     readFile(new URL('src/components/Online/OnlineSafetyGate.tsx', root), 'utf8'),
     readFile(new URL('src/online/useAccessibleDialog.ts', root), 'utf8'),
@@ -105,6 +159,7 @@ test('cliente usa identidade server-side, grupos privados, proteção infantil e
     readFile(new URL('src/components/Online/OnlineRoomPage.tsx', root), 'utf8'),
     readFile(new URL('src/online/useRoomVoice.ts', root), 'utf8'),
     readFile(new URL('public/_headers', root), 'utf8'),
+    readFile(new URL('supabase/migrations/20260907123000_private_online_discovery.sql', root), 'utf8'),
   ])
 
   assert.match(context, /signInAnonymously/)
@@ -117,14 +172,17 @@ test('cliente usa identidade server-side, grupos privados, proteção infantil e
   assert.ok(connectStart >= 0 && consentGuard > connectStart && anonymousSignIn > consentGuard, 'consentimento deve ser validado antes da autenticação anônima')
   assert.match(context, /sessionStorage\.setItem\('mel-online-consent', 'yes'\)/)
   assert.match(context, /clearHeartbeat\(\)[\s\S]*rpc\('go_offline'\)/)
-  assert.match(safetyGate, /Seu apelido e sua atividade aparecerão/)
+  assert.match(safetyGate, /Não mostramos uma lista pública de jogadores/)
   assert.match(dialogHook, /event\.key === 'Escape'/)
   assert.match(dialogHook, /document\.body\.style\.overflow = 'hidden'/)
   assert.doesNotMatch(context, /lobby\.track\(|presenceState/)
-  assert.match(lobby, /activityLabel\(player\)/)
-  assert.match(lobby, /Jogadores Online/)
+  assert.match(lobby, /activityLabel\(selectedPlayer\)/)
+  assert.match(lobby, /Jogar com Amigos/)
+  assert.match(lobby, /Código privado de amizade/)
+  assert.match(lobby, /friend-private-code/)
+  assert.match(lobby, /navigator\.clipboard\.writeText\(userId\)/)
   assert.match(lobby, /Meus grupos privados/)
-  assert.match(lobby, /Frases aprovadas para proteger as crianças/)
+  assert.doesNotMatch(lobby, /Quem está Online|Chat geral/)
   assert.match(lobby, /Bloquear/)
   assert.match(lobby, /Denunciar/)
   assert.match(lobby, /Ficar offline/)
@@ -136,6 +194,12 @@ test('cliente usa identidade server-side, grupos privados, proteção infantil e
   assert.match(group, /Novas mensagens/)
   assert.match(group, /OnlineConfirmDialog/)
   assert.match(lobby, /OnlineConfirmDialog/)
+  assert.match(lobby, /status === 'error'[\s\S]*Tentar novamente/)
+  assert.match(lobby, /role="dialog"[\s\S]*aria-labelledby="online-game-picker-title"/)
+  assert.match(lobby, /gameDialogFirstRef/)
+  assert.match(lobby, /max-h-\[calc\(100dvh-2rem\)\][\s\S]*overflow-y-auto/)
+  assert.match(privateDiscovery, /create policy "presence read own"/)
+  assert.match(privateDiscovery, /create policy "lobby messages read own"/)
   assert.match(notifications, /Nada será fechado sem você escolher/)
   assert.match(notifications, /Sair e jogar/)
   assert.match(notifications, /Conversar/)
@@ -152,7 +216,8 @@ test('cliente usa identidade server-side, grupos privados, proteção infantil e
   assert.doesNotMatch(`${lobby}\n${group}\n${room}`, /window\.confirm/)
   assert.match(voice, /getUserMedia\(\{ audio: true, video: false \}\)/)
   assert.match(voice, /stun:stun\.cloudflare\.com:3478/)
-  assert.match(voice, /if \(\['failed', 'disconnected'\]\.includes\(peer\.connectionState\)\) \{[\s\S]*stopMedia\(\)/)
+  assert.match(voice, /connectionState === 'failed'[\s\S]*failConnection\(peer\)/)
+  assert.match(voice, /connectionState === 'disconnected'[\s\S]*DISCONNECTED_GRACE_MS/)
   assert.match(headers, /camera=\(\), microphone=\(self\)/)
   assert.doesNotMatch(`${context}\n${lobby}\n${group}\n${room}\n${voice}`, /dangerouslySetInnerHTML|innerHTML\s*=/)
 })

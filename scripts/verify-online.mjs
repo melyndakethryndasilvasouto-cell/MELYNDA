@@ -83,12 +83,13 @@ try {
   }), 'presença')))
 
   const visible = await requireOk(first.from('online_presence').select('user_id'), 'lista de presença')
-  if (![firstId, secondId, thirdId].every(id => visible.some(row => row.user_id === id))) {
-    throw new Error('A presença não mostrou os três apelidos de teste.')
-  }
+  if (visible.length !== 1 || visible[0].user_id !== firstId) throw new Error('A descoberta privada mostrou outro jogador.')
   await requireOk(first.rpc('send_online_lobby_message', { next_message_index: 0 }), 'frase segura no saguão')
-  const lobby = await requireOk(second.from('online_lobby_messages').select('sender_id,message_index').eq('sender_id', firstId), 'leitura do saguão')
-  if (!lobby.some(message => message.message_index === 0)) throw new Error('A frase aprovada do saguão não foi recebida.')
+  const [ownLobby, foreignLobby] = await Promise.all([
+    requireOk(first.from('online_lobby_messages').select('sender_id,message_index').eq('sender_id', firstId), 'leitura própria do saguão'),
+    requireOk(second.from('online_lobby_messages').select('sender_id,message_index').eq('sender_id', firstId), 'isolamento do saguão'),
+  ])
+  if (!ownLobby.some(message => message.message_index === 0) || foreignLobby.length !== 0) throw new Error('As mensagens do saguão não ficaram privadas.')
 
   groupId = String(await requireOk(first.rpc('create_online_group', { group_name: 'Turma da Paz' }), 'criação do grupo'))
   const groupInviteId = String(await requireOk(first.rpc('invite_online_group', { target_group: groupId, guest: secondId }), 'convite do grupo'))
@@ -198,7 +199,7 @@ try {
   if (pendingAfterBlock.status !== 'expired' || pendingRoomAfterBlock.status !== 'cancelled' || !storedBlock.length) {
     throw new Error('Bloqueio com convite pendente não foi concluído atomicamente.')
   }
-  const blockedPresence = await requireOk(first.from('online_presence').select('user_id').eq('user_id', secondId), 'presença após bloqueio')
+  const blockedPresence = await requireOk(first.from('online_presence').select('user_id').eq('user_id', secondId), 'isolamento de presença após bloqueio')
   if (blockedPresence.length !== 0) throw new Error('Jogador bloqueado continuou visível.')
   const membersAfterBlock = await requireOk(first.from('online_group_members').select('user_id').eq('group_id', groupId), 'grupo após bloqueio')
   if (membersAfterBlock.some(member => member.user_id === secondId)) throw new Error('Jogador bloqueado permaneceu no grupo compartilhado.')
@@ -206,10 +207,10 @@ try {
   if (formerMemberMessages.length !== 0) throw new Error('Ex-participante continuou lendo o grupo após o bloqueio.')
 
   await requireOk(third.rpc('go_offline'), 'saida online atomica')
-  const presenceAfterOffline = await requireOk(first.from('online_presence').select('user_id').eq('user_id', thirdId), 'presenca apos ficar offline')
+  const presenceAfterOffline = await requireOk(third.from('online_presence').select('user_id').eq('user_id', thirdId), 'presenca apos ficar offline')
   if (presenceAfterOffline.length !== 0) throw new Error('Jogador continuou visivel depois de ficar offline.')
 
-  console.log('ONLINE_VERIFY_OK anonymous_users=3 server_presence=ok lobby_presets=ok groups_owner_only=ok group_rls=ok text_filter=ok short_audio=ok competing_invite=closed invite_race=serialized room_rls=ok server_moves=5 invalid_move=blocked shared_game=coloring_action_validated voice_signal=private pending_block=ok block_report=ok shared_group_removed=ok go_offline=ok')
+  console.log('ONLINE_VERIFY_OK anonymous_users=3 private_discovery=ok private_lobby=ok groups_owner_only=ok group_rls=ok text_filter=ok short_audio=ok competing_invite=closed invite_race=serialized room_rls=ok server_moves=5 invalid_move=blocked shared_game=coloring_action_validated voice_signal=private pending_block=ok block_report=ok shared_group_removed=ok go_offline=ok')
 } finally {
   if (roomId) await Promise.resolve(first.rpc('leave_online_room', { room: roomId })).catch(() => {})
   if (competingRoomId) await Promise.resolve(third.rpc('leave_online_room', { room: competingRoomId })).catch(() => {})

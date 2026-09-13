@@ -55,8 +55,15 @@ function getMoves(board: Board, role: 'host' | 'guest'): { from: Pos; to: Pos; c
 }
 
 function applyMove(gs: GS, from: Pos, to: Pos): GS {
+  const validPosition = (value: unknown): value is Pos => Array.isArray(value)
+    && value.length === 2
+    && value.every(coordinate => Number.isInteger(coordinate) && coordinate >= 0 && coordinate < 8)
+  if (!validPosition(from) || !validPosition(to) || gs.phase !== 'playing' || gs.board.length !== 8) return gs
+  const legalMove = getMoves(gs.board, gs.turn).some(move => move.from[0] === from[0] && move.from[1] === from[1] && move.to[0] === to[0] && move.to[1] === to[1])
+  if (!legalMove) return gs
   const board = gs.board.map(r => [...r]) as Board
-  const piece = board[from[0]][from[1]]!
+  const piece = board[from[0]][from[1]]
+  if (!piece || piece.role !== gs.turn || board[to[0]][to[1]]) return gs
   board[to[0]][to[1]] = { ...piece, king: piece.king || to[0] === 0 || to[0] === 7 }
   board[from[0]][from[1]] = null
   let hc = gs.hostCaptures, gc = gs.guestCaptures
@@ -99,7 +106,7 @@ export default function OnlineCheckersBoard({ isHost, roomStatus, opponent, broa
   const doMove = useCallback((from: Pos, to: Pos) => {
     setGs(prev => {
       const next = applyMove(prev, from, to)
-      onBroadcastState(next)
+      if (next !== prev) onBroadcastState(next)
       return next
     })
     setSel(null)
@@ -108,7 +115,7 @@ export default function OnlineCheckersBoard({ isHost, roomStatus, opponent, broa
   useEffect(() => {
     if (!isHost || !guestMove) return
     const m = guestMove as { from?: Pos; to?: Pos }
-    if (m.from && m.to) doMove(m.from, m.to)
+    if (stateRef.current.turn === 'guest' && m.from && m.to) doMove(m.from, m.to)
   }, [guestMove, isHost, doMove])
 
   useEffect(() => { if (gs.phase === 'finished' && gs.winner) void onFinish(gs.winner) }, [gs.phase, gs.winner, onFinish])

@@ -16,6 +16,9 @@ import OnlineCheckersBoard from './OnlineCheckersBoard'
 import OnlineQuizBoard from './OnlineQuizBoard'
 import OnlineUnoBoard from './OnlineUnoBoard'
 import OnlineArcadeBoard from './OnlineArcadeBoard'
+import OnlineChessBoard from './OnlineChessBoard'
+import OnlineRockPaperScissorsBoard from './OnlineRockPaperScissorsBoard'
+import OnlineAdedonhaBoard from './OnlineAdedonhaBoard'
 import OnlineConfirmDialog from './OnlineConfirmDialog'
 import { ONLINE_GAME_LABELS } from '../../online/gameRegistry'
 
@@ -29,6 +32,7 @@ function roomError(error: unknown) {
   if (message.includes('MESSAGE_PERSONAL_DATA')) return 'Essa mensagem pode mostrar informação pessoal. Escreva de outro jeito.'
   if (message.includes('MESSAGE_UNSAFE')) return 'Essa mensagem não parece segura para um chat infantil.'
   if (message.includes('MESSAGE_RATE_LIMIT')) return 'Espere um pouquinho antes de enviar outra mensagem.'
+  if (message.includes('ACTION_RATE_LIMIT')) return 'Espere um instante antes da próxima jogada.'
   return 'Não foi possível atualizar a partida. Tente novamente.'
 }
 
@@ -46,6 +50,8 @@ export default function OnlineRoomPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [moving, setMoving] = useState(false)
+  const [sendingMessage, setSendingMessage] = useState(false)
+  const [boardRound, setBoardRound] = useState(0)
   const [voiceConsentOpen, setVoiceConsentOpen] = useState(false)
   // Multi-game broadcast state
   const [broadcastGameState, setBroadcastGameState] = useState<unknown>(null)
@@ -69,7 +75,7 @@ export default function OnlineRoomPage() {
     if (!supabase || onlineStatus !== 'connected' || !userId || !roomId) return
     let active = true
     const load = async () => {
-      setLoading(true)
+      if (!roomRef.current) setLoading(true)
       const result = await supabase.from('online_rooms').select('*').eq('id', roomId).single()
       if (!active) return
       if (result.error) {
@@ -99,7 +105,15 @@ export default function OnlineRoomPage() {
       if (active && !messageResult.error) setMessages((messageResult.data || []) as OnlineChatMessage[])
       setLoading(false)
     }
-    void load()
+    void load().catch(() => {
+      if (active) {
+        setError('Não foi possível carregar esta sala agora.')
+        setLoading(false)
+      }
+    })
+    const roomRefresh = window.setInterval(() => {
+      if (active && document.visibilityState === 'visible') void load().catch(() => setError('A sala perdeu a conexão. Tente novamente.'))
+    }, 5_000)
 
     const roomChannel = supabase.channel(`online:room:${roomId}`, { config: { private: true, broadcast: { ack: true } } })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'online_rooms', filter: `id=eq.${roomId}` }, ({ new: next }) => {
@@ -150,7 +164,11 @@ export default function OnlineRoomPage() {
         setGuestMove(null)
       })
       .subscribe(subscriptionStatus => {
-        if (subscriptionStatus === 'SUBSCRIBED') setRoomConnected(true)
+        if (subscriptionStatus === 'SUBSCRIBED') {
+          setRoomConnected(true)
+          setError('')
+          void load()
+        }
         if (subscriptionStatus === 'CHANNEL_ERROR' || subscriptionStatus === 'TIMED_OUT') {
           setRoomConnected(false)
           setError('A conexão privada da sala foi interrompida.')
@@ -162,6 +180,7 @@ export default function OnlineRoomPage() {
       active = false
       setRoomConnected(false)
       setChannel(null)
+      window.clearInterval(roomRefresh)
       void supabase.removeChannel(roomChannel)
     }
   }, [onlineStatus, roomId, userId])
@@ -229,7 +248,12 @@ export default function OnlineRoomPage() {
     channel?.send({ type: 'broadcast', event: 'game-restart', payload: {} })
     const response = await supabase.rpc('restart_online_room', { room: roomId })
     if (response.error) setError(roomError(response.error))
-    else { setBroadcastGameState(null); setGuestMove(null); setRoom(response.data as OnlineRoom) }
+    else {
+      setBroadcastGameState(null)
+      setGuestMove(null)
+      setBoardRound(previous => previous + 1)
+      setRoom(response.data as OnlineRoom)
+    }
   }
 
   // Broadcast helpers used by non-TTT game components
@@ -237,23 +261,25 @@ export default function OnlineRoomPage() {
     channel?.send({ type: 'broadcast', event: 'game-state', payload: { gameState } })
   }, [channel])
 
-  const broadcastMove = useCallback((move: unknown) => {
-    const genericGames = ['coloring', 'snake', 'simon', 'puzzle', 'pong', 'hangman']
+  const broadcastMove = useCallback(async (move: unknown) => {
+    const genericGames = ['coloring', 'snake', 'simon', 'puzzle', 'pong', 'hangman', 'chess', 'rock-paper-scissors', 'adedonha']
     if (room?.game && genericGames.includes(room.game)) {
-      void supabase?.rpc('record_online_game_action', { room: roomId, action: move }).then(response => {
-        if (response?.error) {
-          setError(roomError(response.error))
-          return
-        }
-        void channel?.send({ type: 'broadcast', event: 'game-move', payload: { move } })
-      })
-      return
+      if (!supabase || !channel) return false
+      const response = await supabase.rpc('record_online_game_action', { room: roomId, action: move })
+      if (response.error) {
+        setError(roomError(response.error))
+        return false
+      }
+      const sendResult = await channel.send({ type: 'broadcast', event: 'game-move', payload: { move } })
+      if (sendResult !== 'ok') setError('A jogada não chegou ao seu amigo. Tente novamente.')
+      return sendResult === 'ok'
     }
-    void channel?.send({ type: 'broadcast', event: 'game-move', payload: { move } })
+    if (!channel) return false
+    return (await channel.send({ type: 'broadcast', event: 'game-move', payload: { move } })) === 'ok'
   }, [channel, room?.game, roomId])
 
-  const validateArcadeAction = useCallback(async (move: unknown) => {
-    if (!supabase || !room?.game || !['coloring', 'snake', 'simon', 'puzzle', 'pong', 'hangman'].includes(room.game)) return false
+  const validateGameAction = useCallback(async (move: unknown) => {
+    if (!supabase || !room?.game || !['coloring', 'snake', 'simon', 'puzzle', 'pong', 'hangman', 'chess', 'rock-paper-scissors', 'adedonha'].includes(room.game)) return false
     const response = await supabase.rpc('record_online_game_action', { room: roomId, action: move })
     if (response.error) { setError(roomError(response.error)); return false }
     return true
@@ -267,20 +293,31 @@ export default function OnlineRoomPage() {
   const leave = async (confirmed = false) => {
     if (!confirmed) { setConfirmAction('leave'); return }
     voice.stop()
-    if (supabase) await supabase.rpc('leave_online_room', { room: roomId })
+    if (!supabase) return
+    const response = await supabase.rpc('leave_online_room', { room: roomId })
+    if (response.error) {
+      setError('Não foi possível encerrar a sala. Verifique a conexão e tente novamente.')
+      return
+    }
     navigate('/online')
   }
 
   const sendMessage = async (event: FormEvent) => {
     event.preventDefault()
     const text = cleanRoomMessage(draft)
-    if (!supabase || !text || !userId) return
-    const response = await supabase.rpc('send_online_room_message', { target_room: roomId, message_text: text })
-    if (response.error) setError(roomError(response.error))
-    else {
-      const message = response.data as OnlineChatMessage
-      setMessages(previous => previous.some(item => item.id === message.id) ? previous : [...previous.slice(-99), message])
-      setDraft('')
+    if (!supabase || !text || !userId || sendingMessage) return
+    setSendingMessage(true)
+    setError('')
+    try {
+      const response = await supabase.rpc('send_online_room_message', { target_room: roomId, message_text: text })
+      if (response.error) setError(roomError(response.error))
+      else {
+        const message = response.data as OnlineChatMessage
+        setMessages(previous => previous.some(item => item.id === message.id) ? previous : [...previous.slice(-99), message])
+        setDraft('')
+      }
+    } finally {
+      setSendingMessage(false)
     }
   }
 
@@ -318,6 +355,10 @@ export default function OnlineRoomPage() {
 
   if (!safetyAccepted) return <OnlineSafetyGate onAccept={() => { acceptSafety(); void connect() }} notice={error} />
 
+  if (onlineStatus === 'error') {
+    return <section className="glass-card mx-auto mt-8 max-w-md p-6 text-center"><h1 className="font-title text-2xl" style={{ color: '#5B3A8A' }}>A sala perdeu a conexão</h1><p role="alert" className="mt-3 text-sm">Entre novamente com segurança para continuar.</p><div className="mt-4 grid gap-2"><button type="button" className="btn-primary" onClick={() => void connect()}>Tentar novamente</button><button type="button" className="btn-secondary" onClick={() => navigate('/online')}>Voltar ao Online</button></div></section>
+  }
+
   if (loading || onlineStatus === 'connecting') {
     return <div className="flex min-h-[60vh] items-center justify-center gap-2 font-bold" style={{ color: '#5B3A8A' }}><LoaderCircle className="animate-spin" /> Abrindo sala privada…</div>
   }
@@ -350,6 +391,7 @@ export default function OnlineRoomPage() {
       {/* ── TicTacToe board ── */}
       {(room.game === 'tic-tac-toe' || !room.game) && (
         <OnlineTicTacToeBoard
+          key={`tic-tac-toe-${boardRound}`}
           isHost={isHost}
           roomStatus={room.status}
           opponent={opponent}
@@ -365,6 +407,7 @@ export default function OnlineRoomPage() {
       {/* ── Memory online board ── */}
       {room.game === 'memory' && (
         <OnlineMemoryBoard
+          key={`memory-${boardRound}`}
           isHost={isHost}
           roomStatus={room.status}
           opponent={opponent}
@@ -380,6 +423,7 @@ export default function OnlineRoomPage() {
       {/* ── Checkers online board ── */}
       {room.game === 'checkers' && (
         <OnlineCheckersBoard
+          key={`checkers-${boardRound}`}
           isHost={isHost}
           roomStatus={room.status}
           opponent={opponent}
@@ -395,6 +439,7 @@ export default function OnlineRoomPage() {
       {/* ── Quiz online board ── */}
       {room.game === 'quiz' && (
         <OnlineQuizBoard
+          key={`quiz-${boardRound}`}
           isHost={isHost}
           roomStatus={room.status}
           opponent={opponent}
@@ -407,9 +452,58 @@ export default function OnlineRoomPage() {
         />
       )}
 
+      {room.game === 'chess' && (
+        <OnlineChessBoard
+          key={`chess-${boardRound}`}
+          isHost={isHost}
+          roomStatus={room.status}
+          opponent={opponent}
+          broadcastGameState={broadcastGameState}
+          guestMove={guestMove}
+          stateRequest={stateRequest}
+          onBroadcastState={broadcastState}
+          onBroadcastMove={broadcastMove}
+          onValidateAction={validateGameAction}
+          onFinish={finishRoom}
+        />
+      )}
+
+      {room.game === 'rock-paper-scissors' && (
+        <OnlineRockPaperScissorsBoard
+          key={`rock-paper-scissors-${boardRound}`}
+          isHost={isHost}
+          roomStatus={room.status}
+          opponent={opponent}
+          broadcastGameState={broadcastGameState}
+          guestMove={guestMove}
+          stateRequest={stateRequest}
+          onBroadcastState={broadcastState}
+          onBroadcastMove={broadcastMove}
+          onValidateAction={validateGameAction}
+          onFinish={finishRoom}
+        />
+      )}
+
+      {room.game === 'adedonha' && (
+        <OnlineAdedonhaBoard
+          key={`adedonha-${boardRound}`}
+          isHost={isHost}
+          roomStatus={room.status}
+          opponent={opponent}
+          broadcastGameState={broadcastGameState}
+          guestMove={guestMove}
+          stateRequest={stateRequest}
+          onBroadcastState={broadcastState}
+          onBroadcastMove={broadcastMove}
+          onValidateAction={validateGameAction}
+          onFinish={finishRoom}
+        />
+      )}
+
       {/* 🃏 UNO online board 🃏 */}
       {room.game === 'uno' && (
         <OnlineUnoBoard
+          key={`uno-${boardRound}`}
           isHost={isHost}
           roomStatus={room.status}
           opponent={opponent}
@@ -424,6 +518,7 @@ export default function OnlineRoomPage() {
 
       {(['coloring', 'snake', 'simon', 'puzzle', 'pong', 'hangman'] as OnlineGameKey[]).includes(room.game) && (
         <OnlineArcadeBoard
+          key={`${room.game}-${boardRound}`}
           game={room.game}
           isHost={isHost}
           roomStatus={room.status}
@@ -433,7 +528,7 @@ export default function OnlineRoomPage() {
           stateRequest={stateRequest}
           onBroadcastState={broadcastState}
           onBroadcastMove={broadcastMove}
-          onValidateAction={validateArcadeAction}
+          onValidateAction={validateGameAction}
           onFinish={finishRoom}
         />
       )}
@@ -489,9 +584,9 @@ export default function OnlineRoomPage() {
           <label htmlFor="room-chat-message" className="sr-only">Mensagem para o outro jogador</label>
           <input id="room-chat-message" value={draft} onChange={event => setDraft(event.target.value)} maxLength={180}
             placeholder="Escreva com carinho…" className="min-w-0 flex-1 rounded-2xl border border-purple-200 bg-white px-3 text-sm" />
-          <button type="submit" className="btn-primary h-11 w-11 p-0" aria-label="Enviar mensagem" disabled={!roomConnected || !cleanRoomMessage(draft) || !opponent}><Send size={18} /></button>
+          <button type="submit" className="btn-primary h-11 w-11 p-0" aria-label="Enviar mensagem" disabled={sendingMessage || !roomConnected || !cleanRoomMessage(draft) || !opponent}><Send size={18} /></button>
         </form>
-        <AudioMessageComposer disabled={!roomConnected || !opponent} onSend={sendAudio} />
+        <AudioMessageComposer disabled={sendingMessage || !roomConnected || !opponent} onSend={sendAudio} />
         {opponentId && <div className="mt-3 grid grid-cols-2 gap-2"><button type="button" className="min-h-11 rounded-2xl bg-slate-100 px-3 text-sm font-bold" onClick={() => void protectFromOpponent()}><Ban className="inline" size={16} /> Bloquear</button><button type="button" className="min-h-11 rounded-2xl bg-orange-50 px-3 text-sm font-bold" style={{ color: '#9A3412' }} onClick={() => void protectFromOpponent(true)}><AlertTriangle className="inline" size={16} /> Denunciar</button></div>}
         <p className="mt-2 text-xs font-bold" style={{ color: '#4B5563' }}>Converse somente com alguém conhecido. Não compartilhe nome completo, endereço, escola, telefone, senha ou fotos. Texto e áudio curto deixam de ficar disponíveis após 24 horas; a outra pessoa ainda pode gravar por fora do site. Se algo incomodar, bloqueie, saia e conte a um adulto responsável.</p>
       </aside>

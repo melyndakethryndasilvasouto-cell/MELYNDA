@@ -17,7 +17,7 @@ export default function OnlineSafetyGate({ onAccept, notice = '' }: Props) {
         Nunca compartilhe nome completo, escola, endereço, telefone, senha ou fotos.
       </p>
       <p className="mt-3 text-xs font-bold" style={{ color: '#4B5563' }}>
-        Seu apelido e sua atividade aparecerão enquanto esta aba estiver no modo Online. Você poderá ficar offline quando quiser.
+        Não mostramos uma lista pública de jogadores. Seu amigo precisa do seu código privado para enviar um convite. Você poderá ficar offline quando quiser.
       </p>
       {notice && <p className="mt-3 rounded-2xl bg-amber-50 p-3 text-sm font-bold" style={{ color: '#92400E' }} role="status">{notice}</p>}
       <button type="button" className="btn-primary mt-5 w-full" onClick={onAccept}>Entendi, entrar no Online</button>
