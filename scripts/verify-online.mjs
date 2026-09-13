@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+﻿import { readFile } from 'node:fs/promises'
 import { createClient } from '@supabase/supabase-js'
 
 function parseEnvFile(text) {

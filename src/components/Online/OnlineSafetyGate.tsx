@@ -1,4 +1,4 @@
-import { ShieldCheck } from 'lucide-react'
+﻿import { ShieldCheck } from 'lucide-react'
 
 interface Props {
   onAccept: () => void
@@ -17,7 +17,7 @@ export default function OnlineSafetyGate({ onAccept, notice = '' }: Props) {
         Nunca compartilhe nome completo, escola, endereço, telefone, senha ou fotos.
       </p>
       <p className="mt-3 text-xs font-bold" style={{ color: '#4B5563' }}>
-        Não mostramos uma lista pública de jogadores. Seu amigo precisa do seu código privado para enviar um convite. Você poderá ficar offline quando quiser.
+        Ao entrar, você aparecerá como disponível para amigos conhecidos. A lista mostra apenas apelido e avatar; você poderá ficar offline quando quiser.
       </p>
       {notice && <p className="mt-3 rounded-2xl bg-amber-50 p-3 text-sm font-bold" style={{ color: '#92400E' }} role="status">{notice}</p>}
       <button type="button" className="btn-primary mt-5 w-full" onClick={onAccept}>Entendi, entrar no Online</button>

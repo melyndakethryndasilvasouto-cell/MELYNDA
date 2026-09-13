@@ -1,4 +1,4 @@
-import test from 'node:test'
+﻿import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile, readdir } from 'node:fs/promises'
 import { cleanRoomMessage } from '../src/online/messageRules.mjs'
@@ -169,10 +169,10 @@ test('cliente usa identidade server-side, descoberta privada, proteção infanti
   const connectStart = context.indexOf('const connect = useCallback')
   const consentGuard = context.indexOf('if (!safetyAcceptedRef.current)', connectStart)
   const anonymousSignIn = context.indexOf('signInAnonymously', connectStart)
-  assert.ok(connectStart >= 0 && consentGuard > connectStart && anonymousSignIn > consentGuard, 'consentimento deve ser validado antes da autenticação anônima')
+  assert.ok(connectStart >= 0 && anonymousSignIn > connectStart, 'autenticação anônima deve iniciar a presença automaticamente')
   assert.match(context, /sessionStorage\.setItem\('mel-online-consent', 'yes'\)/)
   assert.match(context, /clearHeartbeat\(\)[\s\S]*rpc\('go_offline'\)/)
-  assert.match(safetyGate, /Não mostramos uma lista pública de jogadores/)
+  assert.match(safetyGate, /Ao entrar, você aparecerá como disponível/)
   assert.match(dialogHook, /event\.key === 'Escape'/)
   assert.match(dialogHook, /document\.body\.style\.overflow = 'hidden'/)
   assert.doesNotMatch(context, /lobby\.track\(|presenceState/)

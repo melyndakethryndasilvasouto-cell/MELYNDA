@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useMemo, useRef, useState } from 'react'
+﻿import { FormEvent, useCallback, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   AlertTriangle,
@@ -26,7 +26,7 @@ export default function OnlineLobbyPage() {
   const preferredGame = ONLINE_GAME_OPTIONS.find(game => game.key === searchParams.get('jogo'))
   const preferredLocalPath = preferredGame ? localPathForOnlineGame(preferredGame.key) : null
   const {
-    configured, safetyAccepted, status, userId, invites, groupInvites, groups, error,
+    configured, safetyAccepted, status, userId, players, invites, groupInvites, groups, error,
     acceptSafety, goOffline,
     connect, invitePlayer, respondInvite, createGroup, inviteToGroup,
     respondGroupInvite, blockPlayer, reportPlayer,
@@ -198,7 +198,7 @@ export default function OnlineLobbyPage() {
       <motion.header initial={{ opacity: 0, y: -14 }} animate={{ opacity: 1, y: 0 }} className="text-center">
         <div className="text-5xl" aria-hidden="true">🌐</div>
         <h1 className="mt-2 font-title text-3xl" style={{ color: '#5B3A8A' }}>Jogar com Amigos</h1>
-        <p className="mx-auto mt-2 max-w-md text-sm font-bold" style={{ color: '#2563A6' }}>Entre por código privado. Não existe lista pública de crianças ou jogadores.</p>
+        <p className="mx-auto mt-2 max-w-md text-sm font-bold" style={{ color: '#2563A6' }}>Veja amigos disponíveis e convide com um toque. O código privado continua disponível para conexões fora da lista.</p>
       </motion.header>
 
       <div className="mt-5 flex flex-wrap items-center justify-center gap-2 rounded-2xl px-3 py-2 text-sm font-black" role="status" aria-live="polite" style={{ color: status === 'connected' ? '#166534' : status === 'error' ? '#92400E' : '#6B7280', background: status === 'connected' ? '#DCFCE7' : status === 'error' ? '#FEF3C7' : '#F3F4F6' }}>
@@ -209,6 +209,13 @@ export default function OnlineLobbyPage() {
       </div>
 
       {(error || notice) && <p role="status" className="mt-3 rounded-2xl bg-amber-50 p-3 text-sm font-bold" style={{ color: '#92400E' }}>{notice || error}</p>}
+
+      <section className="glass-card mt-5 p-4" aria-labelledby="online-players-title">
+        <div className="flex items-center justify-between gap-3"><div><h2 id="online-players-title" className="font-black" style={{ color: '#5B3A8A' }}>Pessoas online agora</h2><p className="mt-1 text-xs font-bold" style={{ color: '#4B5563' }}>Escolha alguém para convidar{preferredGame ? ` para ${preferredGame.label}` : ' para jogar'}.</p></div><span className="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-800" aria-label={`${players.length} pessoas disponíveis`}>{players.length}</span></div>
+        {status === 'connecting' && <p className="mt-4 rounded-xl bg-blue-50 p-3 text-sm font-bold text-blue-800" role="status"><LoaderCircle className="mr-2 inline animate-spin" size={16} aria-hidden="true" />Procurando pessoas online…</p>}
+        {status === 'connected' && players.length === 0 && <p className="mt-4 rounded-xl bg-slate-50 p-3 text-center text-sm font-bold" style={{ color: '#6B7280' }}>Ninguém disponível agora. Compartilhe seu código privado com um amigo.</p>}
+        {players.length > 0 && <div className="mt-3 grid gap-2 sm:grid-cols-2">{players.filter(player => player.userId !== userId).map(player => <article key={player.userId} className="flex items-center gap-3 rounded-2xl border-2 border-green-100 bg-white p-3"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-50 text-2xl" aria-hidden="true">{player.avatar}</span><div className="min-w-0 flex-1"><strong className="block truncate" style={{ color: '#374151' }}>{player.name}</strong><span className="block text-xs font-bold" style={{ color: '#6B7280' }}>{activityLabel(player)}</span></div><button type="button" className="btn-primary min-h-11 shrink-0 px-3 text-xs" disabled={Boolean(busy)} onClick={() => preferredGame ? void invite(player, preferredGame.key) : setSelectedPlayer(player)} aria-label={`Convidar ${player.name} para jogar`}>Convidar</button></article>)}</div>}
+      </section>
 
       {preferredGame && (
         <aside data-preferred-online-game={preferredGame.key} className="mt-4 flex flex-col gap-3 rounded-2xl border-2 border-purple-200 bg-purple-50 p-4 sm:flex-row sm:items-center" aria-label={`Jogo escolhido: ${preferredGame.label}`}>
