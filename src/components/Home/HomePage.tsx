@@ -6,17 +6,20 @@ import missions from '../../data/gameMissions.json'
 
 const visualById: Record<string, { grad: string; badge?: string }> = {
   tabuada: { grad: 'linear-gradient(135deg,#34D399,#F59E0B)', badge: 'NOVO · 2 ao 9' },
-  memoria: { grad: 'linear-gradient(135deg,#6BB8FF,#4A90D9)', badge: '1-2 jogadores' },
-  velha: { grad: 'linear-gradient(135deg,#A78BFA,#7B5EA7)', badge: 'vs IA' },
-  dama: { grad: 'linear-gradient(135deg,#818CF8,#4A90D9)', badge: 'vs IA' },
-  uno: { grad: 'linear-gradient(135deg,#F472B6,#A78BFA)', badge: '2-4 jogadores' },
-  colorir: { grad: 'linear-gradient(135deg,#FBBF24,#F97316)' },
-  cobra: { grad: 'linear-gradient(135deg,#34D399,#059669)' },
-  simon: { grad: 'linear-gradient(135deg,#60A5FA,#A78BFA)' },
-  quiz: { grad: 'linear-gradient(135deg,#8B5CF6,#7B5EA7)', badge: '1-2 jogadores' },
-  puzzle: { grad: 'linear-gradient(135deg,#22D3EE,#4A90D9)' },
-  pong: { grad: 'linear-gradient(135deg,#4A90D9,#818CF8)', badge: '1-2 jogadores' },
-  forca: { grad: 'linear-gradient(135deg,#F472B6,#F59E0B)' },
+  xadrez: { grad: 'linear-gradient(135deg,#334155,#7C3AED)', badge: 'IA · ONLINE' },
+  ppt: { grad: 'linear-gradient(135deg,#F59E0B,#EC4899)', badge: 'IA · ONLINE' },
+  adedonha: { grad: 'linear-gradient(135deg,#10B981,#2563EB)', badge: 'IA · ONLINE' },
+  memoria: { grad: 'linear-gradient(135deg,#6BB8FF,#4A90D9)', badge: 'IA · ONLINE' },
+  velha: { grad: 'linear-gradient(135deg,#A78BFA,#7B5EA7)', badge: 'IA · ONLINE' },
+  dama: { grad: 'linear-gradient(135deg,#818CF8,#4A90D9)', badge: 'IA · ONLINE' },
+  uno: { grad: 'linear-gradient(135deg,#F472B6,#A78BFA)', badge: 'IA · ONLINE' },
+  colorir: { grad: 'linear-gradient(135deg,#FBBF24,#F97316)', badge: 'SOLO · ONLINE' },
+  cobra: { grad: 'linear-gradient(135deg,#34D399,#059669)', badge: 'SOLO · ONLINE' },
+  simon: { grad: 'linear-gradient(135deg,#60A5FA,#A78BFA)', badge: 'SOLO · ONLINE' },
+  quiz: { grad: 'linear-gradient(135deg,#8B5CF6,#7B5EA7)', badge: '1-2 · ONLINE' },
+  puzzle: { grad: 'linear-gradient(135deg,#22D3EE,#4A90D9)', badge: 'SOLO · ONLINE' },
+  pong: { grad: 'linear-gradient(135deg,#4A90D9,#818CF8)', badge: 'IA · ONLINE' },
+  forca: { grad: 'linear-gradient(135deg,#F472B6,#F59E0B)', badge: 'SOLO · ONLINE' },
 }
 
 const localGames = missions.map(mission => ({
@@ -29,25 +32,7 @@ const localGames = missions.map(mission => ({
   ...visualById[mission.gameId],
 }))
 
-const onlineGames = [
-  {
-    id: 'xadrez-online', name: 'Xadrez', icon: '♟️', path: '/online?jogo=chess',
-    desc: 'Estratégia e sabedoria para jogar com um amigo.', verseRef: 'Provérbios 21:5',
-    grad: 'linear-gradient(135deg,#334155,#7C3AED)', badge: 'ONLINE',
-  },
-  {
-    id: 'pedra-papel-tesoura-online', name: 'Pedra, Papel e Tesoura', icon: '✊', path: '/online?jogo=rock-paper-scissors',
-    desc: 'Escolha, respeite e divirta-se com um amigo.', verseRef: 'Romanos 12:10',
-    grad: 'linear-gradient(135deg,#F59E0B,#EC4899)', badge: 'ONLINE',
-  },
-  {
-    id: 'adedonha-online', name: 'Adedonha', icon: '📝', path: '/online?jogo=adedonha',
-    desc: 'Palavras, Bíblia e criatividade em oito categorias.', verseRef: 'Colossenses 4:6',
-    grad: 'linear-gradient(135deg,#10B981,#2563EB)', badge: 'ONLINE',
-  },
-]
-
-const games = [localGames[0], ...onlineGames, ...localGames.slice(1)]
+const games = localGames
 
 export default function HomePage() {
   const { playerName, playerAvatar, scores, achievements } = usePlayer()
@@ -127,6 +112,10 @@ export default function HomePage() {
         </span>
         <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-black">NOVO</span>
       </motion.button>
+
+      <p className="mb-4 rounded-2xl bg-amber-50 px-4 py-3 text-center text-xs font-bold" style={{ color: '#854D0E' }}>
+        🤖 Sem ninguém online? Nos jogos com selo IA, escolha Fácil, Médio ou Difícil e jogue contra o sistema.
+      </p>
 
       <div className="grid grid-cols-2 gap-3">
         {games.map((game, i) => (

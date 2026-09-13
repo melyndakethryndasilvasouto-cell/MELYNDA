@@ -159,14 +159,22 @@ try {
   console.log(`SCREENSHOT ${await screenshot('ui-home-desktop.png')}`)
 
   const openedChessFromHome = await evaluate(`(() => {
-    const button = [...document.querySelectorAll('button')].find(item => item.textContent?.includes('Xadrez') && item.textContent?.includes('ONLINE'))
+    const button = [...document.querySelectorAll('button')].find(item => item.textContent?.includes('Xadrez') && item.textContent?.includes('IA'))
+    button?.click()
+    return Boolean(button)
+  })()`)
+  await new Promise(resolveWait => setTimeout(resolveWait, 300))
+  const chessLocalRoute = await evaluate(`location.pathname === '/xadrez' && ['Fácil','Médio','Difícil'].every(level => document.body.innerText.includes(level))`)
+  if (!openedChessFromHome || !chessLocalRoute) throw new Error('O card de Xadrez não abriu o jogo local com os três níveis')
+  const openedChessOnline = await evaluate(`(() => {
+    const button = [...document.querySelectorAll('button')].find(item => item.textContent?.includes('Jogar online'))
     button?.click()
     return Boolean(button)
   })()`)
   await new Promise(resolveWait => setTimeout(resolveWait, 300))
   const preferredChessRoute = await evaluate(`location.pathname === '/online' && location.search === '?jogo=chess'`)
-  if (!openedChessFromHome || !preferredChessRoute) throw new Error('O card de Xadrez não abriu o modo Online com o jogo escolhido')
-  console.log('INTERACTION_OK home_online_game=xadrez preferred=true')
+  if (!openedChessOnline || !preferredChessRoute) throw new Error('O atalho do Xadrez não abriu o Online com o jogo escolhido')
+  console.log('INTERACTION_OK home_local_game=xadrez levels=3 online_shortcut=true')
 
   for (const width of [320, 768, 1024, 1440]) await metrics('/', width, 900)
   for (const width of [320, 375, 720, 768, 1024, 1440]) {
@@ -294,7 +302,7 @@ try {
   if (!chatTabFocused || !notesTabSelected || !chatTabSelected) throw new Error('Abas do Devocional não responderam ao teclado')
   console.log('INTERACTION_OK feature=devotional drawer_focus=true escape=true tabs_keyboard=true')
 
-  const mobilePaths = ['/devocional', '/online', '/tabuada', '/memoria', '/jogo-da-velha', '/dama', '/uno', '/colorir', '/cobra', '/simon', '/quiz', '/quebra-cabeca', '/pong', '/forca']
+  const mobilePaths = ['/devocional', '/online', '/tabuada', '/xadrez', '/pedra-papel-tesoura', '/adedonha', '/memoria', '/jogo-da-velha', '/dama', '/uno', '/colorir', '/cobra', '/simon', '/quiz', '/quebra-cabeca', '/pong', '/forca']
   for (const pathname of mobilePaths) await metrics(pathname, 320, 800)
 
   await viewport(320, 800)
@@ -414,11 +422,72 @@ try {
   console.log('INTERACTION_OK game=tic-tac-toe local_ai_replied=true')
 
   await viewport(420, 900)
+  await navigate('/xadrez')
+  const chessStarted = await evaluate(`(() => {
+    const hard = [...document.querySelectorAll('button')].find(item => item.textContent?.includes('Difícil'))
+    hard?.click()
+    const play = [...document.querySelectorAll('button')].find(item => item.textContent?.includes('Começar partida'))
+    play?.click()
+    return Boolean(hard && play)
+  })()`)
+  await new Promise(resolveWait => setTimeout(resolveWait, 250))
+  const chessMoved = await evaluate(`(async () => {
+    const pawn = [...document.querySelectorAll('button[role="gridcell"]')].find(item => item.getAttribute('aria-label')?.includes('branco em e2'))
+    pawn?.click()
+    await new Promise(resolve => setTimeout(resolve, 100))
+    const target = [...document.querySelectorAll('button[role="gridcell"]')].find(item => item.getAttribute('aria-label')?.includes('e4') && item.getAttribute('aria-label')?.includes('movimento permitido'))
+    target?.click()
+    return Boolean(pawn && target)
+  })()`)
+  await new Promise(resolveWait => setTimeout(resolveWait, 1200))
+  const chessAiReplied = await evaluate(`Boolean([...document.querySelectorAll('button[role="gridcell"]')].find(item => item.getAttribute('aria-label')?.includes('branco em e4'))) && document.body.innerText.includes('Sua vez')`)
+  if (!chessStarted || !chessMoved || !chessAiReplied) throw new Error(`Partida local do Xadrez não completou o primeiro turno contra a IA difícil: ${JSON.stringify({ chessStarted, chessMoved, chessAiReplied })}`)
+  console.log(`SCREENSHOT ${await screenshot('ui-chess-local-mobile.png')}`)
+  console.log('INTERACTION_OK game=chess local_ai_replied=true difficulty=hard')
+
+  await viewport(420, 900)
+  await navigate('/pedra-papel-tesoura')
+  const rpsRound = await evaluate(`(() => {
+    const medium = [...document.querySelectorAll('button')].find(item => item.textContent?.trim() === 'Médio')
+    medium?.click()
+    const rock = document.querySelector('button[aria-label^="Jogar Pedra"]')
+    rock?.click()
+    return Boolean(medium && rock)
+  })()`)
+  await new Promise(resolveWait => setTimeout(resolveWait, 250))
+  const rpsResult = await evaluate(`document.body.innerText.includes('Sua escolha: Pedra') && document.body.innerText.includes('Máquina:')`)
+  if (!rpsRound || !rpsResult) throw new Error('Pedra, Papel e Tesoura não concluiu uma rodada contra a IA média')
+  console.log(`SCREENSHOT ${await screenshot('ui-rps-local-mobile.png')}`)
+  console.log('INTERACTION_OK game=rock-paper-scissors local_round=true difficulty=medium')
+
+  await viewport(420, 900)
+  await navigate('/adedonha')
+  const adedonhaRound = await evaluate(`(() => {
+    const hard = [...document.querySelectorAll('button')].find(item => item.textContent?.trim() === 'Difícil')
+    hard?.click()
+    const letter = document.querySelector('[aria-label^="Letra sorteada:"]')?.textContent?.trim() || 'A'
+    const input = document.querySelector('input')
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
+    if (input && setter) {
+      setter.call(input, letter + 'na')
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+    }
+    const submit = [...document.querySelectorAll('button')].find(item => item.textContent?.includes('Conferir respostas'))
+    submit?.click()
+    return Boolean(hard && input && submit)
+  })()`)
+  await new Promise(resolveWait => setTimeout(resolveWait, 300))
+  const adedonhaResult = await evaluate(`document.body.innerText.includes('Máquina') && document.body.innerText.includes('pts') && document.body.innerText.includes('Sortear outra letra')`)
+  if (!adedonhaRound || !adedonhaResult) throw new Error('Adedonha não corrigiu a rodada local contra a IA difícil')
+  console.log(`SCREENSHOT ${await screenshot('ui-adedonha-local-mobile.png')}`)
+  console.log('INTERACTION_OK game=adedonha local_round=true difficulty=hard privacy=local')
+
+  await viewport(420, 900)
   await navigate('/dama')
   const checkersStarted = await evaluate(`(() => {
     const ai = [...document.querySelectorAll('button')].find(item => item.textContent?.includes('Vs IA') && item.textContent?.includes('Fácil'))
     ai?.click()
-    const play = [...document.querySelectorAll('button')].find(item => item.textContent?.includes('Jogar'))
+    const play = [...document.querySelectorAll('button')].find(item => item.textContent?.trim().endsWith('Jogar'))
     play?.click()
     return Boolean(ai && play)
   })()`)
@@ -664,7 +733,7 @@ try {
   console.log('INTERACTION_OK game=coloring progress=1/12')
 
   if (client.exceptions.length) throw new Error(`Exceções no navegador: ${client.exceptions.join('; ')}`)
-  console.log('UI_VERIFY_OK breakpoints=4 routes_mobile=14 interactions=15 screenshots=8 text_zoom=200% console_exceptions=0')
+  console.log('UI_VERIFY_OK breakpoints=4 routes_mobile=17 interactions=19 screenshots=11 text_zoom=200% console_exceptions=0')
 } finally {
   client?.close()
   if (chrome?.exitCode === null) chrome.kill()

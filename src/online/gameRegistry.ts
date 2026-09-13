@@ -34,10 +34,13 @@ export const ONLINE_GAME_OPTIONS = [
   { key: 'hangman', emoji: '🔤', label: ONLINE_GAME_LABELS.hangman },
 ] as const
 
-const PATH_GAMES: Record<string, OnlineGameKey> = {
+export const LOCAL_PATH_GAMES: Record<string, OnlineGameKey> = {
   '/memoria': 'memory',
   '/jogo-da-velha': 'tic-tac-toe',
   '/dama': 'checkers',
+  '/xadrez': 'chess',
+  '/pedra-papel-tesoura': 'rock-paper-scissors',
+  '/adedonha': 'adedonha',
   '/uno': 'uno',
   '/colorir': 'coloring',
   '/cobra': 'snake',
@@ -56,9 +59,17 @@ export interface RouteActivity {
 export function activityForPath(pathname: string): RouteActivity {
   if (pathname.startsWith('/online/grupo/')) return { activity: 'group', gameKey: null }
   if (pathname.startsWith('/online/sala/')) return { activity: 'playing', gameKey: 'tic-tac-toe' }
-  const gameKey = PATH_GAMES[pathname]
+  const gameKey = LOCAL_PATH_GAMES[pathname]
   if (gameKey) return { activity: 'playing', gameKey }
   return { activity: 'lobby', gameKey: null }
+}
+
+export function onlineGameForPath(pathname: string): OnlineGameKey | null {
+  return LOCAL_PATH_GAMES[pathname] ?? null
+}
+
+export function localPathForOnlineGame(gameKey: OnlineGameKey): string | null {
+  return Object.entries(LOCAL_PATH_GAMES).find(([, key]) => key === gameKey)?.[0] ?? null
 }
 
 export function activityLabel(player: { activity: OnlineActivity; gameKey: OnlineGameKey | null }) {

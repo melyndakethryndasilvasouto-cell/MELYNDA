@@ -8,7 +8,7 @@ import { usePlayer } from '../../contexts/PlayerContext'
 
 type Cell = 'X' | 'O' | null
 type Board = Cell[]
-type GameMode = 'menu' | '2p' | 'easy' | 'hard'
+type GameMode = 'menu' | '2p' | 'easy' | 'medium' | 'hard'
 type GameStatus = 'playing' | 'win' | 'draw'
 
 interface GameResult {
@@ -100,6 +100,20 @@ function bestMove(board: Board): number {
 function randomMove(board: Board): number {
   const available = board.map((c, i) => (c === null ? i : -1)).filter((i) => i !== -1)
   return available[Math.floor(Math.random() * available.length)]
+}
+
+function tacticalMove(board: Board): number {
+  const available = board.map((cell, index) => cell === null ? index : -1).filter(index => index !== -1)
+  for (const mark of ['O', 'X'] as const) {
+    for (const index of available) {
+      const next = [...board] as Board
+      next[index] = mark
+      if (checkResult(next).winner === mark) return index
+    }
+  }
+  if (board[4] === null) return 4
+  const corners = [0, 2, 6, 8].filter(index => board[index] === null)
+  return corners.length ? corners[Math.floor(Math.random() * corners.length)] : randomMove(board)
 }
 
 // ─── CellSymbol ───────────────────────────────────────────────────────────────
@@ -198,7 +212,7 @@ export default function TicTacToe() {
   const [showResult, setShowResult] = useState(false)
 
   const playerLabel = playerName || 'Jogador'
-  const isAI = mode === 'easy' || mode === 'hard'
+  const isAI = mode === 'easy' || mode === 'medium' || mode === 'hard'
   const xLabel = isAI ? playerLabel : `${playerLabel} (X)`
   const oLabel = isAI ? '🤖 IA' : 'Jogador 2 (O)'
 
@@ -253,7 +267,7 @@ export default function TicTacToe() {
     setIsThinking(true)
     const timer = setTimeout(() => {
       setBoard((prev) => {
-        const idx = mode === 'hard' ? bestMove(prev) : randomMove(prev)
+        const idx = mode === 'hard' ? bestMove(prev) : mode === 'medium' ? tacticalMove(prev) : randomMove(prev)
         if (idx === -1) return prev
         const next = [...prev] as Board
         next[idx] = 'O'
@@ -363,6 +377,13 @@ export default function TicTacToe() {
             onClick={() => startGame('easy')}
           >
             🤖 IA Fácil
+          </button>
+          <button
+            className="btn-primary text-lg py-4"
+            style={{ minHeight: 56 }}
+            onClick={() => startGame('medium')}
+          >
+            🤖 IA Média
           </button>
           <button
             className="btn-primary text-lg py-4"

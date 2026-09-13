@@ -11,6 +11,39 @@
     "challenge": "Pratique com dedicação e encoraje com bondade alguém que também está aprendendo."
   },
   {
+    "path": "/xadrez",
+    "gameId": "xadrez",
+    "homeName": "Xadrez",
+    "homeDescription": "Estratégia e sabedoria contra o sistema ou online.",
+    "icon": "♟️",
+    "theme": "Planejar com sabedoria",
+    "verseRef": "Provérbios 21:5",
+    "message": "Bons planos, feitos com paciência e sabedoria, ajudam a alcançar resultados melhores.",
+    "challenge": "Pense antes de mover, respeite o adversário e aprenda com cada partida."
+  },
+  {
+    "path": "/pedra-papel-tesoura",
+    "gameId": "ppt",
+    "homeName": "Pedra, Papel e Tesoura",
+    "homeDescription": "Escolha, respeite e divirta-se em três níveis.",
+    "icon": "✊",
+    "theme": "Honrar uns aos outros",
+    "verseRef": "Romanos 12:10",
+    "message": "Deus nos ensina a tratar cada pessoa com carinho, respeito e alegria.",
+    "challenge": "Ganhe ou perca com gentileza e celebre a diversão compartilhada."
+  },
+  {
+    "path": "/adedonha",
+    "gameId": "adedonha",
+    "homeName": "Adedonha",
+    "homeDescription": "Palavras, Bíblia e criatividade contra o sistema.",
+    "icon": "📝",
+    "theme": "Palavras cheias de graça",
+    "verseRef": "Colossenses 4:6",
+    "message": "Nossas palavras podem transmitir graça, conhecimento e bondade às pessoas.",
+    "challenge": "Use a criatividade, aprenda palavras novas e escreva sempre com respeito."
+  },
+  {
     "path": "/memoria",
     "gameId": "memoria",
     "homeName": "Memória da Bíblia",

@@ -16,7 +16,7 @@ interface Piece {
 type Cell = Piece | null
 type Board = Cell[][]
 
-type GameMode = 'two' | 'easy' | 'medium'
+type GameMode = 'two' | 'easy' | 'medium' | 'hard'
 type GamePhase = 'menu' | 'playing' | 'won'
 
 interface MoveStep {
@@ -209,7 +209,7 @@ function scoreBoard(b: Board): number {
   return s
 }
 
-function aiPickMove(board: Board, difficulty: 'easy' | 'medium'): ValidMove | null {
+function aiPickMove(board: Board, difficulty: 'easy' | 'medium' | 'hard'): ValidMove | null {
   const moves = getValidMoves(board, 2)
   if (moves.length === 0) return null
   if (difficulty === 'easy') {
@@ -221,7 +221,12 @@ function aiPickMove(board: Board, difficulty: 'easy' | 'medium'): ValidMove | nu
     const nb = applyMove(board, m)
     let sc = scoreBoard(nb)
     if (m.isCapture) sc += m.steps.length * 2
-    sc += Math.random() * 0.3
+    if (difficulty === 'hard') {
+      const replies = getValidMoves(nb, 1)
+      if (replies.length) sc = Math.min(...replies.map(reply => scoreBoard(applyMove(nb, reply))))
+    } else {
+      sc += Math.random() * 0.3
+    }
     if (sc > bestScore) { bestScore = sc; best = m }
   }
   return best
@@ -284,8 +289,7 @@ export default function CheckersGame() {
     if (mode === 'two') return
     if (currentPlayer !== 2) return
     aiTimeoutRef.current = setTimeout(() => {
-      const diff = mode === 'easy' ? 'easy' : 'medium'
-      const move = aiPickMove(board, diff)
+      const move = aiPickMove(board, mode)
       if (!move) return
       executeMove(board, move, 2)
     }, 600)
@@ -374,6 +378,7 @@ export default function CheckersGame() {
               { id: 'two' as GameMode, label: '👥 Dois Jogadores', desc: 'Jogue com um amigo' },
               { id: 'easy' as GameMode, label: '🤖 Vs IA (Fácil)', desc: 'IA joga aleatoriamente' },
               { id: 'medium' as GameMode, label: '🤖 Vs IA (Médio)', desc: 'IA usa estratégia básica' },
+              { id: 'hard' as GameMode, label: '🤖 Vs IA (Difícil)', desc: 'IA prevê sua próxima resposta' },
             ]).map(opt => (
               <button key={opt.id} onClick={() => { playSound('click'); setMode(opt.id) }}
                 className={opt.id === mode ? 'btn-primary' : 'btn-secondary'}
@@ -402,7 +407,7 @@ export default function CheckersGame() {
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontFamily: "'Fredoka One'", color: '#1E3A5F', fontSize: 20 }}>Dama</div>
           <div style={{ fontSize: 12, color: '#7B5EA7' }}>
-            {mode === 'two' ? '👥 2 Jogadores' : mode === 'easy' ? '🤖 IA Fácil' : '🤖 IA Médio'}
+            {mode === 'two' ? '👥 2 Jogadores' : mode === 'easy' ? '🤖 IA Fácil' : mode === 'medium' ? '🤖 IA Média' : '🤖 IA Difícil'}
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>

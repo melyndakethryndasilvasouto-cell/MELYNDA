@@ -11,6 +11,7 @@ interface Card { id: string; color: CardColor; value: CardValue }
 interface PlayerState { id: string; name: string; isHuman: boolean; hand: Card[] }
 type GamePhase = 'setup' | 'playing' | 'colorPick' | 'won'
 type Direction = 1 | -1
+type Difficulty = 'easy' | 'medium' | 'hard'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const COLOR_BG: Record<CardColor,string> = { red:'#EF4444', blue:'#3B82F6', green:'#22C55E', yellow:'#EAB308', wild:'#7B5EA7' }
@@ -43,19 +44,28 @@ function isPlayable(card: Card, top: Card, activeColor: CardColor): boolean {
 }
 
 // ─── AI Logic ─────────────────────────────────────────────────────────────────
-function aiChooseCard(hand: Card[], top: Card, activeColor: CardColor): Card | null {
+function aiChooseCard(hand: Card[], top: Card, activeColor: CardColor, difficulty: Difficulty): Card | null {
   const playable = hand.filter(c => isPlayable(c, top, activeColor))
   if (!playable.length) return null
+  if (difficulty === 'easy') return playable[Math.floor(Math.random() * playable.length)]
   // Prefer: wild4 > draw2 > skip > reverse > wild > number matching color > other
   const order: CardValue[] = ['wild4','draw2','skip','reverse','wild']
+  if (difficulty === 'hard') {
+    const colorCounts = COLORS.reduce((counts, color) => ({ ...counts, [color]: hand.filter(card => card.color === color).length }), {} as Record<string, number>)
+    return [...playable].sort((a, b) => {
+      const score = (card: Card) => (order.includes(card.value) ? 20 - order.indexOf(card.value) : 0) + (card.color === 'wild' ? 0 : colorCounts[card.color] * 3)
+      return score(b) - score(a)
+    })[0]
+  }
   for (const v of order) {
     const c = playable.find(x => x.value === v)
     if (c) return c
   }
   return playable[Math.floor(Math.random() * playable.length)]
 }
-function aiChooseColor(): CardColor {
-  return COLORS[Math.floor(Math.random() * COLORS.length)]
+function aiChooseColor(hand: Card[], difficulty: Difficulty): CardColor {
+  if (difficulty === 'easy') return COLORS[Math.floor(Math.random() * COLORS.length)]
+  return [...COLORS].sort((a, b) => hand.filter(card => card.color === b).length - hand.filter(card => card.color === a).length)[0]
 }
 
 // ─── UnoCard Component ────────────────────────────────────────────────────────
@@ -117,6 +127,7 @@ export default function Uno() {
 
   const [phase, setPhase] = useState<GamePhase>('setup')
   const [aiCount, setAiCount] = useState(1)
+  const [difficulty, setDifficulty] = useState<Difficulty>('easy')
   const [players, setPlayers] = useState<PlayerState[]>([])
   const [drawPile, setDrawPile] = useState<Card[]>([])
   const [discardPile, setDiscardPile] = useState<Card[]>([])
@@ -327,9 +338,9 @@ export default function Uno() {
     const t = setTimeout(() => {
       const s = stateRef.current
       const top = s.discardPile[s.discardPile.length - 1]
-      const card = aiChooseCard(cur.hand, top, s.activeColor)
+      const card = aiChooseCard(cur.hand, top, s.activeColor, difficulty)
       if (card) {
-        const color = (card.color === 'wild') ? aiChooseColor() : undefined
+        const color = (card.color === 'wild') ? aiChooseColor(cur.hand, difficulty) : undefined
         if (card.color === 'wild') {
           // Immediately play with chosen color (no modal for AI)
           playCard(currentIdx, card.id, color)
@@ -350,7 +361,7 @@ export default function Uno() {
           // Try to play drawn card
           if (isPlayable(drawnCard, top, s.activeColor)) {
             defer(() => {
-              const col = drawnCard.color === 'wild' ? aiChooseColor() : undefined
+              const col = drawnCard.color === 'wild' ? aiChooseColor(cur.hand, difficulty) : undefined
               playCard(currentIdx, drawnCard.id, col)
             }, 400)
           } else {
@@ -363,7 +374,7 @@ export default function Uno() {
       setAiThinking(false)
     }, 850 + Math.random() * 300)
     return () => clearTimeout(t)
-  }, [currentIdx, players, phase, playCard, humanDraw, drawFromPile, nextPlayer, defer])
+  }, [currentIdx, players, phase, playCard, humanDraw, drawFromPile, nextPlayer, defer, difficulty])
 
   // ── Human plays card ─────────────────────────────────────────────────────────
   const handleHumanPlay = (card: Card) => {
@@ -422,6 +433,18 @@ export default function Uno() {
                   style={{ background: aiCount === n ? 'linear-gradient(135deg,#6BB8FF,#A78BFA)' : 'rgba(167,139,250,0.1)',
                     color: aiCount === n ? 'white' : '#7B5EA7', border: aiCount === n ? 'none' : '2px solid #C4B5FD' }}>
                   {n}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="font-bold mb-3" style={{ color: '#7B5EA7' }}>Dificuldade dos robôs</p>
+            <div className="grid grid-cols-3 gap-2">
+              {(['easy', 'medium', 'hard'] as Difficulty[]).map(level => (
+                <button key={level} type="button" onClick={() => setDifficulty(level)}
+                  className={difficulty === level ? 'btn-primary px-2 py-2 text-xs' : 'btn-secondary px-2 py-2 text-xs'}
+                  style={{ minHeight: 44 }}>
+                  {level === 'easy' ? 'Fácil' : level === 'medium' ? 'Médio' : 'Difícil'}
                 </button>
               ))}
             </div>

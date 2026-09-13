@@ -4,6 +4,7 @@ import Header from './Header'
 import ParticleBackground from '../shared/ParticleBackground'
 import FaithMissionBanner from '../shared/FaithMissionBanner'
 import OnlineNotifications from '../Online/OnlineNotifications'
+import OnlineGameOption from '../shared/OnlineGameOption'
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
@@ -16,6 +17,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <OnlineNotifications />
       <main id="main-content" tabIndex={-1} className={`relative mx-auto px-4 pb-10 pt-20 ${widePage ? 'max-w-4xl' : 'max-w-xl'}`} style={{ zIndex: 1 }}>
         <FaithMissionBanner />
+        <OnlineGameOption />
         {children}
       </main>
     </div>

@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useOnline } from '../../contexts/OnlineContext'
-import { activityLabel, ONLINE_GAME_LABELS, ONLINE_GAME_OPTIONS } from '../../online/gameRegistry'
+import { activityLabel, localPathForOnlineGame, ONLINE_GAME_LABELS, ONLINE_GAME_OPTIONS } from '../../online/gameRegistry'
 import { OnlinePlayer } from '../../online/types'
 import OnlineSafetyGate from './OnlineSafetyGate'
 import { useAccessibleDialog } from '../../online/useAccessibleDialog'
@@ -24,6 +24,7 @@ export default function OnlineLobbyPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const preferredGame = ONLINE_GAME_OPTIONS.find(game => game.key === searchParams.get('jogo'))
+  const preferredLocalPath = preferredGame ? localPathForOnlineGame(preferredGame.key) : null
   const {
     configured, safetyAccepted, status, userId, invites, groupInvites, groups, error,
     acceptSafety, goOffline,
@@ -210,12 +211,13 @@ export default function OnlineLobbyPage() {
       {(error || notice) && <p role="status" className="mt-3 rounded-2xl bg-amber-50 p-3 text-sm font-bold" style={{ color: '#92400E' }}>{notice || error}</p>}
 
       {preferredGame && (
-        <aside data-preferred-online-game={preferredGame.key} className="mt-4 flex items-center gap-3 rounded-2xl border-2 border-purple-200 bg-purple-50 p-4" aria-label={`Jogo escolhido: ${preferredGame.label}`}>
+        <aside data-preferred-online-game={preferredGame.key} className="mt-4 flex flex-col gap-3 rounded-2xl border-2 border-purple-200 bg-purple-50 p-4 sm:flex-row sm:items-center" aria-label={`Jogo escolhido: ${preferredGame.label}`}>
           <span className="text-3xl" aria-hidden="true">{preferredGame.emoji}</span>
-          <span className="min-w-0">
+          <span className="min-w-0 flex-1">
             <strong className="block" style={{ color: '#5B3A8A' }}>Você escolheu {preferredGame.label}</strong>
             <span className="mt-1 block text-xs font-bold" style={{ color: '#4B5563' }}>Cole o código privado do seu amigo para enviar o convite desse jogo.</span>
           </span>
+          {preferredLocalPath && <button type="button" className="btn-secondary min-h-12 shrink-0 text-sm" onClick={() => navigate(preferredLocalPath)}>🤖 Jogar neste aparelho</button>}
         </aside>
       )}
 

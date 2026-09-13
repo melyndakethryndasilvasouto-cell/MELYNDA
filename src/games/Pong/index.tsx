@@ -17,10 +17,11 @@ const MAX_SPEED_MULT = 1.5
 const SPEED_INCREMENT = 0.04
 const AI_EASY = 0.60
 const AI_HARD = 0.90
+const AI_MEDIUM = 0.62
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Mode = 'menu' | 'solo' | 'duo'
-type Difficulty = 'easy' | 'hard'
+type Difficulty = 'easy' | 'medium' | 'hard'
 type SpeedMult = 1 | 1.5
 type Phase = 'idle' | 'playing' | 'paused' | 'scored' | 'gameover'
 
@@ -278,7 +279,7 @@ export default function Pong() {
       }
     } else {
       // Easy: fixed slow speed (not scaling with ball) so it stays beatable
-      const aiSpeed = diff === 'easy' ? 2.8 : AI_HARD * gs.ball.speed
+      const aiSpeed = diff === 'easy' ? 2.8 : (diff === 'medium' ? AI_MEDIUM : AI_HARD) * gs.ball.speed
       const paddleCenter = gs.p2.x + gs.p2.w / 2
       const delta = gs.ball.x - paddleCenter
       if (Math.abs(delta) > 4) {
@@ -558,15 +559,15 @@ export default function Pong() {
 
             <div className="w-full">
               <p className="text-sm font-semibold mb-1 text-center" style={{ color: '#7B5EA7' }}>Dificuldade da IA</p>
-              <div className="flex gap-2">
-                {(['easy', 'hard'] as Difficulty[]).map(d => (
+              <div className="grid grid-cols-3 gap-2">
+                {(['easy', 'medium', 'hard'] as Difficulty[]).map(d => (
                   <button
                     key={d}
                     onClick={() => { playSound('click'); setDifficulty(d) }}
-                    className={difficulty === d ? 'btn-primary flex-1 py-2 text-sm' : 'btn-secondary flex-1 py-2 text-sm'}
+                    className={difficulty === d ? 'btn-primary min-w-0 px-1 py-2 text-xs sm:text-sm' : 'btn-secondary min-w-0 px-1 py-2 text-xs sm:text-sm'}
                     style={{ minHeight: 44 }}
                   >
-                    {d === 'easy' ? '😊 Fácil' : '😈 Difícil'}
+                    {d === 'easy' ? '😊 Fácil' : d === 'medium' ? '🤖 Médio' : '😈 Difícil'}
                   </button>
                 ))}
               </div>

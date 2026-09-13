@@ -43,6 +43,8 @@ const DIFFICULTY_CONFIG: Record<Difficulty, { label: string; cols: number; pairs
   hard:   { label: 'Difícil (5×4)', cols: 5, pairs: 10 },
 }
 
+const AI_RECALL_CHANCE: Record<Difficulty, number> = { easy: 0.2, medium: 0.55, hard: 0.85 }
+
 const MODE_CONFIG: Record<GameMode, { label: string; icon: string }> = {
   solo: { label: 'Sozinha (vs Tempo)', icon: '🧍' },
   two:  { label: 'Dois Jogadores',     icon: '👥' },
@@ -246,8 +248,8 @@ export default function MemoryGame() {
     let first: CardData | undefined
     let second: CardData | undefined
 
-    // 30% chance to recall a full known pair
-    if (Math.random() < 0.30) {
+    // A força da memória acompanha o nível escolhido.
+    if (Math.random() < AI_RECALL_CHANCE[diffRef.current]) {
       for (const [pairId, ids] of aiMemory.current.entries()) {
         if (ids.length >= 2) {
           const a = unmatched.find(c => c.id === ids[0])
@@ -404,7 +406,7 @@ export default function MemoryGame() {
               <li>📖 <b>Descoberta bíblica:</b> cada par revela uma mensagem e sua referência.</li>
               <li>🧍 <b>Solo:</b> Menor tempo possível.</li>
               <li>👥 <b>Dois Jogadores:</b> Quem achar mais pares vence!</li>
-              <li>🤖 <b>Vs Computador:</b> O computador tem 30% de chance de lembrar cartas!</li>
+              <li>🤖 <b>Vs Computador:</b> a memória do sistema melhora nos níveis Fácil, Médio e Difícil.</li>
             </ul>
             <button className="btn-primary w-full mt-4" style={{ minHeight: 44 }} onClick={() => { playSound('click'); setShowHelp(false) }}>
               Entendido! 👍

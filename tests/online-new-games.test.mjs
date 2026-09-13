@@ -86,7 +86,7 @@ test('Adedonha limpa campos, aceita acentos e pontua respostas únicas ou repeti
 })
 
 test('catálogo, sala e migração conectam os três novos jogos com validação privada', async () => {
-  const [types, registry, room, migration, chessBoard, rpsBoard, adedonhaBoard, home, lobby] = await Promise.all([
+  const [types, registry, room, migration, chessBoard, rpsBoard, adedonhaBoard, home, lobby, missions, app, onlineOption] = await Promise.all([
     readFile(new URL('src/online/types.ts', root), 'utf8'),
     readFile(new URL('src/online/gameRegistry.ts', root), 'utf8'),
     readFile(new URL('src/components/Online/OnlineRoomPage.tsx', root), 'utf8'),
@@ -96,6 +96,9 @@ test('catálogo, sala e migração conectam os três novos jogos com validação
     readFile(new URL('src/components/Online/OnlineAdedonhaBoard.tsx', root), 'utf8'),
     readFile(new URL('src/components/Home/HomePage.tsx', root), 'utf8'),
     readFile(new URL('src/components/Online/OnlineLobbyPage.tsx', root), 'utf8'),
+    readFile(new URL('src/data/gameMissions.json', root), 'utf8'),
+    readFile(new URL('src/App.tsx', root), 'utf8'),
+    readFile(new URL('src/components/shared/OnlineGameOption.tsx', root), 'utf8'),
   ])
   for (const game of ['chess', 'rock-paper-scissors', 'adedonha']) {
     assert.match(types, new RegExp(`'${game}'`))
@@ -115,10 +118,16 @@ test('catálogo, sala e migração conectam os três novos jogos com validação
   }
   assert.match(adedonhaBoard, /não escreva seu nome completo/)
   assert.match(rpsBoard, /escolha fica escondida/)
-  for (const [name, key] of [['Xadrez', 'chess'], ['Pedra, Papel e Tesoura', 'rock-paper-scissors'], ['Adedonha', 'adedonha']]) {
-    assert.match(home, new RegExp(`name: '${name}'`))
-    assert.match(home, new RegExp(`/online\\?jogo=${key}`))
+  for (const [name, path, key] of [['Xadrez', '/xadrez', 'chess'], ['Pedra, Papel e Tesoura', '/pedra-papel-tesoura', 'rock-paper-scissors'], ['Adedonha', '/adedonha', 'adedonha']]) {
+    assert.match(missions, new RegExp(`"homeName": "${name}"`))
+    assert.match(missions, new RegExp(`"path": "${path}"`))
+    assert.match(app, new RegExp(`path="${path}"`))
+    assert.match(registry, new RegExp(`'${path}': '${key}'`))
   }
+  assert.match(home, /IA · ONLINE/)
+  assert.match(onlineOption, /Jogar online/)
   assert.match(lobby, /data-preferred-online-game/)
+  assert.match(lobby, /localPathForOnlineGame/)
+  assert.match(lobby, /Jogar neste aparelho/)
   assert.match(lobby, /Você escolheu \{preferredGame\.label\}/)
 })

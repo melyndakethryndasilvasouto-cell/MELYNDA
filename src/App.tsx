@@ -22,6 +22,9 @@ const SlidingPuzzle = lazy(() => import('./games/SlidingPuzzle'))
 const Pong         = lazy(() => import('./games/Pong'))
 const Forca        = lazy(() => import('./games/Hangman'))
 const Multiplication = lazy(() => import('./games/Multiplication'))
+const Chess        = lazy(() => import('./games/Chess'))
+const RockPaperScissors = lazy(() => import('./games/RockPaperScissors'))
+const Adedonha     = lazy(() => import('./games/Adedonha'))
 const Devotional   = lazy(() => import('./components/Devotional/DevotionalPage'))
 const OnlineLobby  = lazy(() => import('./components/Online/OnlineLobbyPage'))
 const OnlineRoom   = lazy(() => import('./components/Online/OnlineRoomPage'))
@@ -70,6 +73,9 @@ function AppRoutes() {
             <Route path="/pong" element={<Pong />} />
             <Route path="/forca" element={<Forca />} />
             <Route path="/tabuada" element={<Multiplication />} />
+            <Route path="/xadrez" element={<Chess />} />
+            <Route path="/pedra-papel-tesoura" element={<RockPaperScissors />} />
+            <Route path="/adedonha" element={<Adedonha />} />
           </Routes>
         </Suspense>
       </motion.div>
