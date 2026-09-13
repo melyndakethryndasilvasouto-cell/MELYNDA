@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react'
+import { useReducedMotion } from 'framer-motion'
 
 export default function ParticleBackground() {
+  const reducedMotion = useReducedMotion()
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const el = ref.current
-    if (!el) return
+    if (!el || reducedMotion) return
     const colors = ['#6BB8FF', '#A78BFA', '#93C5FD', '#C4B5FD', '#BFDBFE', '#DDD6FE']
     const shapes = ['⭐', '✨', '💫', '🌸', '•', '•', '•']
     const particles: HTMLSpanElement[] = []
@@ -31,7 +33,7 @@ export default function ParticleBackground() {
       particles.push(p)
     }
     return () => particles.forEach(p => p.remove())
-  }, [])
+  }, [reducedMotion])
 
-  return <div ref={ref} className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }} />
+  return <div aria-hidden="true" ref={ref} className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }} />
 }

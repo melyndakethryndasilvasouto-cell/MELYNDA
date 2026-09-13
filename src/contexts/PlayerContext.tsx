@@ -13,16 +13,24 @@ const PlayerContext = createContext<PlayerContextType | null>(null)
 
 export function PlayerProvider({ children, playerName, playerAvatar }: { children: ReactNode; playerName: string; playerAvatar: string }) {
   const [scores, setScores] = useState<Record<string, number>>(() => {
-    try { return JSON.parse(localStorage.getItem('mel-scores') || '{}') } catch { return {} }
+    try {
+      const saved = JSON.parse(localStorage.getItem('mel-scores') || '{}')
+      if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return {}
+      return Object.fromEntries(Object.entries(saved).filter(([, value]) => typeof value === 'number' && Number.isFinite(value) && value >= 0)) as Record<string, number>
+    } catch { return {} }
   })
   const [achievements, setAchievements] = useState<string[]>(() => {
-    try { return JSON.parse(localStorage.getItem('mel-achievements') || '[]') } catch { return [] }
+    try {
+      const saved = JSON.parse(localStorage.getItem('mel-achievements') || '[]')
+      return Array.isArray(saved) ? [...new Set(saved.filter((value): value is string => typeof value === 'string'))] : []
+    } catch { return [] }
   })
 
   const updateScore = useCallback((game: string, score: number) => {
+    if (!Number.isFinite(score) || score < 0) return
     setScores(prev => {
       const next = { ...prev, [game]: Math.max(prev[game] ?? 0, score) }
-      localStorage.setItem('mel-scores', JSON.stringify(next))
+      try { localStorage.setItem('mel-scores', JSON.stringify(next)) } catch { /* Continue playing in memory when storage is unavailable. */ }
       return next
     })
   }, [])
@@ -31,7 +39,7 @@ export function PlayerProvider({ children, playerName, playerAvatar }: { childre
     setAchievements(prev => {
       if (prev.includes(id)) return prev
       const next = [...prev, id]
-      localStorage.setItem('mel-achievements', JSON.stringify(next))
+      try { localStorage.setItem('mel-achievements', JSON.stringify(next)) } catch { /* Keep this session's progress. */ }
       return next
     })
   }, [])

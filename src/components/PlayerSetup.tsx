@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import { isSafeName } from '../utils/safety'
 
 interface Props { onComplete: (name: string, avatar: string) => void }
@@ -22,9 +22,16 @@ function cleanNickname(value: string) {
 }
 
 export default function PlayerSetup({ onComplete }: Props) {
+  const reducedMotion = useReducedMotion()
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState('⭐')
+  const [error, setError] = useState('')
+  const avatarHeading = useRef<HTMLHeadingElement>(null)
   const [step, setStep] = useState<'name' | 'avatar'>('name')
+
+  useEffect(() => {
+    if (step === 'avatar') avatarHeading.current?.focus()
+  }, [step])
 
   const handleNameSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,6 +41,7 @@ export default function PlayerSetup({ onComplete }: Props) {
         alert('Esse apelido não é permitido. Escolha outro mais legal!');
         return;
       }
+      setError('')
       setName(nickname)
       setStep('avatar')
     }
@@ -49,32 +57,36 @@ export default function PlayerSetup({ onComplete }: Props) {
         className="glass-card p-8 w-full max-w-sm text-center"
       >
         <motion.div
-          animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.1, 1] }}
+          animate={reducedMotion ? undefined : { rotate: [0, 15, -15, 0], scale: [1, 1.1, 1] }}
           transition={{ repeat: Infinity, duration: 3 }}
           className="text-6xl mb-3"
         >
           ⭐
         </motion.div>
         <h1 className="font-title text-3xl mb-1" style={{ color: '#7B5EA7' }}>Aventuras da Bíblia</h1>
-        <p className="text-sm font-bold mb-6" style={{ color: '#4A90D9' }}>com a Mel 📖</p>
+        <p className="text-sm font-bold mb-6" style={{ color: '#1D4E89' }}>com a Mel 📖</p>
 
         {step === 'name' ? (
           <motion.form key="name" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} onSubmit={handleNameSubmit} className="space-y-4">
             <label htmlFor="player-name" className="block font-bold" style={{ color: '#7B5EA7' }}>Escolha um apelido divertido 😊</label>
-            <p className="rounded-2xl bg-blue-50 p-3 text-xs font-bold" style={{ color: '#1D4E89' }}>Não escreva nome completo, escola, telefone ou endereço.</p>
+            <p id="nickname-help" className="rounded-2xl bg-blue-50 p-3 text-xs font-bold" style={{ color: '#1D4E89' }}>Não escreva nome completo, escola, telefone ou endereço.</p>
             <input
               id="player-name"
               type="text"
               value={name}
-              onChange={e => setName(cleanNickname(e.target.value))}
+              onChange={e => { setName(e.target.value); setError('') }}
+              aria-invalid={!!error}
+              aria-describedby="nickname-help nickname-error"
+              autoComplete="off"
               placeholder="Ex.: Estrelinha"
               maxLength={16}
               autoFocus
-              className="w-full px-4 py-3 rounded-2xl text-center text-xl font-bold outline-none"
+              className="w-full px-4 py-3 rounded-2xl text-center text-xl font-bold"
               style={{ border: '2px solid #C4B5FD', color: '#7B5EA7', background: 'white' }}
             />
+            <p id="nickname-error" role="alert" className="text-sm font-bold text-red-700">{error}</p>
             <div className="flex flex-wrap justify-center gap-2" aria-label="Ideias de apelido">
-              {nicknameIdeas.slice(0, 3).map(idea => <button key={idea} type="button" onClick={() => setName(idea)} className="min-h-11 rounded-2xl bg-purple-50 px-3 text-xs font-black" style={{ color: '#5B3A8A' }}>{idea}</button>)}
+              {nicknameIdeas.slice(0, 3).map(idea => <button key={idea} type="button" onClick={() => { setName(idea); setError('') }} className="min-h-11 rounded-2xl bg-purple-50 px-3 text-xs font-black" style={{ color: '#5B3A8A' }}>{idea}</button>)}
             </div>
             <button type="submit" disabled={cleanNickname(name).length < 2} className="btn-primary w-full disabled:opacity-40">
               Próximo ➡️
@@ -91,7 +103,7 @@ export default function PlayerSetup({ onComplete }: Props) {
                   onClick={() => setAvatar(icon)}
                   aria-label={label}
                   aria-pressed={avatar === icon}
-                  className="text-3xl p-2 rounded-2xl transition-all active:scale-90"
+                  className="min-h-11 min-w-0 text-3xl p-2 rounded-2xl transition-all active:scale-90"
                   style={{
                     background: avatar === icon ? 'linear-gradient(135deg,#6BB8FF,#A78BFA)' : 'rgba(167,139,250,0.1)',
                     transform: avatar === icon ? 'scale(1.1)' : 'scale(1)',
@@ -102,7 +114,8 @@ export default function PlayerSetup({ onComplete }: Props) {
                 </button>
               ))}
             </div>
-            <button onClick={() => onComplete(name.trim(), avatar)} className="btn-primary w-full">
+            <button type="button" onClick={() => setStep('name')} className="btn-secondary w-full">Voltar e editar apelido</button>
+            <button type="button" onClick={() => onComplete(name.trim(), avatar)} className="btn-primary w-full">
               {avatar} Começar a jornada!
             </button>
           </motion.div>

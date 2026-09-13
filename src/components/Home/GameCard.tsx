@@ -12,7 +12,7 @@ export default function GameCard({ game, hasSystemOpponent, onLocalClick, onOnli
   const titleId = `game-card-${game.id}`
   return (
     <article
-      className="glass-card flex w-full flex-col items-center gap-2 overflow-hidden p-4 text-center"
+      className="glass-card flex h-full w-full flex-col items-center gap-2 overflow-hidden p-4 text-center"
       style={{ minHeight: 270 }}
       aria-labelledby={titleId}
     >

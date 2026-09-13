@@ -91,7 +91,7 @@ export default function ForcaBiblica() {
     <div className="min-h-screen p-4 flex flex-col max-w-md mx-auto">
       {/* Header */}
       <header className="flex items-center justify-between mb-4">
-        <button onClick={handleBack} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/30 backdrop-blur-md shadow text-xl">
+        <button type="button" aria-label="Voltar aos jogos" onClick={handleBack} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/30 backdrop-blur-md shadow text-xl">
           ⬅️
         </button>
         <h1 className="font-title text-2xl" style={{ color: '#F472B6' }}>Forca Bíblica</h1>

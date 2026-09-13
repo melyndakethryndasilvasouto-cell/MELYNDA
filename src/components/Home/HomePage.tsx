@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { usePlayer } from '../../contexts/PlayerContext'
 import GameCard from './GameCard'
@@ -43,31 +43,32 @@ const games = localGames
 export default function HomePage() {
   const { playerName, playerAvatar, scores, achievements } = usePlayer()
   const navigate = useNavigate()
+  const reducedMotion = useReducedMotion()
 
   return (
     <div className="pt-4">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-6">
-        <motion.div animate={{ scale: [1, 1.08, 1] }} transition={{ repeat: Infinity, duration: 2.5 }} className="text-6xl mb-3">
+        <motion.div animate={reducedMotion ? undefined : { scale: [1, 1.08, 1] }} transition={{ repeat: Infinity, duration: 2.5 }} className="text-6xl mb-3">
           {playerAvatar}
         </motion.div>
-        <p className="uppercase tracking-widest text-xs font-black" style={{ color: '#B7791F' }}>Mel — Aventuras da Bíblia</p>
-        <h1 className="font-title text-3xl mt-1" style={{ color: '#7B5EA7' }}>Olá, {playerName}! 👋</h1>
-        <p className="font-bold mt-1 text-sm" style={{ color: '#4A90D9' }}>Vamos jogar e aprender?</p>
+        <p className="uppercase tracking-widest text-xs font-black" style={{ color: '#854D0E' }}>Mel — Aventuras da Bíblia</p>
+        <h1 className="font-title text-3xl mt-1 break-words" style={{ color: '#7B5EA7' }}>Olá, {playerName}! 👋</h1>
+        <p className="font-bold mt-1 text-sm" style={{ color: '#1D4E89' }}>Vamos jogar e aprender?</p>
       </motion.div>
 
       <section className="glass-card p-4 mb-4" aria-label="Progresso na jornada bíblica">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="font-black text-sm" style={{ color: '#5B3A8A' }}>🌱 Jornada da Fé</h2>
             <p className="text-xs mt-1" style={{ color: '#6B7280' }}>Aprenda sobre a Bíblia brincando.</p>
           </div>
           <div className="text-right flex-shrink-0">
-            <strong className="block text-lg" style={{ color: '#4A90D9' }}>{Object.keys(scores).length}</strong>
-            <span className="text-[10px]" style={{ color: '#6B7280' }}>recordes</span>
+            <strong className="block text-lg" style={{ color: '#1D4E89' }}>{Object.keys(scores).length}</strong>
+            <span className="text-xs" style={{ color: '#6B7280' }}>recordes</span>
           </div>
           <div className="text-right flex-shrink-0">
-            <strong className="block text-lg" style={{ color: '#B7791F' }}>{achievements.length}</strong>
-            <span className="text-[10px]" style={{ color: '#6B7280' }}>conquistas</span>
+            <strong className="block text-lg" style={{ color: '#854D0E' }}>{achievements.length}</strong>
+            <span className="text-xs" style={{ color: '#6B7280' }}>conquistas</span>
           </div>
         </div>
       </section>
@@ -123,7 +124,7 @@ export default function HomePage() {
         🤖 Sem ninguém online? Nos jogos com selo IA, escolha Fácil, Médio ou Difícil e jogue contra o sistema.
       </p>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3">
         {games.map((game, i) => (
           <motion.div
             key={game.id}
@@ -144,7 +145,7 @@ export default function HomePage() {
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
         className="text-center mt-8 font-bold text-sm"
-        style={{ color: '#C4B5FD' }}
+        style={{ color: '#7B5EA7' }}
       >
         “Ensina a criança no caminho...” — Provérbios 22:6 🌿
       </motion.div>

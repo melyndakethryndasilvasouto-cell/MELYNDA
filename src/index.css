@@ -42,7 +42,7 @@
   background: #FFF7D6;
   color: #8A5A00;
   border: 1px solid #F4D06F;
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   line-height: 1.25rem;
   font-weight: 900;
 }
@@ -120,7 +120,7 @@
   }
 
   .btn-danger {
-    background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+    background: linear-gradient(135deg, #B91C1C, #C2410C);
     color: white;
     font-family: 'Nunito', sans-serif;
     font-weight: 800;
@@ -294,3 +294,7 @@
   user-select: none;
   -webkit-user-select: none;
 }
+
+/* Fixed navigation must not cover keyboard targets. */
+[id], button, a, input, select, textarea { scroll-margin-top: 5rem; }
+button:disabled { cursor: not-allowed; }

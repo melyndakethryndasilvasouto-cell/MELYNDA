@@ -48,7 +48,9 @@ function tone(freq: number, dur: number, type: OscillatorType = 'sine', vol = 0.
 }
 
 export function SoundProvider({ children }: { children: ReactNode }) {
-  const [isMuted, setIsMuted] = useState(() => localStorage.getItem('mel-muted') === 'true')
+  const [isMuted, setIsMuted] = useState(() => {
+    try { return localStorage.getItem('mel-muted') === 'true' } catch { return false }
+  })
 
   useEffect(() => {
     const unlock = () => {
@@ -68,7 +70,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
   const toggleMute = useCallback(() => {
     setIsMuted(prev => {
       const next = !prev
-      localStorage.setItem('mel-muted', String(next))
+      try { localStorage.setItem('mel-muted', String(next)) } catch { /* Muting still works for this session. */ }
       return next
     })
   }, [])

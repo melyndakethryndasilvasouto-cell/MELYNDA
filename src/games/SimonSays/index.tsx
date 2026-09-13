@@ -295,6 +295,8 @@ export default function SimonSays() {
     const expected = seq[idx]
 
     if (colorIdx !== expected) {
+      // Lock input immediately; error feedback lasts longer than a click.
+      setPhase('showing')
       // In strict mode, restart from zero after showing error
       if (strictModeRef.current) {
         clearAllTimeouts()

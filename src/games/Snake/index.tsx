@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import confetti from "canvas-confetti"
 import { useSound } from "../../contexts/SoundContext"
 import { usePlayer } from "../../contexts/PlayerContext"
+import { advanceSnake, chooseFreeCell } from "./snakeRules.mjs"
 
 type Point = { x: number; y: number }
 type Dir = "UP" | "DOWN" | "LEFT" | "RIGHT"
@@ -20,22 +21,8 @@ const randomCell = (): Point => ({
   y: Math.floor(Math.random() * GRID),
 })
 
-const randomCellExcluding = (exclude: Point[]): Point => {
-  let p: Point
-  do { p = randomCell() }
-  while (exclude.some(e => e.x === p.x && e.y === p.y))
-  return p
-}
-
 const opposite: Record<Dir, Dir> = {
   UP: "DOWN", DOWN: "UP", LEFT: "RIGHT", RIGHT: "LEFT",
-}
-
-const dirVec: Record<Dir, Point> = {
-  UP:    { x: 0, y: -1 },
-  DOWN:  { x: 0, y: 1 },
-  LEFT:  { x: -1, y: 0 },
-  RIGHT: { x: 1, y: 0 },
 }
 
 const initialSnake = (): Point[] => [
@@ -52,7 +39,7 @@ export default function Snake() {
   const stateRef       = useRef<GameState>("idle")
   const snakeRef       = useRef<Point[]>(initialSnake())
   const dirRef         = useRef<Dir>("RIGHT")
-  const foodRef        = useRef<Point>(randomCell())
+  const foodRef        = useRef<Point | null>(randomCell())
   const specialRef     = useRef<Point | null>(null)
   const specialTimer   = useRef<number>(0)
   const scoreRef       = useRef<number>(0)
@@ -67,6 +54,7 @@ export default function Snake() {
   const [gameState, setGameState] = useState<GameState>("idle")
   const [score, setScore]         = useState(0)
   const [best, setBest]           = useState(bestRef.current)
+  const [boardCompleted, setBoardCompleted] = useState(false)
   const [showHelp, setShowHelp]   = useState(false)
   const [canvasSize, setCanvasSize] = useState(360)
 
@@ -103,6 +91,7 @@ export default function Snake() {
     }
 
     const f = foodRef.current
+    if (f) {
     ctx.fillStyle = "#EF4444"
     ctx.beginPath()
     ctx.arc(f.x * cell + cell / 2, f.y * cell + cell / 2, cell / 2 - 2, 0, Math.PI * 2)
@@ -111,6 +100,8 @@ export default function Snake() {
     ctx.beginPath()
     ctx.arc(f.x * cell + cell / 2 - cell * 0.12, f.y * cell + cell / 2 - cell * 0.12, cell * 0.13, 0, Math.PI * 2)
     ctx.fill()
+
+    }
 
     const sp = specialRef.current
     if (sp) {
@@ -211,50 +202,34 @@ export default function Snake() {
         if (nd !== opposite[dirRef.current]) dirRef.current = nd
       }
 
-      const dir = dirRef.current
-      const snake = snakeRef.current
-      const head = snake[0]
-      const vec = dirVec[dir]
-      const newHead: Point = { x: head.x + vec.x, y: head.y + vec.y }
-
-      if (newHead.x < 0 || newHead.x >= GRID || newHead.y < 0 || newHead.y >= GRID) {
-        endGame(); return
-      }
-      if (snake.some(s => s.x === newHead.x && s.y === newHead.y)) {
-        endGame(); return
-      }
-
-      let grow = false
-      let pts = 0
-
-      if (newHead.x === foodRef.current.x && newHead.y === foodRef.current.y) {
-        grow = true; pts = 1
+      if (specialRef.current && now > specialTimer.current) specialRef.current = null
+      const move = advanceSnake(snakeRef.current, dirRef.current, foodRef.current, specialRef.current, GRID)
+      if (move.collision) { endGame(); return }
+      snakeRef.current = move.snake
+      if (move.ateSpecial) specialRef.current = null
+      if (move.points > 0) {
         playSound("match")
-        const avoid = [...snake, ...(specialRef.current ? [specialRef.current] : [])]
-        foodRef.current = randomCellExcluding(avoid)
-        if (!specialRef.current && Math.random() < 0.2) {
-          specialRef.current = randomCellExcluding([...snake, foodRef.current])
-          specialTimer.current = performance.now() + SPECIAL_DURATION
-        }
-      }
-
-      if (specialRef.current && newHead.x === specialRef.current.x && newHead.y === specialRef.current.y) {
-        grow = true; pts += 5
-        playSound("match")
-        specialRef.current = null
-      }
-
-      if (specialRef.current && performance.now() > specialTimer.current) {
-        specialRef.current = null
-      }
-
-      const newSnake = [newHead, ...snake]
-      if (!grow) newSnake.pop()
-      snakeRef.current = newSnake
-
-      if (pts > 0) {
-        scoreRef.current += pts
+        scoreRef.current += move.points
         setScore(scoreRef.current)
+      }
+      if (move.won) {
+        foodRef.current = null
+        specialRef.current = null
+        setBoardCompleted(true)
+        endGame()
+        return
+      }
+      if (move.ateFood) {
+        foodRef.current = chooseFreeCell([...move.snake, ...(specialRef.current ? [specialRef.current] : [])], GRID)
+        // Give ordinary food priority when the special occupies the only free cell.
+        if (!foodRef.current) {
+          specialRef.current = null
+          foodRef.current = chooseFreeCell(move.snake, GRID)
+        }
+        if (!specialRef.current && Math.random() < 0.2) {
+          specialRef.current = chooseFreeCell([...move.snake, ...(foodRef.current ? [foodRef.current] : [])], GRID)
+          specialTimer.current = now + SPECIAL_DURATION
+        }
       }
     }
 
@@ -268,9 +243,10 @@ export default function Snake() {
     pendingDirRef.current = []
     scoreRef.current = 0
     specialRef.current = null
-    foodRef.current  = randomCellExcluding(initialSnake())
+    foodRef.current  = chooseFreeCell(initialSnake(), GRID)
     lastTickRef.current = 0
     setScore(0)
+    setBoardCompleted(false)
     stateRef.current = "playing"
     setGameState("playing")
     cancelAnimationFrame(rafRef.current)
@@ -305,6 +281,9 @@ export default function Snake() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || showHelp || e.ctrlKey || e.metaKey || e.altKey) return
+      if (e.target instanceof HTMLElement && e.target.closest('input, textarea, select, [contenteditable="true"], [role="dialog"]')) return
+      if (stateRef.current !== "playing" && stateRef.current !== "paused") return
       const map: Record<string, Dir> = {
         ArrowUp: "UP", w: "UP", W: "UP",
         ArrowDown: "DOWN", s: "DOWN", S: "DOWN",
@@ -316,7 +295,7 @@ export default function Snake() {
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [enqueueDir, togglePause])
+  }, [enqueueDir, togglePause, showHelp])
 
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
@@ -337,7 +316,7 @@ export default function Snake() {
 
   const DPadBtn = ({ dir, label }: { dir: Dir; label: string }) => (
     <button
-      aria-label={`Mover ${dir}`}
+      aria-label={`Mover para ${({ UP: "cima", DOWN: "baixo", LEFT: "esquerda", RIGHT: "direita" })[dir]}`}
       className="flex items-center justify-center rounded-2xl text-white font-bold text-xl select-none active:scale-90 transition-transform"
       style={{
         width: 60, height: 60,
@@ -346,7 +325,7 @@ export default function Snake() {
         backdropFilter: "blur(4px)",
         touchAction: "manipulation",
       }}
-      onPointerDown={e => { e.preventDefault(); enqueueDir(dir) }}
+      onClick={() => enqueueDir(dir)}
     >
       {label}
     </button>
@@ -368,7 +347,7 @@ export default function Snake() {
           )}
           <button
             className="btn-secondary px-3 py-2 text-sm"
-            onClick={() => { playSound("click"); setShowHelp(true) }}
+            onClick={() => { if (stateRef.current === "playing") togglePause(); else playSound("click"); setShowHelp(true) }}
           >
             ❓ Ajuda
           </button>
@@ -378,6 +357,7 @@ export default function Snake() {
       <div ref={containerRef} className="w-full" style={{ maxWidth: 380 }}>
         <div className="relative rounded-3xl overflow-hidden" style={{ background: "#0F172A", boxShadow: "0 8px 32px rgba(107,184,255,0.25)" }}>
           <canvas
+            aria-label="Tabuleiro da Cobrinha. Use as setas ou os bot?es de dire??o para jogar."
             ref={canvasRef}
             width={canvasSize}
             height={canvasSize}
@@ -429,7 +409,7 @@ export default function Snake() {
               >
                 <div className="text-5xl">{score > 0 && score === best ? "\uD83C\uDFC6" : "\uD83D\uDC80"}</div>
                 <h2 className="text-2xl font-bold text-white" style={{ fontFamily: "'Fredoka One'" }}>
-                  {score === best && score > 0 ? "Novo Recorde!" : "Fim de Jogo!"}
+                  {boardCompleted ? "Voc? completou o tabuleiro!" : score === best && score > 0 ? "Novo Recorde!" : "Fim de Jogo!"}
                 </h2>
                 <div className="glass-card px-6 py-3 text-center w-full">
                   <p className="text-white text-lg font-bold">Pontuação: <span style={{ color: "#6BB8FF" }}>{score}</span></p>

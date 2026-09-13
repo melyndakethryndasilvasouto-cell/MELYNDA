@@ -46,11 +46,10 @@ export default function Header() {
           <button
             type="button"
             onClick={() => navigate(isDevotional ? '/' : '/devocional')}
-            aria-current={isDevotional ? 'page' : undefined}
-            aria-label={isDevotional ? 'Voltar aos jogos' : 'Abrir Devocional'}
+                        aria-label={isDevotional ? 'Voltar aos jogos' : 'Abrir Devocional'}
             className="flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-2xl px-2.5 text-xs font-black transition-transform active:scale-90 sm:px-3 sm:text-sm"
             style={{
-              background: isDevotional ? 'linear-gradient(135deg,#6BB8FF,#A78BFA)' : 'rgba(107,184,255,0.15)',
+              background: isDevotional ? 'linear-gradient(135deg,#1D4ED8,#6D28D9)' : 'rgba(107,184,255,0.15)',
               color: isDevotional ? '#FFFFFF' : '#5B3A8A',
             }}
           >
@@ -61,11 +60,10 @@ export default function Header() {
           <button
             type="button"
             onClick={() => navigate(isOnline ? '/' : '/online')}
-            aria-current={isOnline ? 'page' : undefined}
-            aria-label={isOnline ? 'Voltar aos jogos' : 'Abrir jogadores online'}
+                        aria-label={isOnline ? 'Voltar aos jogos' : 'Abrir jogadores online'}
             className="flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-2xl px-2.5 text-xs font-black transition-transform active:scale-90 sm:px-3 sm:text-sm"
             style={{
-              background: isOnline ? 'linear-gradient(135deg,#34D399,#4A90D9)' : 'rgba(52,211,153,0.14)',
+              background: isOnline ? 'linear-gradient(135deg,#047857,#1D4ED8)' : 'rgba(52,211,153,0.14)',
               color: isOnline ? '#FFFFFF' : '#166534',
             }}
           >
@@ -74,17 +72,18 @@ export default function Header() {
             <span className="hidden sm:inline">{isOnline ? 'Jogos' : 'Online'}</span>
           </button>
           {isMainPage && playerName && (
-            <div className="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-2xl text-sm font-bold"
+            <div className="hidden sm:flex max-w-36 min-w-0 items-center gap-1 px-3 py-1.5 rounded-2xl text-sm font-bold"
               style={{ background: 'rgba(167,139,250,0.12)', color: '#7B5EA7' }}>
               <Star size={13} fill="#F59E0B" stroke="#F59E0B" aria-hidden="true" />
               <span aria-hidden="true">{playerAvatar}</span>
-              {playerName}
+              <span className="truncate" title={playerName}>{playerName}</span>
             </div>
           )}
           <button
             type="button"
             onClick={toggleMute}
             aria-label={isMuted ? 'Ativar sons' : 'Silenciar sons'}
+            aria-pressed={isMuted}
             className="flex h-11 w-11 items-center justify-center rounded-2xl transition-transform active:scale-90"
             style={{ background: 'rgba(167,139,250,0.12)', color: '#7B5EA7' }}
           >

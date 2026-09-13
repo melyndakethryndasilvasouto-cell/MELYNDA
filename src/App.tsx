@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
+import { Routes, Route, Link, useLocation } from 'react-router-dom'
+import { AnimatePresence, MotionConfig, motion, useReducedMotion } from 'framer-motion'
 import { PlayerProvider } from './contexts/PlayerContext'
 import { SoundProvider } from './contexts/SoundContext'
 import { OnlineProvider } from './contexts/OnlineContext'
 import Layout from './components/Layout/Layout'
 import HomePage from './components/Home/HomePage'
 import PlayerSetup from './components/PlayerSetup'
+import PageErrorBoundary from './components/shared/PageErrorBoundary'
+import missions from './data/gameMissions.json'
 
 // Games (lazy loaded)
 import { lazy, Suspense } from 'react'
@@ -32,7 +34,7 @@ const GroupChat    = lazy(() => import('./components/Online/GroupChatPage'))
 
 function LoadingGame() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+    <div role="status" className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
       <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} className="text-4xl">⭐</motion.div>
       <p className="font-bold" style={{ color: '#A78BFA' }}>Carregando...</p>
     </div>
@@ -41,7 +43,12 @@ function LoadingGame() {
 
 function AppRoutes() {
   const location = useLocation()
+  const reducedMotion = useReducedMotion()
   useEffect(() => {
+    const title = missions.find(mission => mission.path === location.pathname)?.homeName
+      || (location.pathname.startsWith('/online') ? 'Jogar online' : location.pathname === '/devocional' ? 'Devocional' : location.pathname === '/' ? 'Jogos' : 'P?gina n?o encontrada')
+    document.title = `${title} ? Mel ? Aventuras da B?blia`
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     const focusFrame = window.requestAnimationFrame(() => document.getElementById('main-content')?.focus())
     return () => window.cancelAnimationFrame(focusFrame)
   }, [location.pathname])
@@ -49,11 +56,12 @@ function AppRoutes() {
     <AnimatePresence mode="wait">
       <motion.div
         key={location.pathname}
-        initial={{ opacity: 0, y: 10 }}
+        initial={reducedMotion ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
+        exit={reducedMotion ? { opacity: 1 } : { opacity: 0, y: -10 }}
         transition={{ duration: 0.2 }}
       >
+        <PageErrorBoundary key={location.pathname}>
         <Suspense fallback={<LoadingGame />}>
           <Routes location={location}>
             <Route path="/" element={<HomePage />} />
@@ -76,8 +84,16 @@ function AppRoutes() {
             <Route path="/xadrez" element={<Chess />} />
             <Route path="/pedra-papel-tesoura" element={<RockPaperScissors />} />
             <Route path="/adedonha" element={<Adedonha />} />
+            <Route path="*" element={
+              <section className="glass-card p-6 text-center space-y-4">
+                <h1 className="font-title text-2xl text-purple-900">Esse caminho n?o existe</h1>
+                <p className="text-gray-700">Vamos voltar aos jogos e escolher uma nova aventura?</p>
+                <Link to="/" className="btn-primary">Voltar aos jogos</Link>
+              </section>
+            } />
           </Routes>
         </Suspense>
+        </PageErrorBoundary>
       </motion.div>
     </AnimatePresence>
   )
@@ -89,26 +105,30 @@ export default function App() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    const saved = localStorage.getItem('mel-player-name')
-    if (saved) {
-      setPlayerName(saved)
-      setPlayerAvatar(localStorage.getItem('mel-player-avatar') || '⭐')
-      setReady(true)
-    }
-    else setReady(false)
+    try {
+      const saved = localStorage.getItem('mel-player-name')?.trim().slice(0, 16)
+      if (saved) {
+        setPlayerName(saved)
+        setPlayerAvatar(localStorage.getItem('mel-player-avatar')?.slice(0, 16) || '?')
+        setReady(true)
+      }
+    } catch { /* Allow setup even when the browser blocks local storage. */ }
   }, [])
 
   const handleSetup = (name: string, avatar: string) => {
-    localStorage.setItem('mel-player-name', name)
-    localStorage.setItem('mel-player-avatar', avatar)
+    try {
+      localStorage.setItem('mel-player-name', name)
+      localStorage.setItem('mel-player-avatar', avatar)
+    } catch { /* A player can still use this session without persistence. */ }
     setPlayerName(name)
     setPlayerAvatar(avatar)
     setReady(true)
   }
 
-  if (!ready && !playerName) return <PlayerSetup onComplete={handleSetup} />
+  if (!ready && !playerName) return <MotionConfig reducedMotion="user"><PlayerSetup onComplete={handleSetup} /></MotionConfig>
 
   return (
+    <MotionConfig reducedMotion="user">
     <SoundProvider>
       <PlayerProvider playerName={playerName} playerAvatar={playerAvatar}>
         <OnlineProvider>
@@ -118,5 +138,6 @@ export default function App() {
         </OnlineProvider>
       </PlayerProvider>
     </SoundProvider>
+    </MotionConfig>
   )
 }

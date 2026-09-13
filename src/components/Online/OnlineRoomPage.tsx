@@ -21,11 +21,12 @@ import OnlineRockPaperScissorsBoard from './OnlineRockPaperScissorsBoard'
 import OnlineAdedonhaBoard from './OnlineAdedonhaBoard'
 import OnlineConfirmDialog from './OnlineConfirmDialog'
 import { ONLINE_GAME_LABELS } from '../../online/gameRegistry'
+import { acceptsRoomSnapshot, isCurrentRoundPayload, onlineErrorMessage, roomRound } from '../../online/roomSyncRules.mjs'
 
 const EMPTY_ROOM_MESSAGES: OnlineChatMessage[] = []
 
 function roomError(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error || '')
+  const message = onlineErrorMessage(error)
   if (message.includes('NOT_YOUR_TURN')) return 'Agora é a vez do outro jogador.'
   if (message.includes('CELL_OCCUPIED')) return 'Essa casa já está ocupada.'
   if (message.includes('ROOM_NOT_ACTIVE')) return 'A partida ainda não está pronta ou já terminou.'
@@ -49,9 +50,9 @@ export default function OnlineRoomPage() {
   const [draft, setDraft] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
-  const [moving, setMoving] = useState(false)
+  const [restarting, setRestarting] = useState(false)
   const [sendingMessage, setSendingMessage] = useState(false)
-  const [boardRound, setBoardRound] = useState(0)
+  const boardRound = `${room?.id ?? roomId}-${roomRound(room)}`
   const [voiceConsentOpen, setVoiceConsentOpen] = useState(false)
   // Multi-game broadcast state
   const [broadcastGameState, setBroadcastGameState] = useState<unknown>(null)
@@ -69,6 +70,17 @@ export default function OnlineRoomPage() {
   roomRef.current = room
   voiceHandlerRef.current = voice.handleSignal as (payload: unknown) => Promise<void>
 
+  const applyRoom = useCallback((next: OnlineRoom) => {
+    const previous = roomRef.current
+    if (!acceptsRoomSnapshot(previous, next)) return
+    if (!previous || previous.id !== next.id || roomRound(previous) !== roomRound(next)) {
+      setBroadcastGameState(null)
+      setGuestMove(null)
+    }
+    roomRef.current = next
+    setRoom(next)
+  }, [])
+
   useEffect(() => { if (safetyAccepted) void connect() }, [connect, safetyAccepted])
 
   useEffect(() => {
@@ -84,8 +96,7 @@ export default function OnlineRoomPage() {
         return
       }
       const loadedRoom = result.data as OnlineRoom
-      roomRef.current = loadedRoom
-      setRoom(loadedRoom)
+      applyRoom(loadedRoom)
       const ids = [loadedRoom.host_id, loadedRoom.guest_id].filter(Boolean) as string[]
       const profileResult = await supabase.from('online_profiles').select('user_id,display_name,avatar').in('user_id', ids)
       if (active && !profileResult.error) {
@@ -101,9 +112,9 @@ export default function OnlineRoomPage() {
         setProfiles(next)
       }
       const messageResult = await supabase.from('online_room_messages').select('*').eq('room_id', roomId)
-        .gt('expires_at', new Date().toISOString()).order('created_at').limit(100)
-      if (active && !messageResult.error) setMessages((messageResult.data || []) as OnlineChatMessage[])
-      setLoading(false)
+        .gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false }).limit(100)
+      if (active && !messageResult.error) setMessages((messageResult.data || []).reverse() as OnlineChatMessage[])
+      if (active) setLoading(false)
     }
     void load().catch(() => {
       if (active) {
@@ -118,8 +129,7 @@ export default function OnlineRoomPage() {
     const roomChannel = supabase.channel(`online:room:${roomId}`, { config: { private: true, broadcast: { ack: true } } })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'online_rooms', filter: `id=eq.${roomId}` }, ({ new: next }) => {
         if (active) {
-          roomRef.current = next as unknown as OnlineRoom
-          setRoom(next as unknown as OnlineRoom)
+          applyRoom(next as unknown as OnlineRoom)
         }
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'online_room_messages', filter: `room_id=eq.${roomId}` }, ({ new: next }) => {
@@ -138,7 +148,7 @@ export default function OnlineRoomPage() {
         if (!active) return
         const currentRoom = roomRef.current
         // Only the guest applies the host's broadcast state
-        if (currentRoom && currentRoom.host_id !== userId) {
+        if (currentRoom && currentRoom.host_id !== userId && isCurrentRoundPayload(currentRoom, payload)) {
           setBroadcastGameState((payload as Record<string, unknown>).gameState ?? null)
         }
       })
@@ -154,20 +164,15 @@ export default function OnlineRoomPage() {
         if (!active) return
         const currentRoom = roomRef.current
         // Only the host processes guest move requests
-        if (currentRoom && currentRoom.host_id === userId) {
+        if (currentRoom && currentRoom.status === 'active' && currentRoom.host_id === userId && isCurrentRoundPayload(currentRoom, payload)) {
           setGuestMove((payload as Record<string, unknown>).move ?? null)
         }
-      })
-      .on('broadcast', { event: 'game-restart' }, () => {
-        if (!active) return
-        setBroadcastGameState(null)
-        setGuestMove(null)
       })
       .subscribe(subscriptionStatus => {
         if (subscriptionStatus === 'SUBSCRIBED') {
           setRoomConnected(true)
           setError('')
-          void load()
+          void load().catch(() => { if (active) setError('Não foi possível atualizar a sala. Tente novamente.') })
         }
         if (subscriptionStatus === 'CHANNEL_ERROR' || subscriptionStatus === 'TIMED_OUT') {
           setRoomConnected(false)
@@ -183,7 +188,7 @@ export default function OnlineRoomPage() {
       window.clearInterval(roomRefresh)
       void supabase.removeChannel(roomChannel)
     }
-  }, [onlineStatus, roomId, userId])
+  }, [applyRoom, onlineStatus, roomId, userId])
 
   useEffect(() => {
     if (!channel || !roomConnected || isHost) return
@@ -193,13 +198,15 @@ export default function OnlineRoomPage() {
     }
     requestState()
     const retry = window.setTimeout(requestState, 700)
-    const retryAgain = window.setTimeout(requestState, 1_800)
+    // Reenvia o pedido em intervalos curtos para recuperar o estado quando
+    // o Realtime perde um evento, sem sobrecarregar a sala.
+    const retryAgain = window.setInterval(requestState, 1_800)
     return () => {
       active = false
       window.clearTimeout(retry)
-      window.clearTimeout(retryAgain)
+      window.clearInterval(retryAgain)
     }
-  }, [channel, isHost, roomConnected])
+  }, [boardRound, channel, isHost, roomConnected])
 
   useEffect(() => {
     if (room?.game) setPlayingGame(room.game)
@@ -244,21 +251,20 @@ export default function OnlineRoomPage() {
   }, [messages.length, scrollMessagesToEnd])
 
   const restart = async () => {
-    if (!supabase) return
-    channel?.send({ type: 'broadcast', event: 'game-restart', payload: {} })
-    const response = await supabase.rpc('restart_online_room', { room: roomId })
-    if (response.error) setError(roomError(response.error))
-    else {
-      setBroadcastGameState(null)
-      setGuestMove(null)
-      setBoardRound(previous => previous + 1)
-      setRoom(response.data as OnlineRoom)
-    }
+    if (!supabase || restarting) return
+    setRestarting(true)
+    setError('')
+    try {
+      const response = await supabase.rpc('restart_online_room', { room: roomId })
+      if (response.error) setError(roomError(response.error))
+      else applyRoom(response.data as OnlineRoom)
+    } catch (restartError) { setError(roomError(restartError)) }
+    finally { setRestarting(false) }
   }
 
   // Broadcast helpers used by non-TTT game components
   const broadcastState = useCallback((gameState: unknown) => {
-    channel?.send({ type: 'broadcast', event: 'game-state', payload: { gameState } })
+    void channel?.send({ type: 'broadcast', event: 'game-state', payload: { gameState, round: roomRound(roomRef.current) } })
   }, [channel])
 
   const broadcastMove = useCallback(async (move: unknown) => {
@@ -270,12 +276,12 @@ export default function OnlineRoomPage() {
         setError(roomError(response.error))
         return false
       }
-      const sendResult = await channel.send({ type: 'broadcast', event: 'game-move', payload: { move } })
+      const sendResult = await channel.send({ type: 'broadcast', event: 'game-move', payload: { move, round: roomRound(roomRef.current) } })
       if (sendResult !== 'ok') setError('A jogada não chegou ao seu amigo. Tente novamente.')
       return sendResult === 'ok'
     }
     if (!channel) return false
-    return (await channel.send({ type: 'broadcast', event: 'game-move', payload: { move } })) === 'ok'
+    return (await channel.send({ type: 'broadcast', event: 'game-move', payload: { move, round: roomRound(roomRef.current) } })) === 'ok'
   }, [channel, room?.game, roomId])
 
   const validateGameAction = useCallback(async (move: unknown) => {
@@ -287,8 +293,12 @@ export default function OnlineRoomPage() {
 
   const finishRoom = useCallback(async (winner: 'host' | 'guest' | 'draw') => {
     if (!supabase) return
-    await supabase.rpc('finish_online_room', { room: roomId, winner })
-  }, [roomId])
+    try {
+      const response = await supabase.rpc('finish_online_room', { room: roomId, winner })
+      if (response.error) setError('O resultado apareceu no jogo, mas não foi salvo na sala. Verifique a conexão antes de sair.')
+      else if (response.data) applyRoom(response.data as OnlineRoom)
+    } catch { setError('Não foi possível salvar o resultado da partida. Verifique a conexão.') }
+  }, [applyRoom, roomId])
 
   const leave = async (confirmed = false) => {
     if (!confirmed) { setConfirmAction('leave'); return }
@@ -536,7 +546,7 @@ export default function OnlineRoomPage() {
       {error && <p role="alert" className="mt-3 rounded-2xl bg-amber-50 p-3 text-center text-sm font-bold" style={{ color: '#92400E' }}>{error}</p>}
 
       <div className="mt-4 flex flex-wrap justify-center gap-2">
-        {room.status === 'finished' && <button type="button" className="btn-primary text-sm" onClick={() => void restart()}><RotateCcw size={17} /> Revanche</button>}
+        {room.status === 'finished' && <button type="button" disabled={restarting || !roomConnected} className="btn-primary text-sm" onClick={() => void restart()}><RotateCcw size={17} /> {restarting ? 'Preparando…' : 'Revanche'}</button>}
         <button type="button" className="btn-secondary text-sm" onClick={() => void leave()}><PhoneOff size={17} /> Sair da sala</button>
       </div>
 
