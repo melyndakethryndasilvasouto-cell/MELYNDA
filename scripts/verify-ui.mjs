@@ -153,10 +153,20 @@ try {
   await evaluate(`localStorage.setItem('mel-player-name','Mel'); localStorage.setItem('mel-player-avatar','🕊️'); location.reload()`)
   await new Promise(resolveWait => setTimeout(resolveWait, 1200))
   await metrics('/', 1440, 900)
-  const realGameNames = await evaluate(`['Tesouros da Tabuada','Memória da Bíblia','Jogo da Velha','Dama','UNO','Colorindo a Bíblia','Cobrinha','Sequência de Cores','Quiz da Bíblia','Quebra-Cabeça','Ping Pong','Forca Bíblica'].every(name => document.body.innerText.includes(name))`)
+  const realGameNames = await evaluate(`['Tesouros da Tabuada','Xadrez','Pedra, Papel e Tesoura','Adedonha','Memória da Bíblia','Jogo da Velha','Dama','UNO','Colorindo a Bíblia','Cobrinha','Sequência de Cores','Quiz da Bíblia','Quebra-Cabeça','Ping Pong','Forca Bíblica'].every(name => document.body.innerText.includes(name))`)
   if (!realGameNames) throw new Error('A página inicial não exibiu todos os nomes reais dos jogos')
-  console.log('CONTENT_OK home_real_game_names=12')
+  console.log('CONTENT_OK home_real_game_names=15')
   console.log(`SCREENSHOT ${await screenshot('ui-home-desktop.png')}`)
+
+  const openedChessFromHome = await evaluate(`(() => {
+    const button = [...document.querySelectorAll('button')].find(item => item.textContent?.includes('Xadrez') && item.textContent?.includes('ONLINE'))
+    button?.click()
+    return Boolean(button)
+  })()`)
+  await new Promise(resolveWait => setTimeout(resolveWait, 300))
+  const preferredChessRoute = await evaluate(`location.pathname === '/online' && location.search === '?jogo=chess'`)
+  if (!openedChessFromHome || !preferredChessRoute) throw new Error('O card de Xadrez não abriu o modo Online com o jogo escolhido')
+  console.log('INTERACTION_OK home_online_game=xadrez preferred=true')
 
   for (const width of [320, 768, 1024, 1440]) await metrics('/', width, 900)
   for (const width of [320, 375, 720, 768, 1024, 1440]) {
@@ -654,7 +664,7 @@ try {
   console.log('INTERACTION_OK game=coloring progress=1/12')
 
   if (client.exceptions.length) throw new Error(`Exceções no navegador: ${client.exceptions.join('; ')}`)
-  console.log('UI_VERIFY_OK breakpoints=4 routes_mobile=14 interactions=14 screenshots=8 text_zoom=200% console_exceptions=0')
+  console.log('UI_VERIFY_OK breakpoints=4 routes_mobile=14 interactions=15 screenshots=8 text_zoom=200% console_exceptions=0')
 } finally {
   client?.close()
   if (chrome?.exitCode === null) chrome.kill()

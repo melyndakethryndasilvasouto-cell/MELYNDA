@@ -19,7 +19,7 @@ const visualById: Record<string, { grad: string; badge?: string }> = {
   forca: { grad: 'linear-gradient(135deg,#F472B6,#F59E0B)' },
 }
 
-const games = missions.map(mission => ({
+const localGames = missions.map(mission => ({
   id: mission.gameId,
   name: mission.homeName,
   icon: mission.icon,
@@ -28,6 +28,26 @@ const games = missions.map(mission => ({
   verseRef: mission.verseRef,
   ...visualById[mission.gameId],
 }))
+
+const onlineGames = [
+  {
+    id: 'xadrez-online', name: 'Xadrez', icon: '♟️', path: '/online?jogo=chess',
+    desc: 'Estratégia e sabedoria para jogar com um amigo.', verseRef: 'Provérbios 21:5',
+    grad: 'linear-gradient(135deg,#334155,#7C3AED)', badge: 'ONLINE',
+  },
+  {
+    id: 'pedra-papel-tesoura-online', name: 'Pedra, Papel e Tesoura', icon: '✊', path: '/online?jogo=rock-paper-scissors',
+    desc: 'Escolha, respeite e divirta-se com um amigo.', verseRef: 'Romanos 12:10',
+    grad: 'linear-gradient(135deg,#F59E0B,#EC4899)', badge: 'ONLINE',
+  },
+  {
+    id: 'adedonha-online', name: 'Adedonha', icon: '📝', path: '/online?jogo=adedonha',
+    desc: 'Palavras, Bíblia e criatividade em oito categorias.', verseRef: 'Colossenses 4:6',
+    grad: 'linear-gradient(135deg,#10B981,#2563EB)', badge: 'ONLINE',
+  },
+]
+
+const games = [localGames[0], ...onlineGames, ...localGames.slice(1)]
 
 export default function HomePage() {
   const { playerName, playerAvatar, scores, achievements } = usePlayer()

@@ -86,7 +86,7 @@ test('Adedonha limpa campos, aceita acentos e pontua respostas únicas ou repeti
 })
 
 test('catálogo, sala e migração conectam os três novos jogos com validação privada', async () => {
-  const [types, registry, room, migration, chessBoard, rpsBoard, adedonhaBoard] = await Promise.all([
+  const [types, registry, room, migration, chessBoard, rpsBoard, adedonhaBoard, home, lobby] = await Promise.all([
     readFile(new URL('src/online/types.ts', root), 'utf8'),
     readFile(new URL('src/online/gameRegistry.ts', root), 'utf8'),
     readFile(new URL('src/components/Online/OnlineRoomPage.tsx', root), 'utf8'),
@@ -94,6 +94,8 @@ test('catálogo, sala e migração conectam os três novos jogos com validação
     readFile(new URL('src/components/Online/OnlineChessBoard.tsx', root), 'utf8'),
     readFile(new URL('src/components/Online/OnlineRockPaperScissorsBoard.tsx', root), 'utf8'),
     readFile(new URL('src/components/Online/OnlineAdedonhaBoard.tsx', root), 'utf8'),
+    readFile(new URL('src/components/Home/HomePage.tsx', root), 'utf8'),
+    readFile(new URL('src/components/Online/OnlineLobbyPage.tsx', root), 'utf8'),
   ])
   for (const game of ['chess', 'rock-paper-scissors', 'adedonha']) {
     assert.match(types, new RegExp(`'${game}'`))
@@ -113,4 +115,10 @@ test('catálogo, sala e migração conectam os três novos jogos com validação
   }
   assert.match(adedonhaBoard, /não escreva seu nome completo/)
   assert.match(rpsBoard, /escolha fica escondida/)
+  for (const [name, key] of [['Xadrez', 'chess'], ['Pedra, Papel e Tesoura', 'rock-paper-scissors'], ['Adedonha', 'adedonha']]) {
+    assert.match(home, new RegExp(`name: '${name}'`))
+    assert.match(home, new RegExp(`/online\\?jogo=${key}`))
+  }
+  assert.match(lobby, /data-preferred-online-game/)
+  assert.match(lobby, /Você escolheu \{preferredGame\.label\}/)
 })
