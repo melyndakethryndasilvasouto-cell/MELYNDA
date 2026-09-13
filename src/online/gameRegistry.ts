@@ -34,6 +34,14 @@ export const ONLINE_GAME_OPTIONS = [
   { key: 'hangman', emoji: '🔤', label: ONLINE_GAME_LABELS.hangman },
 ] as const
 
+const SYSTEM_OPPONENT_GAMES = new Set<OnlineGameKey>([
+  'memory', 'tic-tac-toe', 'checkers', 'chess', 'rock-paper-scissors', 'adedonha', 'uno', 'pong',
+])
+
+export function hasSystemOpponent(gameKey: OnlineGameKey | null): boolean {
+  return Boolean(gameKey && SYSTEM_OPPONENT_GAMES.has(gameKey))
+}
+
 export const LOCAL_PATH_GAMES: Record<string, OnlineGameKey> = {
   '/memoria': 'memory',
   '/jogo-da-velha': 'tic-tac-toe',

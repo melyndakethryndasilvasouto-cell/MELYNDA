@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { usePlayer } from '../../contexts/PlayerContext'
 import { useSound } from '../../contexts/SoundContext'
@@ -15,9 +15,9 @@ const CHOICES: { key: Choice; emoji: string; label: string; beats: string }[] = 
 ]
 
 const LEVELS: { key: Difficulty; label: string; helper: string }[] = [
-  { key: 'easy', label: 'Fácil', helper: 'A máquina ajuda você a aprender.' },
-  { key: 'medium', label: 'Médio', helper: 'A máquina observa seus costumes.' },
-  { key: 'hard', label: 'Difícil', helper: 'A máquina procura prever sua estratégia.' },
+  { key: 'easy', label: 'Fácil (baixo)', helper: 'O sistema ajuda você a aprender.' },
+  { key: 'medium', label: 'Médio', helper: 'O sistema observa seus costumes.' },
+  { key: 'hard', label: 'Difícil (alto)', helper: 'O sistema procura prever sua estratégia.' },
 ]
 
 const choiceDetails = (choice: Choice | null) => CHOICES.find(item => item.key === choice)
@@ -32,6 +32,11 @@ export default function RockPaperScissors() {
   const [roundWinner, setRoundWinner] = useState<RoundWinner | null>(null)
   const [scores, setScores] = useState({ player: 0, system: 0, draws: 0 })
   const matchWinner = scores.player >= 3 ? 'player' : scores.system >= 3 ? 'system' : null
+  const newMatchRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (matchWinner) newMatchRef.current?.focus()
+  }, [matchWinner])
 
   const resetMatch = (nextDifficulty = difficulty) => {
     setDifficulty(nextDifficulty)
@@ -72,12 +77,12 @@ export default function RockPaperScissors() {
   }
 
   const roundMessage = !roundWinner
-    ? 'Escolha sua jogada. A máquina decide sem ver sua escolha atual.'
+    ? 'Escolha sua jogada. O sistema decide sem ver sua escolha atual.'
     : roundWinner === 'draw'
       ? 'Empate! Os dois escolheram o mesmo símbolo.'
       : roundWinner === 'player'
         ? `${choiceDetails(playerChoice)?.label} ${choiceDetails(playerChoice)?.beats}. Você marcou!`
-        : `${choiceDetails(systemChoice)?.label} ${choiceDetails(systemChoice)?.beats}. A máquina marcou.`
+        : `${choiceDetails(systemChoice)?.label} ${choiceDetails(systemChoice)?.beats}. O sistema marcou.`
 
   return (
     <section className="game-area mx-auto flex min-h-[70vh] w-full max-w-3xl flex-col items-center gap-5 px-3 py-6 sm:px-5" aria-labelledby="rps-local-title">
@@ -86,7 +91,7 @@ export default function RockPaperScissors() {
         <h1 id="rps-local-title" className="mt-2 font-title text-3xl sm:text-4xl" style={{ color: '#5B3A8A' }}>
           Pedra, Papel e Tesoura
         </h1>
-        <p className="mt-2 font-bold text-slate-700">Jogue contra a máquina · primeiro a fazer 3 pontos vence</p>
+        <p className="mt-2 font-bold text-slate-700">Jogue contra o sistema · primeiro a fazer 3 pontos vence</p>
       </header>
 
       <fieldset className="glass-card w-full p-4" aria-describedby="rps-level-help">
@@ -112,11 +117,11 @@ export default function RockPaperScissors() {
       <div className="glass-card grid w-full grid-cols-3 gap-2 p-4 text-center" aria-label="Placar da partida">
         <div><span className="block text-xs font-bold text-slate-600">{playerName || 'Você'}</span><strong className="text-3xl text-blue-700">{scores.player}</strong></div>
         <div><span className="block text-xs font-bold text-slate-600">Empates</span><strong className="text-3xl text-slate-700">{scores.draws}</strong></div>
-        <div><span className="block text-xs font-bold text-slate-600">Máquina</span><strong className="text-3xl text-purple-700">{scores.system}</strong></div>
+        <div><span className="block text-xs font-bold text-slate-600">Sistema</span><strong className="text-3xl text-purple-700">{scores.system}</strong></div>
       </div>
 
       <p className="min-h-14 w-full rounded-2xl bg-blue-50 p-3 text-center font-bold text-blue-950" role="status" aria-live="polite">
-        {matchWinner === 'player' ? '🏆 Parabéns! Você venceu a partida com atenção e perseverança!' : matchWinner === 'system' ? '🌱 A máquina venceu desta vez. Tente outra vez e observe os padrões!' : roundMessage}
+        {matchWinner === 'player' ? '🏆 Parabéns! Você venceu a partida com atenção e perseverança!' : matchWinner === 'system' ? '🌱 O sistema venceu desta vez. Tente outra vez e observe os padrões!' : roundMessage}
       </p>
 
       {playerChoice && systemChoice && (
@@ -127,7 +132,7 @@ export default function RockPaperScissors() {
           </div>
           <div className="rounded-3xl bg-purple-50 p-4 text-center">
             <span className="text-6xl" aria-hidden="true">{choiceDetails(systemChoice)?.emoji}</span>
-            <p className="mt-2 font-black text-purple-950">Máquina: {choiceDetails(systemChoice)?.label}</p>
+            <p className="mt-2 font-black text-purple-950">Sistema: {choiceDetails(systemChoice)?.label}</p>
           </div>
         </motion.div>
       )}
@@ -150,7 +155,7 @@ export default function RockPaperScissors() {
         ))}
       </div>
 
-      {matchWinner && <button type="button" className="btn-primary w-full sm:w-auto" onClick={() => { playSound('click'); resetMatch() }}>Jogar nova partida</button>}
+      {matchWinner && <button ref={newMatchRef} type="button" className="btn-primary w-full sm:w-auto" onClick={() => { playSound('click'); resetMatch() }}>Jogar nova partida</button>}
 
       <aside className="w-full rounded-2xl bg-amber-50 p-3 text-center text-sm font-bold text-amber-950">
         Jogue com alegria, honestidade e respeito. <span className="verse-chip">Colossenses 3:23</span>

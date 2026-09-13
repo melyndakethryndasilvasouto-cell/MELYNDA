@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { usePlayer } from '../../contexts/PlayerContext'
 import { useSound } from '../../contexts/SoundContext'
 import { cleanStopAnswers, STOP_CATEGORIES, validStopAnswer } from '../../online/newGameRules.mjs'
@@ -17,9 +17,9 @@ type ResultRow = {
 type RoundResult = { rows: ResultRow[]; hostScore: number; guestScore: number; systemAnswers: Answers }
 
 const LEVELS: { key: Difficulty; label: string; helper: string }[] = [
-  { key: 'easy', label: 'Fácil', helper: 'A máquina responde 4 categorias e usa letras mais conhecidas.' },
-  { key: 'medium', label: 'Médio', helper: 'A máquina responde 6 categorias e recebe mais letras.' },
-  { key: 'hard', label: 'Difícil', helper: 'A máquina responde todas as 8 categorias e usa todas as letras.' },
+  { key: 'easy', label: 'Fácil (baixo)', helper: 'O sistema responde 4 categorias e usa letras mais conhecidas.' },
+  { key: 'medium', label: 'Médio', helper: 'O sistema responde 6 categorias e recebe mais letras.' },
+  { key: 'hard', label: 'Difícil (alto)', helper: 'O sistema responde todas as 8 categorias e usa todas as letras.' },
 ]
 
 const emptyAnswers = (): Answers => Object.fromEntries(STOP_CATEGORIES.map(({ key }) => [key, '']))
@@ -33,6 +33,12 @@ export default function Adedonha() {
   const [result, setResult] = useState<RoundResult | null>(null)
   const [rounds, setRounds] = useState({ player: 0, system: 0, draws: 0 })
   const hasAnswer = useMemo(() => Object.values(answers).some(answer => answer.trim().length >= 2), [answers])
+  const resultStatusRef = useRef<HTMLDivElement>(null)
+  const firstInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (result) resultStatusRef.current?.focus()
+  }, [result])
 
   const beginRound = (nextDifficulty = difficulty, resetScore = false) => {
     setDifficulty(nextDifficulty)
@@ -40,6 +46,7 @@ export default function Adedonha() {
     setAnswers(emptyAnswers())
     setResult(null)
     if (resetScore) setRounds({ player: 0, system: 0, draws: 0 })
+    window.requestAnimationFrame(() => firstInputRef.current?.focus())
   }
 
   const changeDifficulty = (nextDifficulty: Difficulty) => {
@@ -68,7 +75,7 @@ export default function Adedonha() {
 
   const resultMessage = !result ? ''
     : result.hostScore > result.guestScore ? '🏆 Você venceu a rodada! Muito bem!'
-      : result.guestScore > result.hostScore ? '🌱 A máquina venceu. Veja as respostas e aprenda palavras novas!'
+      : result.guestScore > result.hostScore ? '🌱 O sistema venceu. Veja as respostas e aprenda palavras novas!'
         : '🤝 Empate! Vocês fizeram a mesma quantidade de pontos.'
 
   return (
@@ -76,7 +83,7 @@ export default function Adedonha() {
       <header className="text-center">
         <p className="text-6xl" aria-hidden="true">📝</p>
         <h1 id="adedonha-local-title" className="mt-2 font-title text-3xl sm:text-4xl" style={{ color: '#5B3A8A' }}>Adedonha</h1>
-        <p className="mt-2 font-bold text-slate-700">Pense em palavras e jogue contra a máquina</p>
+        <p className="mt-2 font-bold text-slate-700">Pense em palavras e jogue contra o sistema</p>
       </header>
 
       <fieldset className="glass-card w-full p-4" aria-describedby="adedonha-level-help">
@@ -102,7 +109,7 @@ export default function Adedonha() {
       <div className="glass-card grid w-full grid-cols-3 gap-2 p-4 text-center" aria-label="Placar de rodadas">
         <div><span className="block text-xs font-bold text-slate-600">{playerName || 'Você'}</span><strong className="text-3xl text-blue-700">{rounds.player}</strong></div>
         <div><span className="block text-xs font-bold text-slate-600">Empates</span><strong className="text-3xl text-slate-700">{rounds.draws}</strong></div>
-        <div><span className="block text-xs font-bold text-slate-600">Máquina</span><strong className="text-3xl text-purple-700">{rounds.system}</strong></div>
+        <div><span className="block text-xs font-bold text-slate-600">Sistema</span><strong className="text-3xl text-purple-700">{rounds.system}</strong></div>
       </div>
 
       <div className="text-center">
@@ -120,6 +127,7 @@ export default function Adedonha() {
                 {category.label}
                 <input
                   id={inputId}
+                  ref={category.key === STOP_CATEGORIES[0].key ? firstInputRef : undefined}
                   value={answers[category.key]}
                   maxLength={24}
                   autoComplete="off"
@@ -140,9 +148,9 @@ export default function Adedonha() {
           </p>
         </form>
       ) : (
-        <div className="space-y-4" aria-live="polite">
-          <div className="rounded-2xl bg-blue-50 p-4 text-center text-lg font-black text-blue-950" role="status">
-            {resultMessage}<span className="mt-1 block text-base">Você {result.hostScore} × {result.guestScore} Máquina</span>
+        <div className="space-y-4">
+          <div ref={resultStatusRef} tabIndex={-1} className="rounded-2xl bg-blue-50 p-4 text-center text-lg font-black text-blue-950" role="status" aria-live="polite">
+            {resultMessage}<span className="mt-1 block text-base">Você {result.hostScore} × {result.guestScore} Sistema</span>
           </div>
           <div className="grid gap-3 sm:grid-cols-2" aria-label="Comparação das respostas">
             {result.rows.map(row => {
@@ -153,7 +161,7 @@ export default function Adedonha() {
                   <dl className="mt-2 grid grid-cols-[1fr_auto] gap-x-3 gap-y-2 text-sm">
                     <dt className="font-bold text-slate-700">Você: <span className="break-words text-slate-950">{row.hostAnswer || 'Sem resposta'}</span></dt>
                     <dd className="font-black text-blue-700">{row.hostScore} pts</dd>
-                    <dt className="font-bold text-slate-700">Máquina: <span className="break-words text-slate-950">{row.guestAnswer || 'Sem resposta'}</span></dt>
+                    <dt className="font-bold text-slate-700">Sistema: <span className="break-words text-slate-950">{row.guestAnswer || 'Sem resposta'}</span></dt>
                     <dd className="font-black text-purple-700">{row.guestScore} pts</dd>
                   </dl>
                   {!playerValid && row.hostAnswer && <p className="mt-2 text-xs font-bold text-red-800">A resposta precisa começar com {letter} e usar somente letras, espaços, hífen ou apóstrofo.</p>}
@@ -161,7 +169,7 @@ export default function Adedonha() {
               )
             })}
           </div>
-          <p className="rounded-2xl bg-amber-50 p-3 text-center text-sm font-bold text-amber-950">Resposta válida vale 10 pontos; se for igual à da máquina, cada um recebe 5.</p>
+          <p className="rounded-2xl bg-amber-50 p-3 text-center text-sm font-bold text-amber-950">Resposta válida vale 10 pontos; se for igual à do sistema, cada um recebe 5.</p>
           <button type="button" className="btn-primary w-full" onClick={() => { playSound('click'); beginRound() }}>Sortear outra letra</button>
         </div>
       )}

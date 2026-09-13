@@ -17,9 +17,9 @@ const PIECE_NAMES: Record<string, string> = {
   king: 'rei', queen: 'dama', rook: 'torre', bishop: 'bispo', knight: 'cavalo', pawn: 'peão',
 }
 const LEVELS: Array<{ id: Difficulty; label: string; detail: string; icon: string }> = [
-  { id: 'easy', label: 'Fácil', detail: 'Jogadas variadas para aprender', icon: '🌱' },
+  { id: 'easy', label: 'Fácil (baixo)', detail: 'Jogadas variadas para aprender', icon: '🌱' },
   { id: 'medium', label: 'Médio', detail: 'Percebe capturas e perigos', icon: '🧠' },
-  { id: 'hard', label: 'Difícil', detail: 'Planeja algumas jogadas à frente', icon: '🏆' },
+  { id: 'hard', label: 'Difícil (alto)', detail: 'Planeja algumas jogadas à frente', icon: '🏆' },
 ]
 
 const samePosition = (a: Position, b: Position) => a[0] === b[0] && a[1] === b[1]

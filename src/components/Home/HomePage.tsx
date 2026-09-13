@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { usePlayer } from '../../contexts/PlayerContext'
 import GameCard from './GameCard'
 import missions from '../../data/gameMissions.json'
+import { hasSystemOpponent, onlineGameForPath } from '../../online/gameRegistry'
 
 const visualById: Record<string, { grad: string; badge?: string }> = {
   tabuada: { grad: 'linear-gradient(135deg,#34D399,#F59E0B)', badge: 'NOVO · 2 ao 9' },
@@ -22,15 +23,20 @@ const visualById: Record<string, { grad: string; badge?: string }> = {
   forca: { grad: 'linear-gradient(135deg,#F472B6,#F59E0B)', badge: 'SOLO · ONLINE' },
 }
 
-const localGames = missions.map(mission => ({
-  id: mission.gameId,
-  name: mission.homeName,
-  icon: mission.icon,
-  path: mission.path,
-  desc: mission.homeDescription,
-  verseRef: mission.verseRef,
-  ...visualById[mission.gameId],
-}))
+const localGames = missions.map(mission => {
+  const onlineGame = onlineGameForPath(mission.path)
+  return {
+    id: mission.gameId,
+    name: mission.homeName,
+    icon: mission.icon,
+    path: mission.path,
+    desc: mission.homeDescription,
+    verseRef: mission.verseRef,
+    hasSystemOpponent: hasSystemOpponent(onlineGame),
+    onlineGame,
+    ...visualById[mission.gameId],
+  }
+})
 
 const games = localGames
 
@@ -103,7 +109,7 @@ export default function HomePage() {
         animate={{ opacity: 1, scale: 1 }}
         onClick={() => navigate('/online')}
         className="mb-4 flex min-h-24 w-full items-center gap-4 rounded-3xl p-4 text-left text-white shadow-lg transition-transform active:scale-[0.98]"
-        style={{ background: 'linear-gradient(135deg,#34D399,#4A90D9,#7B5EA7)' }}
+        style={{ background: 'linear-gradient(135deg,#047857,#1D4ED8,#6D28D9)' }}
       >
         <span className="text-4xl" aria-hidden="true">🌐</span>
         <span className="min-w-0 flex-1">
@@ -125,7 +131,12 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay: i * 0.06, type: 'spring', stiffness: 200, damping: 20 }}
           >
-            <GameCard game={game} onClick={() => navigate(game.path)} />
+            <GameCard
+              game={game}
+              hasSystemOpponent={game.hasSystemOpponent}
+              onLocalClick={() => navigate(game.path)}
+              onOnlineClick={game.onlineGame ? () => navigate(`/online?jogo=${game.onlineGame}`) : undefined}
+            />
           </motion.div>
         ))}
       </div>

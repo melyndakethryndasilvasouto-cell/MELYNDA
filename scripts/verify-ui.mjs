@@ -159,7 +159,7 @@ try {
   console.log(`SCREENSHOT ${await screenshot('ui-home-desktop.png')}`)
 
   const openedChessFromHome = await evaluate(`(() => {
-    const button = [...document.querySelectorAll('button')].find(item => item.textContent?.includes('Xadrez') && item.textContent?.includes('IA'))
+    const button = document.querySelector('button[aria-label^="Jogar contra o sistema em três níveis: Xadrez"]')
     button?.click()
     return Boolean(button)
   })()`)
@@ -455,7 +455,7 @@ try {
     return Boolean(medium && rock)
   })()`)
   await new Promise(resolveWait => setTimeout(resolveWait, 250))
-  const rpsResult = await evaluate(`document.body.innerText.includes('Sua escolha: Pedra') && document.body.innerText.includes('Máquina:')`)
+  const rpsResult = await evaluate(`document.body.innerText.includes('Sua escolha: Pedra') && document.body.innerText.includes('Sistema:')`)
   if (!rpsRound || !rpsResult) throw new Error('Pedra, Papel e Tesoura não concluiu uma rodada contra a IA média')
   console.log(`SCREENSHOT ${await screenshot('ui-rps-local-mobile.png')}`)
   console.log('INTERACTION_OK game=rock-paper-scissors local_round=true difficulty=medium')
@@ -463,7 +463,7 @@ try {
   await viewport(420, 900)
   await navigate('/adedonha')
   const adedonhaRound = await evaluate(`(() => {
-    const hard = [...document.querySelectorAll('button')].find(item => item.textContent?.trim() === 'Difícil')
+    const hard = [...document.querySelectorAll('button')].find(item => item.textContent?.trim().startsWith('Difícil'))
     hard?.click()
     const letter = document.querySelector('[aria-label^="Letra sorteada:"]')?.textContent?.trim() || 'A'
     const input = document.querySelector('input')
@@ -477,7 +477,7 @@ try {
     return Boolean(hard && input && submit)
   })()`)
   await new Promise(resolveWait => setTimeout(resolveWait, 300))
-  const adedonhaResult = await evaluate(`document.body.innerText.includes('Máquina') && document.body.innerText.includes('pts') && document.body.innerText.includes('Sortear outra letra')`)
+  const adedonhaResult = await evaluate(`document.body.innerText.includes('Sistema') && document.body.innerText.includes('pts') && document.body.innerText.includes('Sortear outra letra')`)
   if (!adedonhaRound || !adedonhaResult) throw new Error('Adedonha não corrigiu a rodada local contra a IA difícil')
   console.log(`SCREENSHOT ${await screenshot('ui-adedonha-local-mobile.png')}`)
   console.log('INTERACTION_OK game=adedonha local_round=true difficulty=hard privacy=local')

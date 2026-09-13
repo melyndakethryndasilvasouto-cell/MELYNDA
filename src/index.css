@@ -73,7 +73,7 @@
     }
 
   .btn-primary {
-    background: linear-gradient(135deg, #6BB8FF, #A78BFA);
+    background: linear-gradient(135deg, #1D4ED8, #6D28D9);
     color: white;
     font-family: 'Nunito', sans-serif;
     font-weight: 800;
@@ -81,7 +81,7 @@
     padding: 16px 28px;
       min-height: 56px;
     font-size: 1.05rem;
-    box-shadow: 0 4px 15px rgba(107, 184, 255, 0.4);
+    box-shadow: 0 4px 15px rgba(29, 78, 216, 0.3);
     transition: all 0.15s ease;
     border: none;
     cursor: pointer;

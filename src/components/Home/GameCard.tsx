@@ -1,18 +1,24 @@
 interface Game {
   id: string; name: string; icon: string; path: string; grad: string; desc: string; badge?: string; verseRef?: string
 }
-interface Props { game: Game; onClick: () => void; delay?: number }
+interface Props {
+  game: Game
+  hasSystemOpponent: boolean
+  onLocalClick: () => void
+  onOnlineClick?: () => void
+}
 
-export default function GameCard({ game, onClick }: Props) {
+export default function GameCard({ game, hasSystemOpponent, onLocalClick, onOnlineClick }: Props) {
+  const titleId = `game-card-${game.id}`
   return (
-    <button
-      onClick={onClick}
-      className="glass-card p-4 flex flex-col items-center gap-2 hover:-translate-y-1 hover:shadow-xl active:scale-95 transition-all duration-150 w-full text-left group relative overflow-hidden"
-      style={{ minHeight: 170 }}
+    <article
+      className="glass-card flex w-full flex-col items-center gap-2 overflow-hidden p-4 text-center"
+      style={{ minHeight: 270 }}
+      aria-labelledby={titleId}
     >
       {game.badge && (
-        <span className="absolute top-2 right-2 text-xs font-bold px-2 py-0.5 rounded-full"
-          style={{ background: 'linear-gradient(135deg,#2563EB,#7C3AED)', color: 'white', fontSize: 12 }}>
+        <span className="self-end rounded-full px-2 py-1 text-xs font-black"
+          style={{ background: 'linear-gradient(135deg,#1D4ED8,#6D28D9)', color: 'white', fontSize: 12 }}>
           {game.badge}
         </span>
       )}
@@ -22,9 +28,29 @@ export default function GameCard({ game, onClick }: Props) {
       >
         {game.icon}
       </div>
-      <span className="font-bold text-sm text-center leading-tight" style={{ color: '#374151' }}>{game.name}</span>
+      <h2 id={titleId} className="text-center text-sm font-bold leading-tight" style={{ color: '#374151' }}>{game.name}</h2>
       <span className="text-xs text-center" style={{ color: '#4B5563' }}>{game.desc}</span>
       {game.verseRef && <span className="verse-chip mt-auto">{game.verseRef}</span>}
-    </button>
+      <div className="mt-2 grid w-full gap-2">
+        <button
+          type="button"
+          onClick={onLocalClick}
+          className="btn-primary min-h-12 w-full px-3 py-3 text-sm"
+          aria-label={`${hasSystemOpponent ? 'Jogar contra o sistema em três níveis' : 'Jogar neste aparelho'}: ${game.name}`}
+        >
+          {hasSystemOpponent ? '🤖 Contra o sistema · 3 níveis' : '▶ Neste aparelho'}
+        </button>
+        {onOnlineClick && (
+          <button
+            type="button"
+            onClick={onOnlineClick}
+            className="btn-secondary min-h-12 w-full px-3 py-3 text-sm"
+            aria-label={`Jogar online com um amigo: ${game.name}`}
+          >
+            🌐 Jogar online
+          </button>
+        )}
+      </div>
+    </article>
   )
 }

@@ -82,6 +82,8 @@ test('interfaces locais são acessíveis, responsivas e não enviam nem persiste
     assert.doesNotMatch(component, /dangerouslySetInnerHTML|innerHTML\s*=/)
   }
   assert.match(rps, /sem ver sua escolha atual/)
+  assert.match(rps, /newMatchRef\.current\?\.focus/)
   assert.match(adedonha, /Esta partida é local: nada é enviado ou salvo/)
+  assert.match(adedonha, /resultStatusRef\.current\?\.focus/)
   assert.doesNotMatch(adedonha + ai, /fetch\s*\(|localStorage|sessionStorage|supabase/i)
 })

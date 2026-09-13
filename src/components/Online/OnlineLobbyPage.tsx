@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useOnline } from '../../contexts/OnlineContext'
-import { activityLabel, localPathForOnlineGame, ONLINE_GAME_LABELS, ONLINE_GAME_OPTIONS } from '../../online/gameRegistry'
+import { activityLabel, hasSystemOpponent, localPathForOnlineGame, ONLINE_GAME_LABELS, ONLINE_GAME_OPTIONS } from '../../online/gameRegistry'
 import { OnlinePlayer } from '../../online/types'
 import OnlineSafetyGate from './OnlineSafetyGate'
 import { useAccessibleDialog } from '../../online/useAccessibleDialog'
@@ -217,7 +217,9 @@ export default function OnlineLobbyPage() {
             <strong className="block" style={{ color: '#5B3A8A' }}>Você escolheu {preferredGame.label}</strong>
             <span className="mt-1 block text-xs font-bold" style={{ color: '#4B5563' }}>Cole o código privado do seu amigo para enviar o convite desse jogo.</span>
           </span>
-          {preferredLocalPath && <button type="button" className="btn-secondary min-h-12 shrink-0 text-sm" onClick={() => navigate(preferredLocalPath)}>🤖 Jogar neste aparelho</button>}
+          {preferredLocalPath && <button type="button" className="btn-secondary min-h-12 shrink-0 text-sm" onClick={() => navigate(preferredLocalPath)}>
+            {hasSystemOpponent(preferredGame.key) ? '🤖 Contra o sistema · 3 níveis' : '▶ Jogar neste aparelho'}
+          </button>}
         </aside>
       )}
 

@@ -42,8 +42,15 @@ test('jogos competitivos locais expõem Fácil, Médio e Difícil contra o siste
 })
 
 test('a página inicial diferencia IA, solo e disponibilidade online', async () => {
-  const home = await read('src/components/Home/HomePage.tsx')
+  const [home, card] = await Promise.all([
+    read('src/components/Home/HomePage.tsx'),
+    read('src/components/Home/GameCard.tsx'),
+  ])
   assert.match(home, /IA · ONLINE/)
   assert.match(home, /SOLO · ONLINE/)
   assert.match(home, /Sem ninguém online\?/)
+  assert.match(home, /onlineGameForPath/)
+  assert.match(card, /Contra o sistema · 3 níveis/)
+  assert.match(card, /Jogar online/)
+  assert.doesNotMatch(card, /return\s*\(\s*<button/)
 })
