@@ -84,6 +84,14 @@ try {
 
   const visible = await requireOk(first.from('online_presence').select('user_id'), 'lista de presença')
   if (visible.length !== 1 || visible[0].user_id !== firstId) throw new Error('A descoberta privada mostrou outro jogador.')
+  await Promise.all([
+    requireOk(first.rpc('heartbeat_online_presence', { next_activity: 'playing', next_game_key: 'chess' }), 'presença no Xadrez'),
+    requireOk(second.rpc('heartbeat_online_presence', { next_activity: 'playing', next_game_key: 'rock-paper-scissors' }), 'presença no Pedra, Papel e Tesoura'),
+    requireOk(third.rpc('heartbeat_online_presence', { next_activity: 'playing', next_game_key: 'adedonha' }), 'presença na Adedonha'),
+  ])
+  await Promise.all(participants.map(owner => requireOk(owner.rpc('heartbeat_online_presence', {
+    next_activity: 'lobby', next_game_key: null,
+  }), 'retorno ao saguão')))
   await requireOk(first.rpc('send_online_lobby_message', { next_message_index: 0 }), 'frase segura no saguão')
   const [ownLobby, foreignLobby] = await Promise.all([
     requireOk(first.from('online_lobby_messages').select('sender_id,message_index').eq('sender_id', firstId), 'leitura própria do saguão'),
@@ -210,7 +218,7 @@ try {
   const presenceAfterOffline = await requireOk(third.from('online_presence').select('user_id').eq('user_id', thirdId), 'presenca apos ficar offline')
   if (presenceAfterOffline.length !== 0) throw new Error('Jogador continuou visivel depois de ficar offline.')
 
-  console.log('ONLINE_VERIFY_OK anonymous_users=3 private_discovery=ok private_lobby=ok groups_owner_only=ok group_rls=ok text_filter=ok short_audio=ok competing_invite=closed invite_race=serialized room_rls=ok server_moves=5 invalid_move=blocked shared_game=coloring_action_validated voice_signal=private pending_block=ok block_report=ok shared_group_removed=ok go_offline=ok')
+  console.log('ONLINE_VERIFY_OK anonymous_users=3 private_discovery=ok new_games_presence=ok private_lobby=ok groups_owner_only=ok group_rls=ok text_filter=ok short_audio=ok competing_invite=closed invite_race=serialized room_rls=ok server_moves=5 invalid_move=blocked shared_game=coloring_action_validated voice_signal=private pending_block=ok block_report=ok shared_group_removed=ok go_offline=ok')
 } finally {
   if (roomId) await Promise.resolve(first.rpc('leave_online_room', { room: roomId })).catch(() => {})
   if (competingRoomId) await Promise.resolve(third.rpc('leave_online_room', { room: competingRoomId })).catch(() => {})
@@ -219,5 +227,6 @@ try {
   if (arcadeRoomId) await Promise.resolve(first.rpc('leave_online_room', { room: arcadeRoomId })).catch(() => {})
   if (groupId) await Promise.resolve(first.rpc('close_online_group', { target_group: groupId })).catch(() => {})
   for (const [owner, channel] of channels) await Promise.resolve(owner.removeChannel(channel)).catch(() => {})
+  for (const owner of participants) owner.realtime.disconnect()
   await Promise.allSettled(participants.map(owner => owner.auth.signOut()))
 }
