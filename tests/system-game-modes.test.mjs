@@ -6,9 +6,10 @@ const root = new URL('../', import.meta.url)
 const read = path => readFile(new URL(path, root), 'utf8')
 
 test('todos os jogos compatíveis oferecem entrada online a partir da rota local', async () => {
-  const [registry, option, layout] = await Promise.all([
+  const [registry, option, playerList, layout] = await Promise.all([
     read('src/online/gameRegistry.ts'),
     read('src/components/shared/OnlineGameOption.tsx'),
+    read('src/components/shared/OnlinePlayerList.tsx'),
     read('src/components/Layout/Layout.tsx'),
   ])
   const mappings = {
@@ -21,6 +22,10 @@ test('todos os jogos compatíveis oferecem entrada online a partir da rota local
   assert.match(option, /onlineGameForPath/)
   assert.match(option, /\/online\?jogo=\$\{gameKey\}/)
   assert.match(option, /Jogar online/)
+  assert.match(option, /<OnlinePlayerList gameKey=\{gameKey\} \/>/)
+  assert.match(playerList, /invitePlayer/)
+  assert.match(playerList, /Amigos online agora/)
+  assert.match(playerList, /activity === 'playing'/)
   assert.match(layout, /<OnlineGameOption \/>/)
 })
 

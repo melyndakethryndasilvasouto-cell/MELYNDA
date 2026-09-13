@@ -46,8 +46,8 @@ function AppRoutes() {
   const reducedMotion = useReducedMotion()
   useEffect(() => {
     const title = missions.find(mission => mission.path === location.pathname)?.homeName
-      || (location.pathname.startsWith('/online') ? 'Jogar online' : location.pathname === '/devocional' ? 'Devocional' : location.pathname === '/' ? 'Jogos' : 'P?gina n?o encontrada')
-    document.title = `${title} ? Mel ? Aventuras da B?blia`
+      || (location.pathname.startsWith('/online') ? 'Jogar online' : location.pathname === '/devocional' ? 'Devocional' : location.pathname === '/' ? 'Jogos' : 'Página não encontrada')
+    document.title = `${title} — Mel — Aventuras da Bíblia`
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     const focusFrame = window.requestAnimationFrame(() => document.getElementById('main-content')?.focus())
     return () => window.cancelAnimationFrame(focusFrame)
@@ -86,7 +86,7 @@ function AppRoutes() {
             <Route path="/adedonha" element={<Adedonha />} />
             <Route path="*" element={
               <section className="glass-card p-6 text-center space-y-4">
-                <h1 className="font-title text-2xl text-purple-900">Esse caminho n?o existe</h1>
+                <h1 className="font-title text-2xl text-purple-900">Esse caminho não existe</h1>
                 <p className="text-gray-700">Vamos voltar aos jogos e escolher uma nova aventura?</p>
                 <Link to="/" className="btn-primary">Voltar aos jogos</Link>
               </section>

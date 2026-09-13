@@ -66,7 +66,9 @@ export interface RouteActivity {
 
 export function activityForPath(pathname: string): RouteActivity {
   if (pathname.startsWith('/online/grupo/')) return { activity: 'group', gameKey: null }
-  if (pathname.startsWith('/online/sala/')) return { activity: 'playing', gameKey: 'tic-tac-toe' }
+  // A sala pode ser qualquer jogo; OnlineRoomPage informa o jogo real assim
+  // que o registro é carregado. Não anuncie Jogo da Velha por padrão.
+  if (pathname.startsWith('/online/sala/')) return { activity: 'playing', gameKey: null }
   const gameKey = LOCAL_PATH_GAMES[pathname]
   if (gameKey) return { activity: 'playing', gameKey }
   return { activity: 'lobby', gameKey: null }
@@ -82,7 +84,7 @@ export function localPathForOnlineGame(gameKey: OnlineGameKey): string | null {
 
 export function activityLabel(player: { activity: OnlineActivity; gameKey: OnlineGameKey | null }) {
   if (player.activity === 'group') return 'Conversando em grupo privado'
-  if (player.activity === 'playing' && player.gameKey) return `Jogando ${ONLINE_GAME_LABELS[player.gameKey]}`
+  if (player.activity === 'playing') return player.gameKey ? `Jogando ${ONLINE_GAME_LABELS[player.gameKey]}` : 'Em uma partida agora'
   if (player.activity === 'away') return 'Ausente por um momento'
   return 'Disponível para conversar ou jogar'
 }

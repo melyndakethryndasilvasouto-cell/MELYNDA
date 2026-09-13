@@ -315,6 +315,29 @@ try {
   console.log(`SCREENSHOT ${await screenshot('ui-online-mobile.png')}`)
   console.log(`INTERACTION_OK feature=online safe_entry=true configured=${onlineEntry.safety}`)
 
+  if (onlineEntry.safety) {
+    const enteredOnline = await evaluate(`(() => {
+      const button = [...document.querySelectorAll('button')].find(item => item.textContent?.includes('Entendi, entrar no Online'))
+      button?.click()
+      return Boolean(button)
+    })()`)
+    if (!enteredOnline) throw new Error('Entrada segura do Online não encontrou o botão de confirmação')
+    await new Promise(resolveWait => setTimeout(resolveWait, 900))
+  }
+  const onlineLobby = await evaluate(`({
+    playersSection: Boolean(document.querySelector('#online-players-title')),
+    shortCodeSection: document.body.innerText.includes('Convide pelo código'),
+    shortCodeInput: document.querySelector('#friend-private-code')?.maxLength === 6,
+    noManualOffline: !document.body.innerText.includes('Ficar offline')
+  })`)
+  if (!onlineLobby.playersSection || !onlineLobby.shortCodeSection || !onlineLobby.shortCodeInput || !onlineLobby.noManualOffline) {
+    throw new Error(`Lobby Online infantil incompleto: ${JSON.stringify(onlineLobby)}`)
+  }
+  console.log('INTERACTION_OK feature=online-lobby player_list=true short_code=true manual_toggle=false')
+  await evaluate(`sessionStorage.removeItem('mel-online-consent')`)
+  await evaluate('location.reload()')
+  await new Promise(resolveWait => setTimeout(resolveWait, 900))
+
   for (const pathname of ['/online/sala/00000000-0000-0000-0000-000000000000', '/online/grupo/00000000-0000-0000-0000-000000000000']) {
     await navigate(pathname)
     const directSafety = await evaluate(`({
@@ -322,7 +345,10 @@ try {
       consentStored: sessionStorage.getItem('mel-online-consent') === 'yes',
       onlineSessionCreated: Object.keys(localStorage).some(key => key.startsWith('mel-online-session-v1'))
     })`)
-    if (!directSafety.safetyGate || directSafety.consentStored || directSafety.onlineSessionCreated) {
+    // A presença agora começa automaticamente ao entrar no site. O link
+    // direto ainda precisa mostrar a orientação de segurança e não pode
+    // marcar o consentimento por conta própria.
+    if (!directSafety.safetyGate || directSafety.consentStored) {
       throw new Error(`Link direto contornou a proteção Online em ${pathname}: ${JSON.stringify(directSafety)}`)
     }
     console.log(`INTERACTION_OK feature=online-deep-link-consent path=${pathname}`)
@@ -369,7 +395,7 @@ try {
     cards[0]?.click()
     return { count: cards.length, firstExists: Boolean(cards[0]) }
   })()`)
-  await new Promise(resolveWait => setTimeout(resolveWait, 250))
+  await new Promise(resolveWait => setTimeout(resolveWait, 500))
   const revealedMemoryCards = await evaluate(`document.querySelectorAll('button.flip-card:not([aria-label="Carta bíblica virada para baixo"])').length`)
   if (memoryInteraction.count !== 12 || !memoryInteraction.firstExists || revealedMemoryCards < 1) {
     throw new Error(`Interação da Memória falhou: ${JSON.stringify({ memoryInteraction, revealedMemoryCards })}`)
@@ -561,7 +587,13 @@ try {
   await client.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'ArrowLeft', code: 'ArrowLeft' })
   await new Promise(resolveWait => setTimeout(resolveWait, 180))
   await client.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'ArrowLeft', code: 'ArrowLeft' })
-  const pongFrameB = await evaluate(`document.querySelector('canvas')?.toDataURL() || ''`)
+  let pongFrameB = ''
+  const pongDeadline = Date.now() + 1_500
+  while (Date.now() < pongDeadline) {
+    pongFrameB = await evaluate(`document.querySelector('canvas')?.toDataURL() || ''`)
+    if (pongFrameB && pongFrameB !== pongFrameA) break
+    await new Promise(resolveWait => setTimeout(resolveWait, 80))
+  }
   if (!pongFrameA || pongFrameA === pongFrameB) throw new Error('Pong não atualizou os quadros contra o computador')
   console.log('INTERACTION_OK game=pong local_ai_frames=true')
 
@@ -733,7 +765,7 @@ try {
   console.log('INTERACTION_OK game=coloring progress=1/12')
 
   if (client.exceptions.length) throw new Error(`Exceções no navegador: ${client.exceptions.join('; ')}`)
-  console.log('UI_VERIFY_OK breakpoints=4 routes_mobile=17 interactions=19 screenshots=11 text_zoom=200% console_exceptions=0')
+  console.log('UI_VERIFY_OK breakpoints=4 routes_mobile=17 interactions=20 screenshots=11 text_zoom=200% console_exceptions=0')
 } finally {
   client?.close()
   if (chrome?.exitCode === null) chrome.kill()

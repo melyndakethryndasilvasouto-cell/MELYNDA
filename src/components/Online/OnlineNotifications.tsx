@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Gamepad2, MessageCircle, ShieldCheck, Users, X } from 'lucide-react'
+import { Gamepad2, ShieldCheck, Users, X } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useOnline } from '../../contexts/OnlineContext'
 import { activityForPath, ONLINE_GAME_LABELS } from '../../online/gameRegistry'
@@ -7,7 +7,7 @@ import { activityForPath, ONLINE_GAME_LABELS } from '../../online/gameRegistry'
 export default function OnlineNotifications() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
-  const { invites, groupInvites, respondInvite, respondGroupInvite, createGroup, inviteToGroup } = useOnline()
+  const { invites, groupInvites, respondInvite, respondGroupInvite } = useOnline()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -27,19 +27,6 @@ export default function OnlineNotifications() {
       if (accept) navigate(`/online/sala/${roomId}`)
     } catch (answerError) {
       setError(answerError instanceof Error ? answerError.message : 'Não foi possível responder.')
-    } finally { setBusy(false) }
-  }
-
-  const chooseTogether = async () => {
-    if (!playInvite) return
-    setBusy(true)
-    try {
-      await respondInvite(playInvite.id, false)
-      const groupId = await createGroup('Vamos escolher um jogo')
-      await inviteToGroup(groupId, playInvite.from_user)
-      navigate(`/online/grupo/${groupId}`)
-    } catch (chatError) {
-      setError(chatError instanceof Error ? chatError.message : 'Não foi possível abrir o grupo.')
     } finally { setBusy(false) }
   }
 
@@ -64,7 +51,7 @@ export default function OnlineNotifications() {
         </div>
       </div>
       {error && <p role="alert" className="mt-2 rounded-xl bg-amber-50 p-2 text-sm font-bold" style={{ color: '#92400E' }}>{error}</p>}
-      {playInvite ? <div className="mt-3 grid gap-2 sm:grid-cols-3"><button type="button" className="btn-primary min-h-11 px-3 text-sm" disabled={busy} onClick={() => void answerPlay(true)}>{current.activity === 'playing' ? 'Sair e jogar' : 'Aceitar jogo'}</button><button type="button" className="btn-secondary min-h-11 px-3 text-sm" disabled={busy} onClick={() => void chooseTogether()}><MessageCircle size={16} /> Conversar</button><button type="button" className="min-h-11 rounded-2xl bg-slate-100 px-3 text-sm font-black" disabled={busy} onClick={() => void answerPlay(false)}><X className="inline" size={16} /> Continuar aqui</button></div> : <div className="mt-3 grid grid-cols-2 gap-2"><button type="button" className="btn-primary min-h-11 px-3 text-sm" disabled={busy} onClick={() => void answerGroup(true)}>Entrar no grupo</button><button type="button" className="btn-secondary min-h-11 px-3 text-sm" disabled={busy} onClick={() => void answerGroup(false)}>Agora não</button></div>}
+      {playInvite ? <div className="mt-3 grid grid-cols-2 gap-2"><button type="button" className="btn-primary min-h-11 px-3 text-sm" disabled={busy} onClick={() => void answerPlay(true)}>Aceitar e jogar</button><button type="button" className="min-h-11 rounded-2xl bg-slate-100 px-3 text-sm font-black" disabled={busy} onClick={() => void answerPlay(false)}><X className="inline" size={16} /> Agora não</button></div> : <div className="mt-3 grid grid-cols-2 gap-2"><button type="button" className="btn-primary min-h-11 px-3 text-sm" disabled={busy} onClick={() => void answerGroup(true)}>Entrar no grupo</button><button type="button" className="btn-secondary min-h-11 px-3 text-sm" disabled={busy} onClick={() => void answerGroup(false)}>Agora não</button></div>}
     </aside>
   )
 }

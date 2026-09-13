@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { hasSystemOpponent, ONLINE_GAME_LABELS, onlineGameForPath } from '../../online/gameRegistry'
+import OnlinePlayerList from './OnlinePlayerList'
 
 export default function OnlineGameOption() {
   const { pathname } = useLocation()
@@ -29,6 +30,7 @@ export default function OnlineGameOption() {
       >
         🌐 Jogar online com amigo
       </button>
+      <OnlinePlayerList gameKey={gameKey} />
     </aside>
   )
 }

@@ -55,6 +55,7 @@ const participants = [first, second, third]
 const channels = []
 let roomId = ''
 let competingRoomId = ''
+let busyRoomId = ''
 let raceRoomId = ''
 let pendingBlockRoomId = ''
 let arcadeRoomId = ''
@@ -68,11 +69,16 @@ try {
   const [firstSession, secondSession, thirdSession] = sessions
   const [firstId, secondId, thirdId] = sessions.map(session => session.user.id)
 
-  await Promise.all([
+  const [firstProfile, secondProfile, thirdProfile] = await Promise.all([
     upsertProfile(first, 'Amigo Estrela', '⭐'),
     upsertProfile(second, 'Amigo Pomba', '🕊️'),
     upsertProfile(third, 'Amigo Leao', '🦁'),
   ])
+  for (const profile of [firstProfile, secondProfile, thirdProfile]) {
+    if (!profile?.friend_code || !/^[A-Z0-9]{6}$/.test(profile.friend_code)) {
+      throw new Error('O perfil não recebeu um código curto válido.')
+    }
+  }
   await Promise.all([
     first.realtime.setAuth(firstSession.access_token),
     second.realtime.setAuth(secondSession.access_token),
@@ -82,8 +88,10 @@ try {
     next_activity: 'lobby', next_game_key: null,
   }), 'presença')))
 
-  const visible = await requireOk(first.from('online_presence').select('user_id'), 'lista de presença')
-  if (visible.length !== 1 || visible[0].user_id !== firstId) throw new Error('A descoberta privada mostrou outro jogador.')
+  const visible = await requireOk(first.rpc('list_online_players'), 'lista de presença')
+  if (visible.some(player => player.user_id === firstId) || !visible.some(player => player.user_id === secondId) || !visible.some(player => player.user_id === thirdId)) {
+    throw new Error('A descoberta online não mostrou somente os outros jogadores ativos.')
+  }
   await Promise.all([
     requireOk(first.rpc('heartbeat_online_presence', { next_activity: 'playing', next_game_key: 'chess' }), 'presença no Xadrez'),
     requireOk(second.rpc('heartbeat_online_presence', { next_activity: 'playing', next_game_key: 'rock-paper-scissors' }), 'presença no Pedra, Papel e Tesoura'),
@@ -121,9 +129,11 @@ try {
   const personalData = await second.rpc('send_online_group_message', { target_group: groupId, message_text: 'meu telefone 11999999999' })
   if (!personalData.error) throw new Error('O servidor aceitou telefone em mensagem infantil.')
 
-  roomId = String(await requireOk(first.rpc('create_online_invite', { guest: secondId }), 'convite da partida'))
+  roomId = String(await requireOk(first.rpc('create_online_invite_by_code', { friend_code: secondProfile.friend_code }), 'convite da partida por código'))
   competingRoomId = String(await requireOk(third.rpc('create_online_invite', { guest: secondId }), 'convite concorrente'))
-  const pending = await requireOk(second.from('online_invites').select('*').eq('room_id', roomId).single(), 'leitura do convite')
+  const pendingInvites = await requireOk(second.rpc('list_my_online_invites'), 'leitura dos convites recebidos')
+  const pending = pendingInvites.find(invite => invite.room_id === roomId)
+  if (!pending) throw new Error('O convite por código não apareceu para o destinatário.')
   await requireOk(second.rpc('respond_online_invite', { invite: pending.id, accept_invite: true }), 'aceite da partida')
   const competing = await requireOk(third.from('online_rooms').select('status').eq('id', competingRoomId).single(), 'sala concorrente')
   if (competing.status !== 'cancelled') throw new Error('A sala concorrente não foi encerrada após o aceite.')
@@ -133,6 +143,17 @@ try {
     requireOk(second.from('online_rooms').select('*').eq('id', roomId).single(), 'sala B'),
   ])
   if (firstRoom.status !== 'active' || secondRoom.guest_id !== secondId) throw new Error('Sala não ativou com os dois participantes.')
+
+  // Um convite recebido durante uma partida ativa não pode encerrá-la sem
+  // confirmação. O convite permanece disponível para ser recusado depois.
+  await new Promise(resolve => setTimeout(resolve, 8_200))
+  busyRoomId = String(await requireOk(third.rpc('create_online_invite', { guest: secondId }), 'convite durante partida ativa'))
+  const busyInvite = await requireOk(second.from('online_invites').select('id').eq('room_id', busyRoomId).single(), 'convite durante partida ativa recebido')
+  const busyAccept = await second.rpc('respond_online_invite', { invite: busyInvite.id, accept_invite: true })
+  if (!busyAccept.error || !/PLAYER_BUSY/.test(busyAccept.error.message || '')) throw new Error('Aceitar convite encerrou uma partida ativa sem proteção.')
+  await requireOk(second.rpc('respond_online_invite', { invite: busyInvite.id, accept_invite: false }), 'recusa do convite durante partida ativa')
+  const busyRoom = await requireOk(third.from('online_rooms').select('status').eq('id', busyRoomId).single(), 'sala do convite recusado')
+  if (busyRoom.status !== 'cancelled') throw new Error('Convite recusado durante partida não encerrou sua sala de espera.')
 
   await requireOk(first.rpc('send_online_room_message', { target_room: roomId, message_text: 'Paz e bom jogo' }), 'texto da sala')
   await requireOk(second.rpc('send_online_room_audio', {
@@ -207,21 +228,22 @@ try {
   if (pendingAfterBlock.status !== 'expired' || pendingRoomAfterBlock.status !== 'cancelled' || !storedBlock.length) {
     throw new Error('Bloqueio com convite pendente não foi concluído atomicamente.')
   }
-  const blockedPresence = await requireOk(first.from('online_presence').select('user_id').eq('user_id', secondId), 'isolamento de presença após bloqueio')
-  if (blockedPresence.length !== 0) throw new Error('Jogador bloqueado continuou visível.')
+  const blockedPresence = await requireOk(first.rpc('list_online_players'), 'isolamento de presença após bloqueio')
+  if (blockedPresence.some(player => player.user_id === secondId)) throw new Error('Jogador bloqueado continuou visível.')
   const membersAfterBlock = await requireOk(first.from('online_group_members').select('user_id').eq('group_id', groupId), 'grupo após bloqueio')
   if (membersAfterBlock.some(member => member.user_id === secondId)) throw new Error('Jogador bloqueado permaneceu no grupo compartilhado.')
   const formerMemberMessages = await requireOk(second.from('online_group_messages').select('id').eq('group_id', groupId), 'privacidade após bloqueio')
   if (formerMemberMessages.length !== 0) throw new Error('Ex-participante continuou lendo o grupo após o bloqueio.')
 
   await requireOk(third.rpc('go_offline'), 'saida online atomica')
-  const presenceAfterOffline = await requireOk(third.from('online_presence').select('user_id').eq('user_id', thirdId), 'presenca apos ficar offline')
-  if (presenceAfterOffline.length !== 0) throw new Error('Jogador continuou visivel depois de ficar offline.')
+  const presenceAfterOffline = await requireOk(first.rpc('list_online_players'), 'presenca apos ficar offline')
+  if (presenceAfterOffline.some(player => player.user_id === thirdId)) throw new Error('Jogador continuou visivel depois de ficar offline.')
 
-  console.log('ONLINE_VERIFY_OK anonymous_users=3 private_discovery=ok new_games_presence=ok private_lobby=ok groups_owner_only=ok group_rls=ok text_filter=ok short_audio=ok competing_invite=closed invite_race=serialized room_rls=ok server_moves=5 invalid_move=blocked shared_game=coloring_action_validated voice_signal=private pending_block=ok block_report=ok shared_group_removed=ok go_offline=ok')
+  console.log('ONLINE_VERIFY_OK anonymous_users=3 online_directory_rpc=ok short_codes=ok invite_by_code=ok new_games_presence=ok private_lobby=ok groups_owner_only=ok group_rls=ok text_filter=ok short_audio=ok competing_invite=closed active_room_protected=ok invite_race=serialized room_rls=ok server_moves=5 invalid_move=blocked shared_game=coloring_action_validated voice_signal=private pending_block=ok block_report=ok shared_group_removed=ok go_offline=ok')
 } finally {
   if (roomId) await Promise.resolve(first.rpc('leave_online_room', { room: roomId })).catch(() => {})
   if (competingRoomId) await Promise.resolve(third.rpc('leave_online_room', { room: competingRoomId })).catch(() => {})
+  if (busyRoomId) await Promise.resolve(third.rpc('leave_online_room', { room: busyRoomId })).catch(() => {})
   if (raceRoomId) await Promise.resolve(third.rpc('leave_online_room', { room: raceRoomId })).catch(() => {})
   if (pendingBlockRoomId) await Promise.resolve(first.rpc('leave_online_room', { room: pendingBlockRoomId })).catch(() => {})
   if (arcadeRoomId) await Promise.resolve(first.rpc('leave_online_room', { room: arcadeRoomId })).catch(() => {})

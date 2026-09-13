@@ -20,24 +20,26 @@ import OnlineSafetyGate from './OnlineSafetyGate'
 import { useAccessibleDialog } from '../../online/useAccessibleDialog'
 import OnlineConfirmDialog from './OnlineConfirmDialog'
 
+type InviteTarget = OnlinePlayer & { friendCode?: string }
+
 export default function OnlineLobbyPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const preferredGame = ONLINE_GAME_OPTIONS.find(game => game.key === searchParams.get('jogo'))
   const preferredLocalPath = preferredGame ? localPathForOnlineGame(preferredGame.key) : null
   const {
-    configured, safetyAccepted, status, userId, players, invites, groupInvites, groups, error,
-    acceptSafety, goOffline,
+    configured, safetyAccepted, status, userId, friendCode: myFriendCode, players, invites, groupInvites, groups, error,
+    acceptSafety,
     connect, invitePlayer, respondInvite, createGroup, inviteToGroup,
-    respondGroupInvite, blockPlayer, reportPlayer,
+    invitePlayerByCode, respondGroupInvite, blockPlayer, reportPlayer,
   } = useOnline()
   const [busy, setBusy] = useState('')
-  const [selectedPlayer, setSelectedPlayer] = useState<OnlinePlayer | null>(null)
-  const [pickingGameFor, setPickingGameFor] = useState<OnlinePlayer | null>(null)
+  const [selectedPlayer, setSelectedPlayer] = useState<InviteTarget | null>(null)
+  const [pickingGameFor, setPickingGameFor] = useState<InviteTarget | null>(null)
   const [groupName, setGroupName] = useState('Turma da Bíblia')
   const [creatingGroup, setCreatingGroup] = useState(false)
   const [notice, setNotice] = useState('')
-  const [friendCode, setFriendCode] = useState('')
+  const [friendCodeInput, setFriendCodeInput] = useState('')
   const [copyStatus, setCopyStatus] = useState('')
   const [confirmPlayer, setConfirmPlayer] = useState<{ player: OnlinePlayer; report: boolean } | null>(null)
   const playerDialogFirstRef = useRef<HTMLButtonElement>(null)
@@ -48,6 +50,7 @@ export default function OnlineLobbyPage() {
     setSelectedPlayer(pickingGameFor)
     setPickingGameFor(null)
   }, [busy, pickingGameFor])
+  const pickingGameBusyKey = pickingGameFor?.friendCode ? `code-${pickingGameFor.friendCode}` : pickingGameFor?.userId
   useAccessibleDialog(Boolean(selectedPlayer), closePlayerDialog, playerDialogFirstRef)
   useAccessibleDialog(Boolean(pickingGameFor), closeGameDialog, gameDialogFirstRef)
 
@@ -62,13 +65,17 @@ export default function OnlineLobbyPage() {
     void connect()
   }
 
-  const invite = async (player: OnlinePlayer, gameType = 'tic-tac-toe') => {
-    setBusy(player.userId)
+  const invite = async (player: InviteTarget, gameType = 'tic-tac-toe') => {
+    const busyKey = player.friendCode ? `code-${player.friendCode}` : player.userId
+    setBusy(busyKey)
     setNotice('')
     try {
-      const roomId = await invitePlayer(player.userId, gameType)
+      const roomId = player.friendCode
+        ? await invitePlayerByCode(player.friendCode, gameType)
+        : await invitePlayer(player.userId, gameType)
       setPickingGameFor(null)
       setSelectedPlayer(null)
+      setNotice(`Convite enviado${player.name ? ` para ${player.name}` : ''}! Aguarde seu amigo aceitar.`)
       navigate(`/online/sala/${roomId}`)
     } catch (inviteError) {
       setNotice(inviteError instanceof Error ? inviteError.message : 'Não foi possível enviar o convite.')
@@ -118,7 +125,7 @@ export default function OnlineLobbyPage() {
     }
   }
 
-  const inviteGroup = async (groupId: string, player: OnlinePlayer) => {
+  const inviteGroup = async (groupId: string, player: InviteTarget) => {
     setBusy(`group-${player.userId}`)
     try {
       await inviteToGroup(groupId, player.userId)
@@ -142,10 +149,10 @@ export default function OnlineLobbyPage() {
   }
 
   const copyFriendCode = async () => {
-    if (!userId) return
+    if (!myFriendCode) return
     try {
-      await navigator.clipboard.writeText(userId)
-      setCopyStatus('Código copiado! Envie somente para um amigo conhecido.')
+      await navigator.clipboard.writeText(myFriendCode)
+      setCopyStatus('Código copiado! Envie para seu amigo conhecido.')
     } catch {
       setCopyStatus('Selecione o código acima e copie manualmente.')
     }
@@ -153,17 +160,17 @@ export default function OnlineLobbyPage() {
 
   const useFriendCode = (event: FormEvent) => {
     event.preventDefault()
-    const code = friendCode.trim().toLowerCase()
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(code)) {
-      setNotice('Esse código não está completo. Cole exatamente o código enviado pelo seu amigo.')
+    const code = friendCodeInput.replace(/\s+/g, '').toUpperCase()
+    if (!/^[A-Z0-9]{6}$/.test(code)) {
+      setNotice('Digite as 6 letras e números do código do seu amigo.')
       return
     }
-    if (code === userId) {
+    if (code === myFriendCode) {
       setNotice('Esse é o seu próprio código. Peça o código do seu amigo.')
       return
     }
     setNotice('')
-    const friend = { userId: code, name: 'Amigo do código', avatar: '🔐', activity: 'lobby' as const, gameKey: null, updatedAt: new Date().toISOString() }
+    const friend: InviteTarget = { userId: '', name: 'seu amigo', avatar: '🔐', activity: 'lobby', gameKey: null, updatedAt: new Date().toISOString(), friendCode: code }
     if (preferredGame) setPickingGameFor(friend)
     else setSelectedPlayer(friend)
   }
@@ -198,23 +205,35 @@ export default function OnlineLobbyPage() {
       <motion.header initial={{ opacity: 0, y: -14 }} animate={{ opacity: 1, y: 0 }} className="text-center">
         <div className="text-5xl" aria-hidden="true">🌐</div>
         <h1 className="mt-2 font-title text-3xl" style={{ color: '#5B3A8A' }}>Jogar com Amigos</h1>
-        <p className="mx-auto mt-2 max-w-md text-sm font-bold" style={{ color: '#2563A6' }}>Veja amigos disponíveis e convide com um toque. O código privado continua disponível para conexões fora da lista.</p>
+        <p className="mx-auto mt-2 max-w-md text-sm font-bold" style={{ color: '#2563A6' }}>Escolha um amigo online e toque em <strong>Convidar</strong>. Em poucos segundos, vocês estarão na mesma partida.</p>
       </motion.header>
 
       <div className="mt-5 flex flex-wrap items-center justify-center gap-2 rounded-2xl px-3 py-2 text-sm font-black" role="status" aria-live="polite" style={{ color: status === 'connected' ? '#166534' : status === 'error' ? '#92400E' : '#6B7280', background: status === 'connected' ? '#DCFCE7' : status === 'error' ? '#FEF3C7' : '#F3F4F6' }}>
         {status === 'connecting' ? <LoaderCircle className="animate-spin" size={18} aria-hidden="true" /> : status === 'error' ? <AlertTriangle size={18} aria-hidden="true" /> : <Radio size={18} aria-hidden="true" />}
-        <span>{status === 'connected' ? 'Conexão privada pronta' : status === 'error' ? 'Não foi possível conectar' : 'Conectando com segurança…'}</span>
+        <span>{status === 'connected' ? 'Você está disponível para seus amigos' : status === 'error' ? 'Não conseguimos conectar agora' : 'Entrando no Online…'}</span>
         {status === 'error' && <button type="button" className="min-h-11 rounded-xl bg-white px-3 text-xs font-black shadow-sm" onClick={() => void retryConnection()}>Tentar novamente</button>}
-        {status === 'connected' && <button type="button" className="min-h-14 rounded-xl bg-white px-3 text-xs font-black shadow-sm" onClick={() => void goOffline()}>Ficar offline</button>}
       </div>
 
       {(error || notice) && <p role="status" className="mt-3 rounded-2xl bg-amber-50 p-3 text-sm font-bold" style={{ color: '#92400E' }}>{notice || error}</p>}
 
+      {invites.length > 0 && (
+        <section className="glass-card mt-4 space-y-3 border-2 border-blue-200 bg-blue-50/70 p-4" aria-labelledby="invites-title">
+          <div className="flex items-center justify-between gap-2"><h2 id="invites-title" className="font-black" style={{ color: '#1D4E89' }}>Convites recebidos</h2><span className="rounded-full bg-blue-700 px-2 py-1 text-xs font-black text-white">{invites.length}</span></div>
+          {invites.map(invite => (
+            <article key={invite.id} className="rounded-2xl bg-white p-3 shadow-sm">
+              <p className="font-black"><span aria-hidden="true">{invite.from_avatar}</span> {invite.from_name} chamou você para {invite.game ? ONLINE_GAME_LABELS[invite.game] : 'jogar'}.</p>
+              <p className="mt-1 text-xs font-bold" style={{ color: '#4B5563' }}>Aceite somente se você conhece essa pessoa.</p>
+              <div className="mt-3 grid grid-cols-2 gap-2"><button type="button" className="btn-primary text-sm" disabled={busy === invite.id} onClick={() => void answer(invite.id, true)}>Aceitar e jogar</button><button type="button" className="min-h-14 rounded-2xl bg-slate-100 px-3 text-sm font-black" disabled={busy === invite.id} onClick={() => void answer(invite.id, false)}>Agora não</button></div>
+            </article>
+          ))}
+        </section>
+      )}
+
       <section className="glass-card mt-5 p-4" aria-labelledby="online-players-title">
-        <div className="flex items-center justify-between gap-3"><div><h2 id="online-players-title" className="font-black" style={{ color: '#5B3A8A' }}>Pessoas online agora</h2><p className="mt-1 text-xs font-bold" style={{ color: '#4B5563' }}>Escolha alguém para convidar{preferredGame ? ` para ${preferredGame.label}` : ' para jogar'}.</p></div><span className="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-800" aria-label={`${players.length} pessoas disponíveis`}>{players.length}</span></div>
+        <div className="flex items-center justify-between gap-3"><div><h2 id="online-players-title" className="font-black" style={{ color: '#5B3A8A' }}>Amigos online agora</h2><p className="mt-1 text-xs font-bold" style={{ color: '#4B5563' }}>Toque em alguém para convidar{preferredGame ? ` para ${preferredGame.label}` : ' para jogar'}.</p></div><span className="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-800" aria-label={`${players.length} pessoas disponíveis`}>{players.length}</span></div>
         {status === 'connecting' && <p className="mt-4 rounded-xl bg-blue-50 p-3 text-sm font-bold text-blue-800" role="status"><LoaderCircle className="mr-2 inline animate-spin" size={16} aria-hidden="true" />Procurando pessoas online…</p>}
-        {status === 'connected' && players.length === 0 && <p className="mt-4 rounded-xl bg-slate-50 p-3 text-center text-sm font-bold" style={{ color: '#6B7280' }}>Ninguém disponível agora. Compartilhe seu código privado com um amigo.</p>}
-        {players.length > 0 && <div className="mt-3 grid gap-2 sm:grid-cols-2">{players.filter(player => player.userId !== userId).map(player => <article key={player.userId} className="flex items-center gap-3 rounded-2xl border-2 border-green-100 bg-white p-3"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-50 text-2xl" aria-hidden="true">{player.avatar}</span><div className="min-w-0 flex-1"><strong className="block truncate" style={{ color: '#374151' }}>{player.name}</strong><span className="block text-xs font-bold" style={{ color: '#6B7280' }}>{activityLabel(player)}</span></div><button type="button" className="btn-primary min-h-11 shrink-0 px-3 text-xs" disabled={Boolean(busy)} onClick={() => preferredGame ? void invite(player, preferredGame.key) : setSelectedPlayer(player)} aria-label={`Convidar ${player.name} para jogar`}>Convidar</button></article>)}</div>}
+        {status === 'connected' && players.length === 0 && <p className="mt-4 rounded-xl bg-slate-50 p-3 text-center text-sm font-bold" style={{ color: '#6B7280' }}>Nenhum amigo disponível agora. Quando ele entrar no site, aparecerá aqui.</p>}
+        {players.length > 0 && <div className="mt-3 grid gap-2 sm:grid-cols-2">{players.filter(player => player.userId !== userId).map(player => <article key={player.userId} className="flex items-center gap-3 rounded-2xl border-2 border-green-100 bg-white p-3"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-50 text-2xl" aria-hidden="true">{player.avatar}</span><div className="min-w-0 flex-1"><strong className="block truncate" style={{ color: '#374151' }}>{player.name}</strong><span className="block text-xs font-bold" style={{ color: '#6B7280' }}>{activityLabel(player)}</span></div><button type="button" className="btn-primary min-h-11 shrink-0 px-3 text-xs" disabled={Boolean(busy) || player.activity === 'playing'} onClick={() => preferredGame ? void invite(player, preferredGame.key) : setSelectedPlayer(player)} aria-label={player.activity === 'playing' ? `${player.name} está jogando agora` : `Convidar ${player.name} para jogar`}>{player.activity === 'playing' ? 'Jogando' : busy === player.userId ? 'Enviando…' : 'Convidar'}</button></article>)}</div>}
       </section>
 
       {preferredGame && (
@@ -222,7 +241,7 @@ export default function OnlineLobbyPage() {
           <span className="text-3xl" aria-hidden="true">{preferredGame.emoji}</span>
           <span className="min-w-0 flex-1">
             <strong className="block" style={{ color: '#5B3A8A' }}>Você escolheu {preferredGame.label}</strong>
-            <span className="mt-1 block text-xs font-bold" style={{ color: '#4B5563' }}>Cole o código privado do seu amigo para enviar o convite desse jogo.</span>
+            <span className="mt-1 block text-xs font-bold" style={{ color: '#4B5563' }}>Convide alguém da lista ou use o código curto do seu amigo.</span>
           </span>
           {preferredLocalPath && <button type="button" className="btn-secondary min-h-12 shrink-0 text-sm" onClick={() => navigate(preferredLocalPath)}>
             {hasSystemOpponent(preferredGame.key) ? '🤖 Contra o sistema · 3 níveis' : '▶ Jogar neste aparelho'}
@@ -231,28 +250,24 @@ export default function OnlineLobbyPage() {
       )}
 
       <section className="glass-card mt-5 p-4" aria-labelledby="friend-code-title">
-        <div className="flex items-center gap-2"><KeyRound size={20} aria-hidden="true" style={{ color: '#5B3A8A' }} /><h2 id="friend-code-title" className="font-black" style={{ color: '#5B3A8A' }}>Código privado de amizade</h2></div>
-        <p className="mt-2 text-sm" style={{ color: '#4B5563' }}>Compartilhe seu código fora do site somente com um amigo conhecido e acompanhado por um adulto.</p>
-        <label className="mt-3 block text-sm font-black">Seu código<input readOnly value={userId || 'Conectando…'} onFocus={event => event.currentTarget.select()} className="mt-1 min-h-12 w-full rounded-xl border-2 border-blue-100 bg-blue-50 px-3 font-mono text-xs" /></label>
-        <button type="button" className="btn-secondary mt-2 w-full text-sm" disabled={!userId || status !== 'connected'} onClick={() => void copyFriendCode()}><Copy size={17} aria-hidden="true" /> Copiar meu código</button>
+        <div className="flex items-center gap-2"><KeyRound size={20} aria-hidden="true" style={{ color: '#5B3A8A' }} /><h2 id="friend-code-title" className="font-black" style={{ color: '#5B3A8A' }}>Convide pelo código</h2></div>
+        <p className="mt-2 text-sm" style={{ color: '#4B5563' }}>Mostre este código de 6 caracteres somente para um amigo conhecido:</p>
+        <div className="mt-3 flex items-center gap-2 rounded-2xl border-2 border-blue-100 bg-blue-50 p-3">
+          <strong className="min-w-0 flex-1 text-center font-mono text-2xl tracking-[0.25em]" aria-label={`Seu código é ${myFriendCode || 'gerando'}`}>{myFriendCode || '······'}</strong>
+          <button type="button" className="btn-secondary min-h-11 shrink-0 px-3 text-xs" disabled={!myFriendCode || status !== 'connected'} onClick={() => void copyFriendCode()}><Copy size={17} aria-hidden="true" /> Copiar</button>
+        </div>
         {copyStatus && <p className="mt-2 text-xs font-bold" role="status" style={{ color: '#166534' }}>{copyStatus}</p>}
         <form className="mt-4 border-t border-purple-100 pt-4" onSubmit={useFriendCode}>
-          <label htmlFor="friend-private-code" className="text-sm font-black">Código do seu amigo</label>
-          <input id="friend-private-code" value={friendCode} onChange={event => setFriendCode(event.target.value.slice(0, 36))} maxLength={36} autoComplete="off" spellCheck={false} placeholder="00000000-0000-0000-0000-000000000000" className="mt-1 min-h-12 w-full rounded-xl border-2 border-purple-100 bg-white px-3 font-mono text-xs" />
-          <button type="submit" className="btn-primary mt-2 w-full text-sm" disabled={status !== 'connected' || !friendCode.trim()}><Gamepad2 size={18} aria-hidden="true" /> Escolher jogo ou grupo</button>
+          <label htmlFor="friend-private-code" className="text-sm font-black">Digite o código do seu amigo</label>
+          <input id="friend-private-code" value={friendCodeInput} onChange={event => setFriendCodeInput(event.target.value.replace(/[^a-z0-9]/gi, '').toUpperCase().slice(0, 6))} maxLength={6} inputMode="text" autoComplete="off" spellCheck={false} placeholder="ABC234" className="mt-1 min-h-14 w-full rounded-xl border-2 border-purple-100 bg-white px-3 text-center font-mono text-xl font-black tracking-[0.25em]" />
+          <p className="mt-1 text-xs" style={{ color: '#6B7280' }}>Sem espaços ou hífen. O amigo precisa estar no site.</p>
+          <button type="submit" className="btn-primary mt-2 w-full text-sm" disabled={status !== 'connected' || friendCodeInput.length !== 6}><Gamepad2 size={18} aria-hidden="true" /> Escolher jogo e convidar</button>
         </form>
       </section>
 
-      {(invites.length > 0 || groupInvites.length > 0) && (
-        <section className="mt-5 space-y-3" aria-labelledby="invites-title">
-          <h2 id="invites-title" className="font-black" style={{ color: '#5B3A8A' }}>Convites recebidos</h2>
-          {invites.map(invite => (
-            <article key={invite.id} className="glass-card p-4">
-              <p className="font-black"><span aria-hidden="true">{invite.from_avatar}</span> {invite.from_name} quer jogar {invite.game ? ` ${ONLINE_GAME_LABELS[invite.game]}` : ''} com você.</p>
-              <p className="mt-2 rounded-xl bg-yellow-50 p-2 text-xs font-bold" style={{ color: '#854D0E' }}>Aceite somente se você conhece essa pessoa. Se estiver em outro jogo, ele será encerrado somente depois da sua confirmação.</p>
-              <div className="mt-3 grid grid-cols-2 gap-2"><button type="button" className="btn-primary text-sm" disabled={busy === invite.id} onClick={() => void answer(invite.id, true)}>Jogar agora</button><button type="button" className="btn-secondary text-sm" disabled={busy === invite.id} onClick={() => void answer(invite.id, false)}>Continuar aqui</button></div>
-            </article>
-          ))}
+      {groupInvites.length > 0 && (
+        <section className="mt-5 space-y-3" aria-labelledby="group-invites-title">
+          <h2 id="group-invites-title" className="font-black" style={{ color: '#5B3A8A' }}>Convites de grupo</h2>
           {groupInvites.map(invite => (
             <article key={invite.id} className="glass-card p-4">
               <p className="font-black"><span aria-hidden="true">{invite.from_avatar}</span> {invite.from_name} convidou você para o grupo “{invite.group_name}”.</p>
@@ -273,8 +288,8 @@ export default function OnlineLobbyPage() {
         {notice && <p role="status" className="mt-3 rounded-2xl bg-amber-50 p-3 text-sm font-bold" style={{ color: '#92400E' }}>{notice}</p>}
         {busy && <p role="status" className="mt-2 text-center text-sm font-bold" style={{ color: '#5B3A8A' }}>Aguarde um pouquinho…</p>}
         <button type="button" className="btn-primary mt-4 w-full" disabled={Boolean(busy)} onClick={() => { setPickingGameFor(selectedPlayer); setSelectedPlayer(null) }}><Gamepad2 size={18} /> Escolher jogo e convidar</button>
-        {ownedGroups.length > 0 && <div className="mt-3"><p className="text-sm font-black" style={{ color: '#5B3A8A' }}>Convidar para um grupo seu</p><div className="mt-2 grid gap-2">{ownedGroups.map(group => <button key={group.id} type="button" className="btn-secondary min-h-14 w-full text-sm" disabled={Boolean(busy)} onClick={() => void inviteGroup(group.id, selectedPlayer)}>{group.name}</button>)}</div></div>}
-        <form onSubmit={event => void makeGroup(event, selectedPlayer)} className="mt-3 rounded-2xl bg-purple-50 p-3"><label className="text-sm font-bold">Ou crie um grupo privado<input value={groupName} onChange={event => setGroupName(event.target.value.slice(0, 32))} maxLength={32} className="mt-1 min-h-14 w-full rounded-xl border border-purple-200 px-3" /></label><button type="submit" className="btn-secondary mt-2 w-full text-sm" disabled={Boolean(busy)}><Users size={17} /> Conversar e escolher um jogo</button></form>
+        {!selectedPlayer.friendCode && ownedGroups.length > 0 && <div className="mt-3"><p className="text-sm font-black" style={{ color: '#5B3A8A' }}>Convidar para um grupo seu</p><div className="mt-2 grid gap-2">{ownedGroups.map(group => <button key={group.id} type="button" className="btn-secondary min-h-14 w-full text-sm" disabled={Boolean(busy)} onClick={() => void inviteGroup(group.id, selectedPlayer)}>{group.name}</button>)}</div></div>}
+        {!selectedPlayer.friendCode && <form onSubmit={event => void makeGroup(event, selectedPlayer)} className="mt-3 rounded-2xl bg-purple-50 p-3"><label className="text-sm font-bold">Ou crie um grupo privado<input value={groupName} onChange={event => setGroupName(event.target.value.slice(0, 32))} maxLength={32} className="mt-1 min-h-14 w-full rounded-xl border border-purple-200 px-3" /></label><button type="submit" className="btn-secondary mt-2 w-full text-sm" disabled={Boolean(busy)}><Users size={17} /> Conversar e escolher um jogo</button></form>}
         <div className="mt-4 grid grid-cols-2 gap-2"><button type="button" className="min-h-14 rounded-2xl bg-slate-100 px-3 text-sm font-black" onClick={() => void protectFromPlayer(selectedPlayer)}><Ban className="inline" size={16} /> Bloquear</button><button type="button" className="min-h-14 rounded-2xl bg-orange-50 px-3 text-sm font-black" style={{ color: '#9A3412' }} onClick={() => void protectFromPlayer(selectedPlayer, true)}><AlertTriangle className="inline" size={16} /> Denunciar</button></div>
       </section></div>}
 
@@ -313,7 +328,7 @@ export default function OnlineLobbyPage() {
                     <span className="text-2xl" aria-hidden="true">{g.emoji}</span>
                     <span>{g.label}</span>
                     {g.key === preferredGame?.key && <span className="ml-auto rounded-full bg-purple-700 px-2 py-1 text-[10px] text-white">ESCOLHIDO</span>}
-                    {busy === pickingGameFor.userId && <span className="ml-auto text-xs">Enviando…</span>}
+                    {busy === pickingGameBusyKey && <span className="ml-auto text-xs">Enviando…</span>}
                   </button>
                 ))}
               </div>

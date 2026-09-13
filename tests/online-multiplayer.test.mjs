@@ -32,6 +32,9 @@ async function latestFunctionDefinition(functionName) {
 test('estado final das funções Online preserva jogos, expira salas e serializa bloqueios de grupo', async () => {
   const heartbeat = await latestFunctionDefinition('heartbeat_online_presence')
   const createInvite = await latestFunctionDefinition('create_online_invite')
+  const listInvites = await latestFunctionDefinition('list_my_online_invites')
+  const inviteByCode = await latestFunctionDefinition('create_online_invite_by_code')
+  const respondInvite = await latestFunctionDefinition('respond_online_invite')
   const respondGroupInvite = await latestFunctionDefinition('respond_online_group_invite')
 
   for (const game of ['memory', 'tic-tac-toe', 'checkers', 'chess', 'rock-paper-scissors', 'adedonha', 'uno', 'coloring', 'snake', 'simon', 'quiz', 'puzzle', 'pong', 'hangman']) {
@@ -45,7 +48,15 @@ test('estado final das funções Online preserva jogos, expira salas e serializa
   assert.ok(expireInviteAt >= 0, `convite final não expira convites vencidos (${createInvite.file})`)
   assert.ok(cancelRoomAt > expireInviteAt, `convite final não encerra a sala vencida (${createInvite.file})`)
   assert.ok(busyCheckAt > cancelRoomAt, `limpeza precisa ocorrer antes do PLAYER_BUSY (${createInvite.file})`)
-  assert.match(createInvite.definition, /invite\.room_id = room\.id[\s\S]*invite\.status = 'expired'/i)
+  assert.match(createInvite.definition, /invite\.room_id = room\.id[\s\S]*invite\.status = 'pending'/i)
+  assert.match(createInvite.definition, /room\.status = 'active'[\s\S]*updated_at <= now\(\) - interval '90 seconds'/i)
+  assert.match(createInvite.definition, /presence\.activity = 'playing'[\s\S]*presence\.game_key = room\.game/i)
+  assert.match(listInvites.definition, /invite\.to_user = auth\.uid\(\)/i)
+  assert.match(listInvites.definition, /room\.status = 'waiting'/i)
+  assert.match(inviteByCode.definition, /create_online_invite\(guest_id, game_type\)/i)
+  assert.match(respondInvite.definition, /online-invite-recipient:/i)
+  assert.match(respondInvite.definition, /raise exception 'PLAYER_BUSY'/i)
+  assert.doesNotMatch(respondInvite.definition, /status in \('waiting', 'active'\) and id <> current_invite\.room_id/i)
 
   const groupDefinition = respondGroupInvite.definition
   const pairLocks = groupDefinition.match(/pg_advisory_xact_lock/g) || []
@@ -149,7 +160,7 @@ test('migração online protege salas, convites e jogadas no servidor', async ()
 })
 
 test('cliente usa identidade server-side, descoberta privada, proteção infantil e voz sob consentimento', async () => {
-  const [context, safetyGate, dialogHook, lobby, group, notifications, room, voice, headers, privateDiscovery] = await Promise.all([
+  const [context, safetyGate, dialogHook, lobby, group, notifications, room, voice, headers, privateDiscovery, childInvites] = await Promise.all([
     readFile(new URL('src/contexts/OnlineContext.tsx', root), 'utf8'),
     readFile(new URL('src/components/Online/OnlineSafetyGate.tsx', root), 'utf8'),
     readFile(new URL('src/online/useAccessibleDialog.ts', root), 'utf8'),
@@ -160,32 +171,38 @@ test('cliente usa identidade server-side, descoberta privada, proteção infanti
     readFile(new URL('src/online/useRoomVoice.ts', root), 'utf8'),
     readFile(new URL('public/_headers', root), 'utf8'),
     readFile(new URL('supabase/migrations/20260907123000_private_online_discovery.sql', root), 'utf8'),
+    readFile(new URL('supabase/migrations/20260913113000_child_friendly_online_invites.sql', root), 'utf8'),
   ])
 
   assert.match(context, /signInAnonymously/)
   assert.match(context, /upsert_online_profile/)
   assert.match(context, /heartbeat_online_presence/)
   assert.match(context, /online_presence/)
+  assert.match(context, /friendCode/)
+  assert.match(context, /invitePlayerByCode/)
+  assert.match(context, /list_my_online_invites/)
   const connectStart = context.indexOf('const connect = useCallback')
   const consentGuard = context.indexOf('if (!safetyAcceptedRef.current)', connectStart)
   const anonymousSignIn = context.indexOf('signInAnonymously', connectStart)
   assert.ok(connectStart >= 0 && anonymousSignIn > connectStart, 'autenticação anônima deve iniciar a presença automaticamente')
   assert.match(context, /sessionStorage\.setItem\('mel-online-consent', 'yes'\)/)
-  assert.match(context, /clearHeartbeat\(\)[\s\S]*rpc\('go_offline'\)/)
-  assert.match(safetyGate, /Ao entrar, você aparecerá como disponível/)
+  assert.doesNotMatch(context, /goOffline|Ficar offline/)
+  assert.match(safetyGate, /Sua presença fica automática/)
   assert.match(dialogHook, /event\.key === 'Escape'/)
   assert.match(dialogHook, /document\.body\.style\.overflow = 'hidden'/)
   assert.doesNotMatch(context, /lobby\.track\(|presenceState/)
   assert.match(lobby, /activityLabel\(selectedPlayer\)/)
   assert.match(lobby, /Jogar com Amigos/)
-  assert.match(lobby, /Código privado de amizade/)
+  assert.match(lobby, /Convide pelo código/)
   assert.match(lobby, /friend-private-code/)
-  assert.match(lobby, /navigator\.clipboard\.writeText\(userId\)/)
+  assert.match(lobby, /navigator\.clipboard\.writeText\(myFriendCode\)/)
+  assert.match(lobby, /maxLength=\{6\}/)
+  assert.match(lobby, /Aceitar e jogar/)
+  assert.doesNotMatch(lobby, /Ficar offline/)
   assert.match(lobby, /Meus grupos privados/)
   assert.doesNotMatch(lobby, /Quem está Online|Chat geral/)
   assert.match(lobby, /Bloquear/)
   assert.match(lobby, /Denunciar/)
-  assert.match(lobby, /Ficar offline/)
   assert.doesNotMatch(lobby, /disponívelis/)
   assert.match(group, /send_online_group_message/)
   assert.match(group, /send_online_group_audio/)
@@ -201,8 +218,9 @@ test('cliente usa identidade server-side, descoberta privada, proteção infanti
   assert.match(privateDiscovery, /create policy "presence read own"/)
   assert.match(privateDiscovery, /create policy "lobby messages read own"/)
   assert.match(notifications, /Nada será fechado sem você escolher/)
-  assert.match(notifications, /Sair e jogar/)
-  assert.match(notifications, /Conversar/)
+  assert.match(notifications, /Aceitar e jogar/)
+  assert.match(notifications, /Agora não/)
+  assert.doesNotMatch(notifications, /Continuar aqui|Conversar/)
   assert.match(room, /channel\(`online:room:\$\{roomId\}`,[\s\S]*private: true/)
   assert.match(room, /Não compartilhe nome completo, endereço, escola, telefone, senha ou fotos/)
   assert.match(room, /Entendi, ligar microfone/)
@@ -213,7 +231,13 @@ test('cliente usa identidade server-side, descoberta privada, proteção infanti
   assert.match(room, /remoteParticipantId/)
   assert.match(room, /Mensagens privadas da partida/)
   assert.match(room, /OnlineConfirmDialog/)
+  assert.match(room, /leavingRoomRef/)
+  assert.match(room, /route changes also leave the room|Menu, back and route changes also leave the room/)
   assert.doesNotMatch(`${lobby}\n${group}\n${room}`, /window\.confirm/)
+  assert.match(childInvites, /friend_code/)
+  assert.match(childInvites, /create_online_invite_by_code/)
+  assert.match(childInvites, /list_my_online_invites/)
+  assert.match(childInvites, /status = 'cancelled'/i)
   assert.match(voice, /getUserMedia\(\{ audio: true, video: false \}\)/)
   assert.match(voice, /stun:stun\.cloudflare\.com:3478/)
   assert.match(voice, /connectionState === 'failed'[\s\S]*failConnection\(peer\)/)

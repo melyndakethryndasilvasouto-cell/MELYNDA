@@ -64,11 +64,23 @@ export default function OnlineRoomPage() {
   const keepAtBottomRef = useRef(true)
   const [newMessages, setNewMessages] = useState(false)
   const [confirmAction, setConfirmAction] = useState<'leave' | 'block' | 'report' | null>(null)
+  const leavingRoomRef = useRef(false)
   const hostId = room?.host_id || ''
   const isHost = hostId === userId && hostId !== ''
   const voice = useRoomVoice(channel, userId, hostId)
   roomRef.current = room
   voiceHandlerRef.current = voice.handleSignal as (payload: unknown) => Promise<void>
+
+  useEffect(() => {
+    const mountedRoomId = roomId
+    return () => {
+      const currentRoom = roomRef.current
+      if (!supabase || leavingRoomRef.current || !currentRoom || currentRoom.id !== mountedRoomId || currentRoom.status === 'finished' || currentRoom.status === 'cancelled') return
+      // Menu, back and route changes also leave the room. The database RPC is
+      // idempotent; the stale-room cleanup remains a fallback for closed tabs.
+      void supabase.rpc('leave_online_room', { room: mountedRoomId })
+    }
+  }, [roomId])
 
   const applyRoom = useCallback((next: OnlineRoom) => {
     const previous = roomRef.current
@@ -213,8 +225,11 @@ export default function OnlineRoomPage() {
   }, [room?.game, setPlayingGame])
 
   useEffect(() => {
-    if (room?.status === 'cancelled') voice.stop()
-  }, [room?.status, voice.stop])
+    if (room?.status === 'cancelled' || room?.status === 'finished') {
+      voice.stop()
+      setPlayingGame(null)
+    }
+  }, [room?.status, setPlayingGame, voice.stop])
 
   useEffect(() => {
     if (!supabase || !room?.guest_id || profiles[room.guest_id]) return
@@ -301,7 +316,7 @@ export default function OnlineRoomPage() {
   }, [applyRoom, roomId])
 
   const leave = async (confirmed = false) => {
-    if (!confirmed) { setConfirmAction('leave'); return }
+    if (!confirmed && room?.status !== 'waiting') { setConfirmAction('leave'); return }
     voice.stop()
     if (!supabase) return
     const response = await supabase.rpc('leave_online_room', { room: roomId })
@@ -309,6 +324,8 @@ export default function OnlineRoomPage() {
       setError('Não foi possível encerrar a sala. Verifique a conexão e tente novamente.')
       return
     }
+    leavingRoomRef.current = true
+    setPlayingGame(null)
     navigate('/online')
   }
 
@@ -382,8 +399,15 @@ export default function OnlineRoomPage() {
       <header className="text-center">
         <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#1D4E89' }}>Sala privada • Jogo online</p>
         <h1 className="mt-1 font-title text-3xl" style={{ color: '#5B3A8A' }}>🎮 {ONLINE_GAME_LABELS[room.game]}</h1>
-        
       </header>
+
+      {room.status === 'waiting' && (
+        <div className="glass-card mt-4 border-2 border-blue-100 bg-blue-50/80 p-4 text-center" role="status" aria-live="polite">
+          <p className="text-3xl" aria-hidden="true">📨</p>
+          <h2 className="mt-2 font-black" style={{ color: '#1D4E89' }}>Convite enviado!</h2>
+          <p className="mt-1 text-sm font-bold" style={{ color: '#4B5563' }}>Estamos aguardando seu amigo aceitar. Esta tela atualiza sozinha.</p>
+        </div>
+      )}
 
       <div className="glass-card mt-4 grid grid-cols-2 gap-3 p-3 text-center">
         <div className={isHost ? 'rounded-2xl bg-blue-50 p-2' : 'p-2'}>
@@ -547,7 +571,7 @@ export default function OnlineRoomPage() {
 
       <div className="mt-4 flex flex-wrap justify-center gap-2">
         {room.status === 'finished' && <button type="button" disabled={restarting || !roomConnected} className="btn-primary text-sm" onClick={() => void restart()}><RotateCcw size={17} /> {restarting ? 'Preparando…' : 'Revanche'}</button>}
-        <button type="button" className="btn-secondary text-sm" onClick={() => void leave()}><PhoneOff size={17} /> Sair da sala</button>
+        <button type="button" className="btn-secondary text-sm" onClick={() => void leave(room.status === 'waiting')}><PhoneOff size={17} /> {room.status === 'waiting' ? 'Cancelar convite' : 'Sair da sala'}</button>
       </div>
 
       <aside className="glass-card mt-5 p-4" aria-label="Chat e voz privados da partida">
